@@ -292,22 +292,38 @@
 
         function fetchNews() {
             const now = new Date();
+            // We use onSnapshot for real-time updates.
+            // Note: If this query fails in the console, you might need to create a Firestore index.
             db.collection('poortjie').doc('news').collection('updates')
                 .where('status', '==', 'active')
-                .orderBy('createdAt', 'desc')
-                .limit(5)
                 .onSnapshot(snapshot => {
                     newsUpdates = [];
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         // Client-side expiry check
-                        if (!data.expiry || data.expiry.toDate() > now) {
-                            newsUpdates.push(data);
+                        const isExpired = data.expiry && data.expiry.toDate() < now;
+                        if (!isExpired) {
+                            newsUpdates.push({ id: doc.id, ...data });
                         }
                     });
+
+                    // Client-side sort as fallback for missing composite index
+                    newsUpdates.sort((a, b) => {
+                        const dateA = a.createdAt?.toDate() || new Date(0);
+                        const dateB = b.createdAt?.toDate() || new Date(0);
+                        return dateB - dateA;
+                    });
+
+                    // Limit to 5 most recent
+                    newsUpdates = newsUpdates.slice(0, 5);
+                    
                     startNewsSlider();
                 }, error => {
                     console.error("Error fetching news:", error);
+                    // If it's an index error, Firestore provides a link in the console
+                    if (error.message && error.message.includes('index')) {
+                        console.warn("Firestore Index Required: " + error.message);
+                    }
                     document.getElementById('news-slider-container').classList.add('hidden');
                     document.getElementById('hero-static-text').classList.remove('hidden');
                 });
