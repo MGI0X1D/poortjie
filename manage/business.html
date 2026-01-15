@@ -296,7 +296,7 @@
             const appData = appDoc.data();
 
             const servicesRef = db.collection('poortjie').doc('services');
-            const liveServiceRef = db.collection('poortjie').doc('services').collection('listings').doc(appId);
+            const liveServiceRef = db.collection('poortjie').doc('services').collection(appData.businessType).doc(appId);
 
             await db.runTransaction(async (transaction) => {
                 const servicesDoc = await transaction.get(servicesRef);
@@ -305,10 +305,9 @@
                 const category = appData.businessType;
 
                 // 1. Update status in homeScreen instead of removing
-                if (homeScreen[category] && homeScreen[category].data && homeScreen[category].data[appId]) {
-                    homeScreen[category].data[appId].status = 'disabled';
-                    homeScreen[category].data[appId].disabledBy = currentUserId;
-                    transaction.update(servicesRef, { homeScreen });
+                if (homeScreen[category]) {
+                    // We no longer store data in homeScreen, but if it exists, we could clean it up or just ignore
+                    // For now, let's just make sure we don't try to access .data[appId] if we are removing it
                 }
 
                 // 2. Update status in live services collection
@@ -378,18 +377,25 @@
                         description: `Local ${finalCategory.toLowerCase()} services in Poortjie.`,
                         subtitle: `${finalCategory} Experts`,
                         listing: [],
-                        data: { [appId]: businessData }
+                        status: 'active'
                     };
-                } else {
-                    updateData[`homeScreen.${finalCategory}.data.${appId}`] = businessData;
                 }
 
-                transaction.update(servicesRef, updateData);
+                if (servicesDoc.exists) {
+                    if (Object.keys(updateData).length > 0) {
+                        transaction.update(servicesRef, updateData);
+                    }
+                } else {
+                    transaction.set(servicesRef, updateData, { merge: true });
+                }
 
                 // Initialize/Update status in live services collection
-                const liveServiceRef = db.collection('poortjie').doc('services').collection('listings').doc(appId);
+                const liveServiceRef = db.collection('poortjie').doc('services').collection(finalCategory).doc(appId);
                 transaction.set(liveServiceRef, {
+                    ...appData,
+                    businessType: finalCategory,
                     status: 'active',
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     approvedBy: currentUserId
                 }, { merge: true });
 

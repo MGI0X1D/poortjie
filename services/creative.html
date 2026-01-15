@@ -133,31 +133,29 @@
         }
 
         // 2. Fetch from Firestore
-        db.collection('poortjie').doc('services').get()
-            .then(doc => {
-                if (doc.exists) {
-                    const homeScreenData = doc.data().homeScreen;
-                    const creativeData = homeScreenData.Creative.data;
-                    if (creativeData && typeof creativeData === 'object') {
-                        allProviders = Object.keys(creativeData)
-                            .map(key => ({
-                                id: key,
-                                ...creativeData[key]
-                            }))
-                            .filter(provider => provider.status === 'active');
-
-                        // 3. Update cache and render
-                        filterAndSort();
-                        try {
-                            sessionStorage.setItem('creativeProvidersCache', JSON.stringify(allProviders));
-                        } catch (e) {
-                            console.error("Could not write to sessionStorage:", e);
+        db.collection('poortjie').doc('services').collection('Creative').get()
+            .then(snapshot => {
+                if (!snapshot.empty) {
+                    allProviders = [];
+                    snapshot.forEach(doc => {
+                        const provider = doc.data();
+                        if (provider.status === 'active') {
+                            allProviders.push({
+                                id: doc.id,
+                                ...provider
+                            });
                         }
-                    } else {
-                        serviceProviderGrid.innerHTML = '<p>No creative services found.</p>';
+                    });
+
+                    // 3. Update cache and render
+                    filterAndSort();
+                    try {
+                        sessionStorage.setItem('creativeProvidersCache', JSON.stringify(allProviders));
+                    } catch (e) {
+                        console.error("Could not write to sessionStorage:", e);
                     }
                 } else {
-                    serviceProviderGrid.innerHTML = '<p>Could not load service providers. Please try again later.</p>';
+                    serviceProviderGrid.innerHTML = '<p>No creative services found.</p>';
                 }
             })
             .catch(error => {
