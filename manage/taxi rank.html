@@ -27,11 +27,14 @@
         <div class="flex justify-between items-center">
             <div>
                 <h1 class="text-4xl font-extrabold mb-4 tracking-tight">Taxi Rank Info Manager</h1>
-                <p id="welcome-message" class="text-xl opacity-80">Manage taxi news, routes, and rank locations for Poortjie</p>
+                <p id="welcome-message" class="text-xl opacity-80">Manage taxi news, routes, and rank locations for
+                    Poortjie</p>
             </div>
-            <div class="flex gap-4">
-                <a href="../home.html" onclick="window.location.replace('../home.html'); return false;" class="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition">Home</a>
-            </div>
+            <a href="../index.html"
+               onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
+               class="w-full md:w-auto text-center px-6 py-3 border-2 border-green-600 text-green-600 dark:text-green-400 font-bold rounded-lg hover:bg-green-600 hover:text-white transition whitespace-nowrap">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Home
+            </a>
         </div>
     </header>
 
@@ -40,7 +43,8 @@
         <div class="card p-8 rounded-2xl bg-white dark:bg-slate-800 shadow-xl">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-green-600 dark:text-green-400">Latest News & Updates</h2>
-                <button id="add-news-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-sm">
+                <button id="add-news-btn"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-sm">
                     <i class="fas fa-plus mr-2"></i>Add News
                 </button>
             </div>
@@ -53,7 +57,8 @@
         <div class="card p-8 rounded-2xl bg-white dark:bg-slate-800 shadow-xl">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-green-600 dark:text-green-400">Routes & Fares</h2>
-                <button id="add-route-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-sm">
+                <button id="add-route-btn"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-sm">
                     <i class="fas fa-plus mr-2"></i>Add Route
                 </button>
             </div>
@@ -66,46 +71,65 @@
     </main>
 
     <!-- News Modal -->
-    <div id="news-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div id="news-modal"
+         class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
         <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-lg w-full shadow-2xl">
             <h3 id="news-modal-title" class="text-2xl font-bold mb-6 text-green-600">Add News</h3>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">News Content</label>
-                    <textarea id="news-content" rows="4" class="w-full p-4 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none" placeholder="e.g., Taxi fares will increase by R2 starting next month."></textarea>
+                    <textarea id="news-content" rows="4"
+                              class="w-full p-4 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                              placeholder="e.g., Taxi fares will increase by R2 starting next month."></textarea>
                 </div>
                 <div class="flex justify-end gap-3 pt-4">
-                    <button id="close-news-modal" class="px-6 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition font-bold">Cancel</button>
-                    <button id="save-news-item" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold">Save News</button>
+                    <button id="close-news-modal"
+                            class="px-6 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition font-bold">
+                        Cancel
+                    </button>
+                    <button id="save-news-item"
+                            class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold">
+                        Save News
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Route Modal -->
-    <div id="route-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div id="route-modal"
+         class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
         <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 id="route-modal-title" class="text-2xl font-bold mb-6 text-green-600">Add Route</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Origin</label>
-                    <input type="text" id="route-origin" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none" value="Poortjie">
+                    <input type="text" id="route-origin"
+                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                           value="Poortjie">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Destination</label>
-                    <input type="text" id="route-destination" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none" placeholder="e.g., Lenasia">
+                    <input type="text" id="route-destination"
+                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                           placeholder="e.g., Lenasia">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Fare (Rand)</label>
-                    <input type="number" id="route-fare" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none" placeholder="e.g., 25">
+                    <input type="number" id="route-fare"
+                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                           placeholder="e.g., 25">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Operating Hours</label>
-                    <input type="text" id="route-hours" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none" placeholder="e.g., 6am - 8pm">
+                    <input type="text" id="route-hours"
+                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                           placeholder="e.g., 6am - 8pm">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Route Type</label>
-                    <select id="route-type" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none">
+                    <select id="route-type"
+                            class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none">
                         <option value="standard">Standard</option>
                         <option value="morning_only">Morning Only</option>
                         <option value="afternoon_only">Afternoon Only</option>
@@ -118,23 +142,36 @@
                 </div>
                 <div class="col-span-full">
                     <label class="block text-sm font-bold mb-2 opacity-70">Rank Location Name/Info</label>
-                    <input type="text" id="route-location" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none" placeholder="e.g., Lenasia Main Taxi Rank">
+                    <input type="text" id="route-location"
+                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                           placeholder="e.g., Lenasia Main Taxi Rank">
                 </div>
                 <div class="col-span-full">
                     <label class="block text-sm font-bold mb-2 opacity-70">Rank Coordinates (Google Maps Pin)</label>
                     <div class="flex gap-2 mb-2">
-                        <input type="text" id="route-lat" readonly class="flex-grow p-3 border rounded-lg bg-gray-100 dark:bg-slate-700 dark:border-slate-600 outline-none text-sm" placeholder="Latitude">
-                        <input type="text" id="route-lng" readonly class="flex-grow p-3 border rounded-lg bg-gray-100 dark:bg-slate-700 dark:border-slate-600 outline-none text-sm" placeholder="Longitude">
+                        <input type="text" id="route-lat" readonly
+                               class="flex-grow p-3 border rounded-lg bg-gray-100 dark:bg-slate-700 dark:border-slate-600 outline-none text-sm"
+                               placeholder="Latitude">
+                        <input type="text" id="route-lng" readonly
+                               class="flex-grow p-3 border rounded-lg bg-gray-100 dark:bg-slate-700 dark:border-slate-600 outline-none text-sm"
+                               placeholder="Longitude">
                     </div>
-                    <div id="map" class="w-full h-64 rounded-lg bg-gray-200 dark:bg-slate-700 relative flex items-center justify-center overflow-hidden">
+                    <div id="map"
+                         class="w-full h-64 rounded-lg bg-gray-200 dark:bg-slate-700 relative flex items-center justify-center overflow-hidden">
                         <p class="text-sm opacity-50">Loading Map...</p>
                     </div>
                     <p class="text-xs mt-2 opacity-60">Click on the map to set the rank location pin.</p>
                 </div>
             </div>
             <div class="flex justify-end gap-3 pt-8 border-t dark:border-slate-700 mt-6">
-                <button id="close-route-modal" class="px-6 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition font-bold">Cancel</button>
-                <button id="save-route-item" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold">Save Route</button>
+                <button id="close-route-modal"
+                        class="px-6 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition font-bold">
+                    Cancel
+                </button>
+                <button id="save-route-item"
+                        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold">
+                    Save Route
+                </button>
             </div>
         </div>
     </div>
@@ -147,18 +184,20 @@
 <script src="../scripts/firebase.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <!-- Leaflet for Map -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
     const newsList = document.getElementById('news-list');
     const routesList = document.getElementById('routes-list');
     const statusMsg = document.getElementById('status-message');
-    
+
     // Modals
     const newsModal = document.getElementById('news-modal');
     const routeModal = document.getElementById('route-modal');
-    
+
     // Map
     let map;
     let marker;
@@ -167,15 +206,15 @@
 
     function initMap() {
         if (map) return;
-        
+
         // Default center to Poortjie rank
         map = L.map('map').setView([-26.456778308219796, 27.767730640546663], 15);
-        
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        map.on('click', function(e) {
+        map.on('click', function (e) {
             setMarker(e.latlng.lat, e.latlng.lng);
         });
     }
@@ -191,9 +230,9 @@
         document.getElementById('route-lat').value = lat.toFixed(6);
         document.getElementById('route-lng').value = lng.toFixed(6);
     }
-    
+
     // State
-    let currentData = { news: [], routes: {} };
+    let currentData = {news: [], routes: {}};
     let editingNewsIndex = -1;
     let editingRouteKey = null;
 
@@ -254,9 +293,9 @@
     }
 
     function renderNews() {
-        newsList.innerHTML = currentData.news.length === 0 ? 
+        newsList.innerHTML = currentData.news.length === 0 ?
             '<p class="text-center py-4 opacity-50 italic text-sm">No news added yet.</p>' : '';
-        
+
         currentData.news.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'flex justify-between items-center p-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg border border-gray-200 dark:border-slate-700';
@@ -272,11 +311,11 @@
     }
 
     function renderRoutes() {
-        routesList.innerHTML = Object.keys(currentData.routes).length === 0 ? 
+        routesList.innerHTML = Object.keys(currentData.routes).length === 0 ?
             '<p class="col-span-full text-center py-8 opacity-50 italic text-sm">No routes added yet.</p>' : '';
-        
+
         // Sort by destination
-        const sortedKeys = Object.keys(currentData.routes).sort((a, b) => 
+        const sortedKeys = Object.keys(currentData.routes).sort((a, b) =>
             currentData.routes[a].destination.localeCompare(currentData.routes[b].destination)
         );
 
@@ -329,7 +368,7 @@
         selectedLng = null;
         if (marker) map.removeLayer(marker);
         marker = null;
-        
+
         routeModal.classList.remove('hidden');
         setTimeout(() => {
             initMap();
@@ -369,7 +408,7 @@
         document.getElementById('route-location').value = route.location || '';
         document.getElementById('route-lat').value = route.lat || '';
         document.getElementById('route-lng').value = route.lng || '';
-        
+
         routeModal.classList.remove('hidden');
         setTimeout(() => {
             initMap();
@@ -414,7 +453,7 @@
     document.getElementById('save-news-item').onclick = async () => {
         const content = document.getElementById('news-content').value.trim();
         if (!content) return alert('News content cannot be empty.');
-        
+
         const btn = document.getElementById('save-news-item');
         btn.disabled = true;
         btn.textContent = 'Saving...';
@@ -424,7 +463,7 @@
         } else {
             currentData.news.unshift(content);
         }
-        
+
         await saveToFirestore('News saved successfully');
         newsModal.classList.add('hidden');
         renderNews();
@@ -467,7 +506,7 @@
 
         const key = editingRouteKey || `${origin.toLowerCase().replace(/\s+/g, '_')}_to_${dest.toLowerCase().replace(/\s+/g, '_')}`;
         currentData.routes[key] = routeData;
-        
+
         await saveToFirestore('Route saved successfully');
         routeModal.classList.add('hidden');
         renderRoutes();

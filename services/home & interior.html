@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poortjie | Home & Decor Services</title>
     <meta name="author" content="Musa Mgijima">
-    <meta name="description" content="Find reliable and affordable home and decor services in Poortjie, from custom furniture to interior design.">
+    <meta name="description"
+          content="Find reliable and affordable home and decor services in Poortjie, from custom furniture to interior design.">
     <meta name="keywords" content="Poortjie, home decor, furniture, artisans, interior design, Kasi services">
     <meta name="copyright" content="© 2026 Poortjie Services. All rights reserved.">
     <meta name="robots" content="index,follow">
@@ -22,10 +23,14 @@
             darkMode: 'class'
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <link rel="stylesheet" href="../styles/main.css">
     <style>
-        body { transition: background-color 0.3s ease, color 0.3s ease; }
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
 
     </style>
 </head>
@@ -35,10 +40,14 @@
 <header class="max-w-6xl mx-auto pt-20 pb-12 px-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-            <div class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold tracking-widest uppercase inline-block">Home & Decor</div>
+            <div class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold tracking-widest uppercase inline-block">
+                Home & Decor
+            </div>
             <h1 class="text-4xl md:text-6xl font-extrabold mt-2 tracking-tight">Service Providers</h1>
         </div>
-        <a href="../index.html" onclick="window.location.replace('../index.html'); return false;" class="w-full md:w-auto text-center px-6 py-3 border-2 border-green-600 text-green-600 dark:text-green-400 font-bold rounded-lg hover:bg-green-600 hover:text-white transition whitespace-nowrap">
+        <a href="../index.html"
+           onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
+           class="w-full md:w-auto text-center px-6 py-3 border-2 border-green-600 text-green-600 dark:text-green-400 font-bold rounded-lg hover:bg-green-600 hover:text-white transition whitespace-nowrap">
             <i class="fas fa-arrow-left mr-2"></i>Back to Home
         </a>
     </div>
@@ -49,12 +58,14 @@
     <div class="mb-8 flex flex-col md:flex-row gap-4">
         <div class="relative flex-grow">
             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            <label for="search-bar"></label><input type="text" id="search-bar" placeholder="Search providers..." class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <label for="search-bar"></label><input type="text" id="search-bar" placeholder="Search providers..."
+                                                   class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
         </div>
-        <label for="sort-list"></label><select id="sort-list" class="px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
-            <option value="rating">Sort by Rating</option>
-            <option value="name">Sort by Name (A-Z)</option>
-        </select>
+        <label for="sort-list"></label><select id="sort-list"
+                                               class="px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+        <option value="rating">Sort by Rating</option>
+        <option value="name">Sort by Name (A-Z)</option>
+    </select>
     </div>
 
     <div id="service-provider-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -66,7 +77,8 @@
     &copy; 2026 Poortjie Services. Empowering Poortjie economies.
 </footer>
 
-<div id="rating-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+<div id="rating-modal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
 </div>
 
 <script src="../scripts/theme.js"></script>
@@ -133,7 +145,7 @@
                                 ...interiorData[key]
                             }))
                             .filter(provider => provider.status === 'active');
-                        
+
                         // 3. Update cache and render
                         filterAndSort();
                         try {
@@ -145,7 +157,7 @@
                         serviceProviderGrid.innerHTML = '<p>No home & interior services found.</p>';
                     }
                 } else {
-                     serviceProviderGrid.innerHTML = '<p>Could not load service providers. Please try again later.</p>';
+                    serviceProviderGrid.innerHTML = '<p>Could not load service providers. Please try again later.</p>';
                 }
             })
             .catch(error => {
@@ -155,7 +167,7 @@
                 }
             });
     };
-    
+
     const searchBar = document.getElementById('search-bar');
     const sortList = document.getElementById('sort-list');
 

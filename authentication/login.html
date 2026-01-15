@@ -20,32 +20,43 @@
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
-<header class="max-w-6xl mx-auto pt-24 pb-16 px-6 text-center">
-    <a href="../index.html" onclick="window.location.replace('../index.html'); return false;" class="text-6xl font-extrabold mb-4 tracking-tight text-slate-900 dark:text-white">Poortjie</a>
+<header class="max-w-6xl mx-auto pt-24 pb-16 px-6 text-center text-gray-900 dark:text-gray-100">
+    <a href="../index.html"
+       onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
+       class="text-6xl font-extrabold mb-4 tracking-tight">Poortjie</a>
 </header>
 
 <main class="max-w-md mx-auto px-6 pb-24">
     <div class="card flex flex-col p-8 rounded-2xl border-l-4 border-l-green-500">
         <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
-        <div id="error-message" class="hidden mb-4 p-3 rounded-lg bg-red-100 text-red-700 text-sm font-medium border border-red-200"></div>
+        <div id="error-message"
+             class="hidden mb-4 p-3 rounded-lg bg-red-100 text-red-700 text-sm font-medium border border-red-200"></div>
         <form id="login-form">
             <div class="mb-4">
-                <label for="email"></label><input type="email" id="email" name="email" placeholder="Email" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition" required>
+                <label for="email"></label><input type="email" id="email" name="email" placeholder="Email"
+                                                  class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
+                                                  required>
             </div>
             <div class="mb-6">
-                <label for="password"></label><input type="password" id="password" name="password" placeholder="Password" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition" required>
+                <label for="password"></label><input type="password" id="password" name="password"
+                                                     placeholder="Password"
+                                                     class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
+                                                     required>
             </div>
             <div class="flex items-center justify-between">
-                <button type="submit" class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md">
+                <button type="submit"
+                        class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md">
                     Login
                 </button>
             </div>
-              <a href="#" class="inline-block align-baseline font-bold text-sm text-green-500 hover:text-green-800 mt-4">
-                    Forgot Password?
-                </a>
+            <a href="#" class="inline-block align-baseline font-bold text-sm text-green-500 hover:text-green-800 mt-4">
+                Forgot Password?
+            </a>
         </form>
         <p class="text-center text-sm text-slate-600 dark:text-slate-400 mt-6">
-            Don't have an account? <a href="register.html" onclick="window.location.replace('register.html'); return false;" class="text-green-500 hover:text-green-700 font-bold">Register</a>.
+            Don't have an account? <a href="register.html"
+                                      onclick="window.location.replace('register.html'); return false;"
+                                      class="text-green-500 hover:text-green-700 font-bold">Register</a>.
         </p>
     </div>
 </main>
@@ -209,7 +220,7 @@
     loginForm.addEventListener('submit', event => {
         event.preventDefault();
         errorMessage.classList.add('hidden');
-        
+
         const email = emailInput.value;
         const password = passwordInput.value;
 

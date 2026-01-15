@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taxi Rank Info | Poortjie Services</title>
-    <meta name="description" content="Check local taxi rank information, routes, fares, and operating hours in Poortjie.">
+    <meta name="description"
+          content="Check local taxi rank information, routes, fares, and operating hours in Poortjie.">
     <meta name="theme-color" content="#22c55e">
 
     <link rel="icon" href="../favicon/favicon.ico">
@@ -21,12 +22,20 @@
     <link rel="stylesheet" href="../styles/main.css">
     <style>
         @keyframes pulse-red {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
         }
+
         .breaking-news-badge {
             animation: pulse-red 2s infinite;
         }
+
         .marquee-container {
             overflow: hidden;
             white-space: nowrap;
@@ -40,14 +49,20 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 24px 40px -24px rgb(0 0 0 / 0.1);
         }
+
         .marquee-content {
             display: inline-block;
             padding-left: 100%;
             animation: marquee 20s linear infinite;
         }
+
         @keyframes marquee {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(-100%, 0);
+            }
         }
     </style>
 </head>
@@ -56,11 +71,16 @@
 <header class="max-w-6xl mx-auto pt-20 pb-12 px-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-            <div class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold tracking-widest uppercase inline-block">Transport</div>
+            <div class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold tracking-widest uppercase inline-block">
+                Transport
+            </div>
             <h1 class="text-4xl md:text-6xl font-extrabold mt-2 tracking-tight">Taxi Rank Info</h1>
         </div>
-        <a href="../home.html" onclick="window.location.replace('../home.html'); return false;" class="w-full md:w-auto text-center px-6 py-3 border-2 border-green-600 text-green-600 dark:text-green-400 font-bold rounded-lg hover:bg-green-600 hover:text-white transition whitespace-nowrap">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Home
+        <a
+                href="../index.html"
+                onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
+                class="w-full md:w-auto text-center px-6 py-3 border-2 border-green-600 text-green-600 dark:text-green-400 font-bold rounded-lg hover:bg-green-600 hover:text-white transition whitespace-nowrap">
+            <i class="fas fa-arrow-left mr-2"></i>Go Back
         </a>
     </div>
 </header>
@@ -78,9 +98,10 @@
             <h2 class="text-2xl font-bold flex items-center gap-3">
                 <span class="w-8 h-1 bg-green-500"></span> Latest Updates
             </h2>
-            <span id="breaking-badge" class="hidden breaking-news-badge bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">Breaking News</span>
+            <span id="breaking-badge"
+                  class="hidden breaking-news-badge bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">Breaking News</span>
         </div>
-        
+
         <div id="news-container" class="grid grid-cols-1 gap-4">
             <!-- News items will be injected here -->
         </div>
@@ -111,6 +132,14 @@
     const routesGrid = document.getElementById('routes-grid');
     const newsSection = document.getElementById('news-section');
     const newsContainer = document.getElementById('news-container');
+
+    function goBack() {
+        if (document.referrer.indexOf(window.location.host) !== -1) {
+            history.back();
+        } else {
+            window.location.href = '/';
+        }
+    }
 
     async function fetchRoutes() {
         try {
@@ -155,7 +184,7 @@
         const marqueeText = document.getElementById('marquee-text');
         const newsMarquee = document.getElementById('news-marquee');
         const breakingBadge = document.getElementById('breaking-badge');
-        
+
         marqueeText.innerHTML = news.join(' • ') + ' • ';
         newsMarquee.classList.remove('hidden');
         breakingBadge.classList.remove('hidden');
@@ -181,7 +210,7 @@
 
     function renderRoutes(routes) {
         routesGrid.innerHTML = '';
-        
+
         // Convert routes object to array and sort by destination
         const sortedRoutes = Object.keys(routes).map(key => ({
             id: key,
@@ -191,7 +220,7 @@
         sortedRoutes.forEach(route => {
             const card = document.createElement('div');
             card.className = 'card p-6 rounded-2xl border-l-4 border-l-green-500 flex flex-col shadow-sm hover:shadow-md transition';
-            
+
             let rankAction = '';
             if (route.returns) {
                 if (route.lat && route.lng) {

@@ -26,7 +26,11 @@
     <header class="max-w-6xl mx-auto pt-24 pb-16 px-6">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-4xl font-extrabold tracking-tight">Admin Dashboard</h1>
-            <a href="../home.html" onclick="window.location.replace('../home.html'); return false;" class="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition">Home</a>
+            <a href="../index.html"
+               onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
+               class="w-full md:w-auto text-center px-6 py-3 border-2 border-green-600 text-green-600 dark:text-green-400 font-bold rounded-lg hover:bg-green-600 hover:text-white transition whitespace-nowrap">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Home
+            </a>
         </div>
         <p id="welcome-message" class="text-xl opacity-80">Welcome, Super User!</p>
     </header>
@@ -34,7 +38,7 @@
     <main class="max-w-6xl mx-auto px-6 pb-24">
         <div class="card p-8 rounded-2xl">
             <h2 class="text-2xl font-bold mb-6">Business Applications</h2>
-            
+
             <!-- Filters, Search and Sort -->
             <div class="mb-8 space-y-4">
                 <div class="flex flex-wrap gap-4 items-center justify-between">
@@ -98,11 +102,11 @@
                         const welcomeMsg = document.getElementById('welcome-message');
                         const name = userData.name || (isSuperUser ? 'Super User' : 'Admin');
                         welcomeMsg.textContent = `Welcome, ${name}!`;
-                        
+
                         if (isSuperUser) {
                             document.getElementById('disabled-filter').classList.remove('hidden');
                         }
-                        
+
                         document.getElementById('admin-content').classList.remove('hidden');
                         fetchCategories().then(() => {
                             loadApplications();
@@ -169,7 +173,7 @@
 
     function setFilter(filter) {
         currentFilter = filter;
-        
+
         // Update UI
         document.querySelectorAll('.filter-chip').forEach(btn => {
             if (btn.getAttribute('data-filter') === filter) {
@@ -180,7 +184,7 @@
                 btn.classList.remove('bg-green-600', 'text-white', 'border-green-600');
             }
         });
-        
+
         filterAndSort();
     }
 
@@ -204,8 +208,8 @@
 
         // Apply Search
         if (searchTerm) {
-            filtered = filtered.filter(app => 
-                app.businessName?.toLowerCase().includes(searchTerm) || 
+            filtered = filtered.filter(app =>
+                app.businessName?.toLowerCase().includes(searchTerm) ||
                 app.ownerName?.toLowerCase().includes(searchTerm) ||
                 app.userEmail?.toLowerCase().includes(searchTerm)
             );
@@ -227,7 +231,7 @@
 
     function renderApplications(applications) {
         const applicationsList = document.getElementById('applications-list');
-        
+
         if (applications.length === 0) {
             applicationsList.innerHTML = '<p class="text-center py-8 opacity-60">No matching applications found.</p>';
             return;
@@ -237,7 +241,7 @@
         applications.forEach(app => {
             const isPending = !app.status || app.status === 'pending' || app.status === 'update';
             const isOther = app.businessType === 'Other';
-            
+
             html += `
                 <div class="p-6 card rounded-xl border border-gray-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div class="flex-grow">
@@ -293,7 +297,7 @@
 
             const servicesRef = db.collection('poortjie').doc('services');
             const liveServiceRef = db.collection('poortjie').doc('services').collection('listings').doc(appId);
-            
+
             await db.runTransaction(async (transaction) => {
                 const servicesDoc = await transaction.get(servicesRef);
                 const servicesData = servicesDoc.data() || {};
@@ -308,13 +312,13 @@
                 }
 
                 // 2. Update status in live services collection
-                transaction.set(liveServiceRef, { 
+                transaction.set(liveServiceRef, {
                     status: 'disabled',
-                    disabledBy: currentUserId 
+                    disabledBy: currentUserId
                 }, { merge: true });
 
                 // 3. Update status in applications collection
-                transaction.update(appRef, { 
+                transaction.update(appRef, {
                     status: 'disabled',
                     disabledBy: currentUserId
                 });
@@ -342,9 +346,9 @@
             if (finalCategory === 'Other') {
                 const selectVal = document.getElementById(`category-select-${appId}`).value;
                 const inputVal = document.getElementById(`category-input-${appId}`).value.trim();
-                
+
                 finalCategory = inputVal || selectVal;
-                
+
                 if (!finalCategory || finalCategory === 'Other') {
                     alert("Please select or type a valid category for 'Other' business type.");
                     return;
@@ -358,16 +362,16 @@
                 const servicesData = servicesDoc.data() || {};
                 const homeScreen = servicesData.homeScreen || {};
 
-                const businessData = { 
-                    ...appData, 
+                const businessData = {
+                    ...appData,
                     businessType: finalCategory,
                     status: 'active',
                     approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     approvedBy: currentUserId
                 };
-                
+
                 const updateData = {};
-                
+
                 // If category doesn't exist, we need to initialize it
                 if (!homeScreen[finalCategory]) {
                     updateData[`homeScreen.${finalCategory}`] = {
@@ -379,17 +383,17 @@
                 } else {
                     updateData[`homeScreen.${finalCategory}.data.${appId}`] = businessData;
                 }
-                
+
                 transaction.update(servicesRef, updateData);
 
                 // Initialize/Update status in live services collection
                 const liveServiceRef = db.collection('poortjie').doc('services').collection('listings').doc(appId);
-                transaction.set(liveServiceRef, { 
+                transaction.set(liveServiceRef, {
                     status: 'active',
-                    approvedBy: currentUserId 
+                    approvedBy: currentUserId
                 }, { merge: true });
 
-                transaction.update(appRef, { 
+                transaction.update(appRef, {
                     status: 'approved',
                     businessType: finalCategory, // Update the app record too
                     approvedBy: currentUserId
@@ -408,7 +412,7 @@
     function rejectApplication(appId) {
         if (confirm('Are you sure you want to reject this application?')) {
             const currentUserId = firebase.auth().currentUser?.uid;
-            db.doc(`poortjie/applications/listings/${appId}`).update({ 
+            db.doc(`poortjie/applications/listings/${appId}`).update({
                 status: 'rejected',
                 rejectedBy: currentUserId
             }).then(() => {
@@ -422,7 +426,7 @@
     function requestUpdate(appId) {
         if (confirm('Request user to update this application?')) {
             const currentUserId = firebase.auth().currentUser?.uid;
-            db.doc(`poortjie/applications/listings/${appId}`).update({ 
+            db.doc(`poortjie/applications/listings/${appId}`).update({
                 status: 'update',
                 updateRequestedBy: currentUserId
             }).then(() => {
