@@ -386,6 +386,8 @@
                         });
                     });
 
+                    await logUserTrace(user.uid, 'register');
+
                     const redirectUrl = sessionStorage.getItem('redirectUrl');
                     if (redirectUrl) {
                         sessionStorage.removeItem('redirectUrl');
