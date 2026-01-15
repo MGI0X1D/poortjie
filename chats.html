@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chats | Poortjie Services</title>
+    <title>Services</title>
     <meta name="author" content="Musa Mgijima">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -16,21 +16,41 @@
     <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        /* Ensure the action menu is always visible and doesn't wrap */
+        .emoji-menu {
+            white-space: nowrap;
+            min-width: 180px;
+            display: flex;
+            justify-content: space-around;
+        }
+    </style>
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 h-screen flex flex-col">
 
 <header class="w-full max-w-4xl mx-auto pt-6 pb-4 px-6 flex flex-col items-center shrink-0">
     <div class="w-full flex justify-between items-center">
-        <a href="index.html" class="text-3xl font-extrabold tracking-tight">Poortjie</a>
-        <h2 class="text-xl font-bold">Annonymouse Chats</h2>
-        <div class="w-10"></div> <!-- Spacer for balance -->
+        <div class="w-10"></div> <h2 class="text-xl font-bold">Anonymous</h2>
+        <div class="w-10"></div>
     </div>
     <p class="text-sm opacity-60">say your peace</p>
 </header>
 
 <main class="flex-grow w-full max-w-4xl mx-auto px-4 pb-4 flex flex-col overflow-hidden">
-    <div id="chat-messages" class="flex-grow overflow-y-auto space-y-4 p-4 custom-scrollbar">
-        <!-- Messages will be injected here -->
+    <div id="chat-messages" class="flex-grow overflow-y-auto space-y-8 p-4 custom-scrollbar">
         <div id="loading-spinner" class="flex justify-center items-center h-full">
             <svg class="animate-spin h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -39,7 +59,6 @@
         </div>
     </div>
 
-    <!-- Reply Preview -->
     <div id="reply-preview" class="hidden bg-gray-100 dark:bg-slate-800 p-2 px-4 rounded-t-xl border-l-4 border-green-500 flex justify-between items-center mx-4">
         <div class="overflow-hidden">
             <p class="text-xs font-bold text-green-600 dark:text-green-400">Replying to <span id="reply-to-name"></span></p>
@@ -52,15 +71,14 @@
         </button>
     </div>
 
-    <!-- Message Input -->
     <div class="p-4 bg-white dark:bg-slate-900 border-t dark:border-slate-800 shrink-0">
         <form id="chat-form" class="flex gap-2 items-end">
             <div class="flex-grow">
-                <textarea id="message-input" rows="1" placeholder="Type a message..." 
-                    class="w-full p-3 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition resize-none max-h-32"></textarea>
+                <textarea id="message-input" rows="1" placeholder="Type a message..."
+                          class="w-full p-3 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition resize-none max-h-32"></textarea>
             </div>
-            <button type="submit" id="send-btn" 
-                class="p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition shadow-md disabled:opacity-50">
+            <button type="submit" id="send-btn"
+                    class="p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition shadow-md disabled:opacity-50">
                 <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
                 </svg>
@@ -86,20 +104,16 @@
     const loadingSpinner = document.getElementById('loading-spinner');
 
     let currentUser = null;
-    let userData = null;
     let userMaskName = null;
     let replyingTo = null;
 
     function generateMaskName(uid) {
-        // Create a deterministic random-looking string of letters based on UID
         let hash = 0;
         for (let i = 0; i < uid.length; i++) {
             hash = uid.charCodeAt(i) + ((hash << 5) - hash);
         }
-        
         const chars = 'abcdefghijklmnopqrstuvwxyz';
         let result = '';
-        // Use the hash to pick 8 characters
         for (let i = 0; i < 8; i++) {
             const charIndex = Math.abs(hash + i * 13) % chars.length;
             result += chars[charIndex];
@@ -107,7 +121,6 @@
         return result;
     }
 
-    // Check auth state
     firebase.auth().onAuthStateChanged(async (user) => {
         if (!user) {
             window.location.replace('authentication/login.html');
@@ -115,26 +128,15 @@
         }
         currentUser = user;
         userMaskName = generateMaskName(user.uid);
-        
-        // Fetch user data for display name
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
-            userData = userDoc.data();
-        } else {
-            userData = { displayName: user.displayName || user.email.split('@')[0] };
-        }
-
         initChat();
     });
 
     function initChat() {
-        // Real-time listener for messages
         db.collection('group_chats').doc('main').collection('messages')
             .orderBy('timestamp', 'asc')
             .limitToLast(100)
             .onSnapshot(snapshot => {
                 loadingSpinner.classList.add('hidden');
-                
                 snapshot.docChanges().forEach(change => {
                     if (change.type === 'added') {
                         renderMessage(change.doc);
@@ -143,10 +145,37 @@
                     }
                 });
                 scrollToBottom();
-            }, error => {
-                console.error("Chat listener error:", error);
-                chatMessages.innerHTML = `<p class="text-center text-red-500">Error loading messages. Please refresh.</p>`;
             });
+    }
+
+    function scrollToMessage(msgId) {
+        const target = document.getElementById(`msg-${msgId}`);
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target.classList.add('ring-4', 'ring-green-500/50', 'bg-green-50/50');
+            setTimeout(() => target.classList.remove('ring-4', 'ring-green-500/50', 'bg-green-50/50'), 2000);
+        }
+    }
+
+    function getReactionHtml(msg) {
+        const reactionKeys = [
+            { key: 'thumbsUp', emoji: '👍' },
+            { key: 'thumbsDown', emoji: '👎' },
+            { key: 'middleFinger', emoji: '🖕' },
+            { key: 'laughing', emoji: '😂' },
+            { key: 'sad', emoji: '😢' }
+        ];
+
+        return reactionKeys.map(r => {
+            const count = msg[r.key] ? Object.keys(msg[r.key]).length : 0;
+            if (count === 0) return '';
+            return `
+                <div class="bg-white dark:bg-slate-700 rounded-full px-2 py-0.5 shadow-sm border border-gray-100 dark:border-slate-600 flex items-center gap-1 text-[11px]">
+                    <span>${r.emoji}</span>
+                    <span class="font-bold">${count}</span>
+                </div>
+            `;
+        }).join('');
     }
 
     function renderMessage(doc) {
@@ -154,124 +183,77 @@
         const msgId = doc.id;
         const isMine = msg.userId === currentUser.uid;
         const senderMaskName = generateMaskName(msg.userId);
-        
+
         const messageDiv = document.createElement('div');
         messageDiv.id = `msg-${msgId}`;
-        messageDiv.className = `flex flex-col ${isMine ? 'items-end' : 'items-start'} group mb-4`;
-        
+        messageDiv.className = `flex flex-col ${isMine ? 'items-end' : 'items-start'} group mb-6 transition-all duration-300`;
+
         const timestamp = msg.timestamp ? msg.timestamp.toDate() : new Date();
-        const time = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const date = timestamp.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        const fullTimeDisplay = `${date}, ${time}`;
-        
+        const timeDisplay = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         let replyHtml = '';
         if (msg.replyTo) {
-            const replyMaskName = generateMaskName(msg.replyTo.userId);
             replyHtml = `
-                <div class="bg-black/5 dark:bg-white/5 p-2 rounded-lg mb-1 text-xs border-l-2 border-green-500 max-w-full opacity-80">
-                    <p class="font-bold">${replyMaskName}</p>
-                    <p class="truncate">${msg.replyTo.text}</p>
+                <div onclick="scrollToMessage('${msg.replyTo.msgId}')" class="bg-black/5 dark:bg-white/5 p-2 rounded-lg mb-1 text-xs border-l-2 border-green-500 max-w-full cursor-pointer hover:bg-black/10 transition">
+                    <p class="font-bold opacity-70">${msg.replyTo.userName}</p>
+                    <p class="truncate opacity-60">${msg.replyTo.text}</p>
                 </div>
             `;
         }
 
-        const thumbsUpCount = msg.thumbsUp ? Object.keys(msg.thumbsUp).length : 0;
-        const thumbsDownCount = msg.thumbsDown ? Object.keys(msg.thumbsDown).length : 0;
-        const isThumbsUp = msg.thumbsUp && msg.thumbsUp[currentUser.uid];
-        const isThumbsDown = msg.thumbsDown && msg.thumbsDown[currentUser.uid];
-
         messageDiv.innerHTML = `
-            ${!isMine ? `<span class="text-[10px] font-bold opacity-50 mb-1 ml-2 uppercase tracking-wider">${senderMaskName}</span>` : ''}
+            ${!isMine ? `<span class="text-[10px] font-bold opacity-40 mb-1 ml-2 uppercase tracking-tighter">${senderMaskName}</span>` : ''}
             <div class="relative max-w-[85%] sm:max-w-[70%]">
+                <div class="absolute -top-10 ${isMine ? 'right-0' : 'left-0'} hidden group-hover:flex flex-row bg-white dark:bg-slate-800 rounded-full shadow-xl p-1.5 gap-2 z-20 border border-gray-200 dark:border-slate-700 emoji-menu">
+                    <button onclick="setReply('${msgId}', '${msg.userId}', '${msg.text.replace(/'/g, "\\'").replace(/\n/g, " ")}')" class="p-1 px-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full border-r dark:border-slate-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button onclick="toggleReaction('${msgId}', 'thumbsUp')" class="hover:scale-150 transition px-1">👍</button>
+                    <button onclick="toggleReaction('${msgId}', 'thumbsDown')" class="hover:scale-150 transition px-1">👎</button>
+                    <button onclick="toggleReaction('${msgId}', 'middleFinger')" class="hover:scale-150 transition px-1">🖕</button>
+                    <button onclick="toggleReaction('${msgId}', 'laughing')" class="hover:scale-150 transition px-1">😂</button>
+                    <button onclick="toggleReaction('${msgId}', 'sad')" class="hover:scale-150 transition px-1">😢</button>
+                </div>
+
                 <div class="${isMine ? 'bg-green-600 text-white rounded-2xl rounded-tr-none' : 'bg-gray-100 dark:bg-slate-800 rounded-2xl rounded-tl-none'} p-3 shadow-sm">
                     ${replyHtml}
                     <p class="text-sm whitespace-pre-wrap break-words">${msg.text}</p>
-                    <div class="flex items-center justify-end gap-2 mt-1 opacity-50 text-[10px]">
-                        <span>${fullTimeDisplay}</span>
+                    <div class="flex items-center justify-end gap-2 mt-1 opacity-40 text-[9px]">
+                        <span>${timeDisplay}</span>
                     </div>
                 </div>
-                
-                <!-- Action buttons -->
-                <div class="absolute top-0 ${isMine ? '-left-16' : '-right-16'} hidden group-hover:flex flex-col gap-1">
-                    <button onclick="setReply('${msgId}', '${msg.userId}', '${msg.text.replace(/'/g, "\\'").replace(/\n/g, " ")}')" class="p-1.5 bg-white dark:bg-slate-700 rounded-full shadow-md hover:bg-green-100 dark:hover:bg-green-900 transition text-gray-600 dark:text-gray-300">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                    </button>
-                    <button onclick="toggleReaction('${msgId}', 'thumbsUp')" class="p-1.5 bg-white dark:bg-slate-700 rounded-full shadow-md hover:bg-green-100 dark:hover:bg-green-900 transition ${isThumbsUp ? 'text-green-500' : 'text-gray-600 dark:text-gray-300'}">
-                        <svg class="w-4 h-4" fill="${isThumbsUp ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.708C19.746 10 20.621 10.772 20.621 11.723c0 .38-.117.74-.326 1.042l-2.618 3.766A2.43 2.43 0 0115.688 18H9a1 1 0 01-1-1v-7a1 1 0 01.293-.707l5.414-5.414A1 1 0 0114.414 3.586V10zM3 18V10h4v8H3z"></path></svg>
-                    </button>
-                    <button onclick="toggleReaction('${msgId}', 'thumbsDown')" class="p-1.5 bg-white dark:bg-slate-700 rounded-full shadow-md hover:bg-red-100 dark:hover:bg-red-900 transition ${isThumbsDown ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}">
-                        <svg class="w-4 h-4" fill="${isThumbsDown ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.292C4.254 14 3.379 13.228 3.379 12.277c0-.38.117-.74.326-1.042l2.618-3.766A2.43 2.43 0 017.312 6H14a1 1 0 011 1v7a1 1 0 01-.293.707l-5.414 5.414a1 1 0 01-.707.293V14zM21 6v8h-4V6h4z"></path></svg>
-                    </button>
-                </div>
 
-                <div class="absolute -bottom-2 ${isMine ? 'right-0' : 'left-0'} flex gap-1">
-                    ${thumbsUpCount > 0 ? `
-                        <div class="bg-white dark:bg-slate-700 rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100 dark:border-slate-600 flex items-center gap-1 text-[10px]">
-                            <span>👍</span>
-                            <span class="font-bold">${thumbsUpCount}</span>
-                        </div>
-                    ` : ''}
-                    ${thumbsDownCount > 0 ? `
-                        <div class="bg-white dark:bg-slate-700 rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100 dark:border-slate-600 flex items-center gap-1 text-[10px]">
-                            <span>👎</span>
-                            <span class="font-bold">${thumbsDownCount}</span>
-                        </div>
-                    ` : ''}
+                <div class="absolute -bottom-3 ${isMine ? 'right-0' : 'left-0'} flex gap-1 reaction-container z-10">
+                    ${getReactionHtml(msg)}
                 </div>
             </div>
         `;
-        
         chatMessages.appendChild(messageDiv);
     }
 
     function updateMessageUI(doc) {
         const msg = doc.data();
-        const msgId = doc.id;
-        const messageDiv = document.getElementById(`msg-${msgId}`);
-        if (!messageDiv) return;
-
-        const isMine = msg.userId === currentUser.uid;
-        
-        const thumbsUpCount = msg.thumbsUp ? Object.keys(msg.thumbsUp).length : 0;
-        const thumbsDownCount = msg.thumbsDown ? Object.keys(msg.thumbsDown).length : 0;
-        const isThumbsUp = msg.thumbsUp && msg.thumbsUp[currentUser.uid];
-        const isThumbsDown = msg.thumbsDown && msg.thumbsDown[currentUser.uid];
-
-        // Update reaction buttons
-        const upBtn = messageDiv.querySelector('button[onclick*="thumbsUp"]');
-        if (upBtn) {
-            upBtn.className = `p-1.5 bg-white dark:bg-slate-700 rounded-full shadow-md hover:bg-green-100 dark:hover:bg-green-900 transition ${isThumbsUp ? 'text-green-500' : 'text-gray-600 dark:text-gray-300'}`;
-            upBtn.querySelector('svg').setAttribute('fill', isThumbsUp ? 'currentColor' : 'none');
+        const messageDiv = document.getElementById(`msg-${doc.id}`);
+        if (messageDiv) {
+            const container = messageDiv.querySelector('.reaction-container');
+            if (container) container.innerHTML = getReactionHtml(msg);
         }
+    }
 
-        const downBtn = messageDiv.querySelector('button[onclick*="thumbsDown"]');
-        if (downBtn) {
-            downBtn.className = `p-1.5 bg-white dark:bg-slate-700 rounded-full shadow-md hover:bg-red-100 dark:hover:bg-red-900 transition ${isThumbsDown ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}`;
-            downBtn.querySelector('svg').setAttribute('fill', isThumbsDown ? 'currentColor' : 'none');
-        }
-
-        // Update indicators
-        let indicatorsContainer = messageDiv.querySelector('.absolute.-bottom-2');
-        if (!indicatorsContainer) {
-            indicatorsContainer = document.createElement('div');
-            indicatorsContainer.className = `absolute -bottom-2 ${isMine ? 'right-0' : 'left-0'} flex gap-1`;
-            messageDiv.querySelector('.relative').appendChild(indicatorsContainer);
-        }
-
-        indicatorsContainer.innerHTML = `
-            ${thumbsUpCount > 0 ? `
-                <div class="bg-white dark:bg-slate-700 rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100 dark:border-slate-600 flex items-center gap-1 text-[10px]">
-                    <span>👍</span>
-                    <span class="font-bold">${thumbsUpCount}</span>
-                </div>
-            ` : ''}
-            ${thumbsDownCount > 0 ? `
-                <div class="bg-white dark:bg-slate-700 rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100 dark:border-slate-600 flex items-center gap-1 text-[10px]">
-                    <span>👎</span>
-                    <span class="font-bold">${thumbsDownCount}</span>
-                </div>
-            ` : ''}
-        `;
+    function toggleReaction(msgId, type) {
+        const msgRef = db.collection('group_chats').doc('main').collection('messages').doc(msgId);
+        db.runTransaction(async (transaction) => {
+            const doc = await transaction.get(msgRef);
+            if (!doc.exists) return;
+            const data = doc.data();
+            const reactions = data[type] || {};
+            if (reactions[currentUser.uid]) {
+                delete reactions[currentUser.uid];
+            } else {
+                reactions[currentUser.uid] = true;
+            }
+            transaction.update(msgRef, { [type]: reactions });
+        });
     }
 
     function setReply(msgId, userId, text) {
@@ -288,50 +270,18 @@
         replyPreview.classList.add('hidden');
     };
 
-    function toggleReaction(msgId, type) {
-        const msgRef = db.collection('group_chats').doc('main').collection('messages').doc(msgId);
-        
-        db.runTransaction(async (transaction) => {
-            const doc = await transaction.get(msgRef);
-            if (!doc.exists) return;
-            
-            const data = doc.data();
-            const reactions = data[type] || {};
-            const oppositeType = type === 'thumbsUp' ? 'thumbsDown' : 'thumbsUp';
-            const oppositeReactions = data[oppositeType] || {};
-
-            if (reactions[currentUser.uid]) {
-                delete reactions[currentUser.uid];
-            } else {
-                reactions[currentUser.uid] = true;
-                // Remove opposite reaction if it exists
-                if (oppositeReactions[currentUser.uid]) {
-                    delete oppositeReactions[currentUser.uid];
-                }
-            }
-            
-            transaction.update(msgRef, { 
-                [type]: reactions,
-                [oppositeType]: oppositeReactions
-            });
-        });
-    }
-
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = messageInput.value.trim();
         if (!text) return;
-
         messageInput.value = '';
         messageInput.style.height = 'auto';
-        
+
         const msgData = {
             userId: currentUser.uid,
             userName: userMaskName,
             text: text,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            thumbsUp: {},
-            thumbsDown: {}
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         if (replyingTo) {
@@ -347,23 +297,16 @@
 
         try {
             await db.collection('group_chats').doc('main').collection('messages').add(msgData);
-        } catch (error) {
-            console.error("Error sending message:", error);
-            alert("Failed to send message.");
-        }
+        } catch (e) { console.error(e); }
     });
 
-    // Auto-resize textarea
     messageInput.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
 
     function scrollToBottom() {
-        chatMessages.scrollTo({
-            top: chatMessages.scrollHeight,
-            behavior: 'smooth'
-        });
+        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
     }
 </script>
 </body>
