@@ -130,10 +130,9 @@
 
     <section class="mt-24 card p-10 rounded-3xl bg-gradient-to-br from-green-50 to-transparent dark:from-green-900/10">
         <div class="max-w-3xl">
-            <h2 class="text-3xl font-bold mb-4">Built for the community.</h2>
+            <h2 class="text-3xl font-bold mb-4">Built for the community, by the community.</h2>
             <p class="text-lg opacity-80 mb-6">
-                Poortjie Services uses cost-effective, modern architecture (like pure HTML, CSS, and JavaScript) to
-                ensure that even the smallest local business has a high-performance home online.
+                Poortjie Services is all about lifting our local businesses. We make sure every hustle in the hood has a professional home online, without any of the complicated talk or heavy costs.
             </p>
             <div class="flex gap-4">
                 <span class="text-[10px] font-bold px-2 py-1 border border-green-500/30 rounded text-green-500 uppercase tracking-widest">Mobile First</span>
@@ -223,7 +222,7 @@
                 const homeScreenData = doc.data().homeScreen;
                 if (homeScreenData && typeof homeScreenData === 'object') {
                     allServices = Object.keys(homeScreenData)
-                        .filter(key => homeScreenData[key].status !== 'inactive')
+                        .filter(key => homeScreenData[key].status === 'active')
                         .map(key => {
                             const service = homeScreenData[key];
                             return {
