@@ -112,7 +112,7 @@
         for (let i = 0; i < uid.length; i++) {
             hash = uid.charCodeAt(i) + ((hash << 5) - hash);
         }
-        const chars = 'ovxquygmscwbfrnzakthejildp';
+        const chars = 'agwbcdefsghdijfklmdnwopqsdsrsftuvfwxyz';
         let result = '';
         for (let i = 0; i < 8; i++) {
             const charIndex = Math.abs(hash + i * 13) % chars.length;
