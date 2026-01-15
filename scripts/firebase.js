@@ -13,6 +13,14 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
+// Connect to Firebase Emulators if running locally
+if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+  console.log("Connecting to Firebase Emulators...");
+  db.useEmulator("127.0.0.1", 8080);
+  auth.useEmulator("http://127.0.0.1:9099");
+  // If you use Storage, add: firebase.storage().useEmulator("127.0.0.1", 9199);
+}
+
 // Enable offline persistence with multi-tab support
 db.enablePersistence({ synchronizeTabs: true })
   .catch((err) => {
