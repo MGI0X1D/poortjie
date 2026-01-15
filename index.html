@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poortjie Services</title>
     <meta name="author" content="Musa Mgijima">
-    <meta name="description" content="Poortjie Services connects you with local Kasi services: From school transport and tow trucks to professional designers and web developers.">
-    <meta name="keywords" content="Poortjie, Kasi services, transport, school transport, graphic design, web development, South Africa">
+    <meta name="description"
+          content="Poortjie Services connects you with local Kasi services: From school transport and tow trucks to professional designers and web developers.">
+    <meta name="keywords"
+          content="Poortjie, Kasi services, transport, school transport, graphic design, web development, South Africa">
     <meta name="copyright" content="© 2026 Poortjie Services. All rights reserved.">
     <meta name="robots" content="index,follow">
     <meta name="theme-color" content="#22c55e">
@@ -23,6 +25,7 @@
             width: 100%;
             overflow: hidden;
         }
+
         iframe {
             border: none;
             width: 100%;
@@ -31,18 +34,18 @@
     </style>
 </head>
 <body>
-    <iframe src="home.html" id="main-frame" title="Poortjie Services Main Content"></iframe>
-    <script>
-        const iframe = document.getElementById('main-frame');
-        iframe.onload = function() {
-            try {
-                const iframeTitle = iframe.contentDocument.title;
-                if (iframeTitle) {
-                    document.title = iframeTitle;
-                }
-            } catch (e) {
+<iframe src="home.html" id="main-frame" title="Poortjie Services Main Content"></iframe>
+<script>
+    const iframe = document.getElementById('main-frame');
+    iframe.onload = function () {
+        try {
+            const iframeTitle = iframe.contentDocument.title;
+            if (iframeTitle) {
+                document.title = iframeTitle;
             }
-        };
-    </script>
+        } catch (e) {
+        }
+    };
+</script>
 </body>
 </html>
