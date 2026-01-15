@@ -16,7 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Handle Like button click (using closest to catch icon clicks too)
             const likeBtn = e.target.closest('.like-comment-btn');
-            if (likeBtn) handleLikeClick(likeBtn);
+            if (likeBtn) {
+                // Determine sKey and sId from attributes
+                const sId = likeBtn.dataset.serviceId;
+                const sKey = likeBtn.dataset.serviceKey;
+                handleLikeClick(likeBtn, sId, sKey);
+            }
 
             // Handle Comment Sort Change
             if (e.target.id === 'comment-sort') {
@@ -31,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Like Comment Action ---
-    const handleLikeClick = async (btn) => {
+    const handleLikeClick = async (btn, sId, sKey) => {
         // If currentUser is not yet set, try to get it from firebase.auth() directly
         if (!currentUser) {
             currentUser = firebase.auth().currentUser;
@@ -48,11 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
 
         const commentUid = btn.dataset.commentUid;
-        const sId = btn.dataset.serviceId;
-        const sKey = btn.dataset.serviceKey;
 
-        const serviceRef = db.collection('poortjie').doc('services');
-        const likesPath = `homeScreen.${sKey}.data.${sId}.ratings.${commentUid}.likes`;
+        const serviceRef = db.collection('poortjie').doc('services').collection(sKey).doc(sId);
+        const likesPath = `ratings.${commentUid}.likes`;
 
         try {
             // Optimistic UI update
@@ -109,21 +112,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const loadDataForModal = async () => {
-        const serviceRef = db.collection('poortjie').doc('services');
+        const serviceRef = db.collection('poortjie').doc('services').collection(serviceKey).doc(serviceId);
         const doc = await serviceRef.get();
 
         if (!doc.exists) {
-            console.error("Services document not found!");
+            console.error("Service provider document not found!");
             return;
         }
 
-        const fullData = doc.data();
-        const providerData = fullData.homeScreen[serviceKey]?.data?.[serviceId];
-
-        if (!providerData) {
-            console.error(`Provider ${serviceId} not found in ${serviceKey}`);
-            return;
-        }
+        const providerData = doc.data();
 
         // 1. Check if CURRENT USER already has a rating
         const ratingsMap = providerData.ratings || {};
@@ -246,13 +243,12 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Saving...';
 
-        const serviceRef = db.collection('poortjie').doc('services');
-        const basePath = `homeScreen.${serviceKey}.data.${serviceId}`;
+        const serviceRef = db.collection('poortjie').doc('services').collection(serviceKey).doc(serviceId);
 
         try {
             // Update the specific user's rating in the map
             const updatePayload = {};
-            updatePayload[`${basePath}.ratings.${currentUser.uid}`] = {
+            updatePayload[`ratings.${currentUser.uid}`] = {
                 rating: rating,
                 comment: comment,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -273,14 +269,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateOverallServiceRating = async (sId, sKey) => {
-        const serviceRef = db.collection('poortjie').doc('services');
+        const serviceRef = db.collection('poortjie').doc('services').collection(sKey).doc(sId);
 
         return db.runTransaction(async transaction => {
             const doc = await transaction.get(serviceRef);
             if (!doc.exists) return;
 
-            const data = doc.data();
-            const provider = data.homeScreen[sKey].data[sId];
+            const provider = doc.data();
             const ratingsMap = provider.ratings || {};
 
             const ratingsArray = Object.values(ratingsMap);
@@ -288,9 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const sumOfRatings = ratingsArray.reduce((acc, r) => acc + r.rating, 0);
             const newAverage = totalRatings > 0 ? (sumOfRatings / totalRatings) : 0;
 
-            const updatePayload = {};
-            updatePayload[`homeScreen.${sKey}.data.${sId}.rating`] = newAverage;
-            updatePayload[`homeScreen.${sKey}.data.${sId}.ratingCount`] = totalRatings;
+            const updatePayload = {
+                rating: newAverage,
+                ratingCount: totalRatings
+            };
 
             transaction.update(serviceRef, updatePayload);
         });
