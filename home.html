@@ -222,7 +222,7 @@
                 const homeScreenData = doc.data().homeScreen;
                 if (homeScreenData && typeof homeScreenData === 'object') {
                     allServices = Object.keys(homeScreenData)
-                        .filter(key => homeScreenData[key].status === 'active')
+                        .filter(key => homeScreenData[key].status !== 'inactive' && homeScreenData[key].status !== 'disabled')
                         .map(key => {
                             const service = homeScreenData[key];
                             return {
