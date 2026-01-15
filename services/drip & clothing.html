@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poortjie | Groove & Events</title>
+    <title>Poortjie | Drip & Clothing Services</title>
     <meta name="author" content="Musa Mgijima">
     <meta name="description"
-          content="Discover the best groove and event spots in Poortjie, from local chill areas to vibrant event venues.">
-    <meta name="keywords" content="Poortjie, groove, events, chill, venues, Kasi lifestyle">
+          content="Find professional drip and clothing services in Poortjie, including fashion designers, tailors, and boutiques.">
+    <meta name="keywords" content="Poortjie, drip, clothing, fashion, tailor, boutique, local services">
     <meta name="copyright" content="© 2026 Poortjie Services. All rights reserved.">
     <meta name="robots" content="index,follow">
     <meta name="theme-color" content="#22c55e">
@@ -31,7 +31,6 @@
         body {
             transition: background-color 0.3s ease, color 0.3s ease;
         }
-
     </style>
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
@@ -41,7 +40,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
             <div class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold tracking-widest uppercase inline-block">
-                Groove & Events
+                Drip & Clothing
             </div>
             <h1 class="text-4xl md:text-6xl font-extrabold mt-2 tracking-tight">Service Providers</h1>
         </div>
@@ -50,6 +49,7 @@
            class="w-full md:w-auto text-center px-6 py-3 border-2 border-green-600 text-green-600 dark:text-green-400 font-bold rounded-lg hover:bg-green-600 hover:text-white transition whitespace-nowrap">
             <i class="fas fa-arrow-left mr-2"></i>Back to Home
         </a>
+
     </div>
 </header>
 
@@ -83,6 +83,7 @@
 
 <script src="../scripts/theme.js"></script>
 <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+<script src="../scripts/local-db.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -112,7 +113,7 @@
     const renderProviders = async (providers) => {
         serviceProviderGrid.innerHTML = '';
         for (const provider of providers) {
-            const card = await renderServiceCard(provider, 'Groove & Events');
+            const card = await renderServiceCard(provider, 'Drip & Clothing');
             if (card) {
                 serviceProviderGrid.appendChild(card);
             }
@@ -120,8 +121,9 @@
     };
 
     const fetchProviders = () => {
+        // 1. Try to load from cache first
         try {
-            const cachedData = sessionStorage.getItem('grooveProvidersCache');
+            const cachedData = sessionStorage.getItem('dripProvidersCache');
             if (cachedData) {
                 allProviders = JSON.parse(cachedData);
                 filterAndSort();
@@ -135,24 +137,24 @@
             .then(doc => {
                 if (doc.exists) {
                     const homeScreenData = doc.data().homeScreen;
-                    const grooveData = homeScreenData['Groove & Events']?.data;
-                    if (grooveData && typeof grooveData === 'object') {
-                        allProviders = Object.keys(grooveData)
+                    const dripData = homeScreenData['Drip & Clothing'] ? homeScreenData['Drip & Clothing'].data : null;
+                    if (dripData && typeof dripData === 'object') {
+                        allProviders = Object.keys(dripData)
                             .map(key => ({
                                 id: key,
-                                ...grooveData[key]
+                                ...dripData[key]
                             }))
                             .filter(provider => provider.status === 'active');
 
                         // 3. Update cache and render
                         filterAndSort();
                         try {
-                            sessionStorage.setItem('grooveProvidersCache', JSON.stringify(allProviders));
+                            sessionStorage.setItem('dripProvidersCache', JSON.stringify(allProviders));
                         } catch (e) {
                             console.error("Could not write to sessionStorage:", e);
                         }
                     } else {
-                        serviceProviderGrid.innerHTML = '<p>No groove & event services found.</p>';
+                        serviceProviderGrid.innerHTML = '<p>No drip & clothing services found.</p>';
                     }
                 } else {
                     serviceProviderGrid.innerHTML = '<p>Could not load service providers. Please try again later.</p>';
