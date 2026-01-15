@@ -31,17 +31,29 @@
         <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
         <div id="error-message"
              class="hidden mb-4 p-3 rounded-lg bg-red-100 text-red-700 text-sm font-medium border border-red-200"></div>
-        <form id="login-form">
-            <div class="mb-4">
-                <label for="email"></label><input type="email" id="email" name="email" placeholder="Email"
-                                                  class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
-                                                  required>
+        <form id="login-form" novalidate>
+            <div class="form-group mb-4">
+                <label for="email" class="block mb-1 font-bold text-sm uppercase tracking-wider">Email</label>
+                <div class="relative">
+                    <input type="email" id="email" name="email" placeholder="Email"
+                           class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
+                           required>
+                    <p id="error-email"
+                       class="absolute right-2 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
+                        Invalid Email</p>
+                </div>
             </div>
-            <div class="mb-6">
-                <label for="password"></label><input type="password" id="password" name="password"
-                                                     placeholder="Password"
-                                                     class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
-                                                     required>
+            <div class="form-group mb-6">
+                <label for="password" class="block mb-1 font-bold text-sm uppercase tracking-wider">Password</label>
+                <div class="relative">
+                    <input type="password" id="password" name="password"
+                           placeholder="Password"
+                           class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
+                           required>
+                    <p id="error-password"
+                       class="absolute right-2 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
+                        Invalid Password</p>
+                </div>
             </div>
             <div class="flex items-center justify-between">
                 <button type="submit"
@@ -206,20 +218,43 @@
     const validateForm = () => {
         const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
         const isPasswordValid = passwordInput.value.length >= 6;
-        submitBtn.disabled = !(isEmailValid && isPasswordValid);
-        submitBtn.classList.toggle('opacity-50', submitBtn.disabled);
-        submitBtn.classList.toggle('cursor-not-allowed', submitBtn.disabled);
+
+        document.getElementById('error-email').classList.add('hidden');
+        document.getElementById('error-password').classList.add('hidden');
+
+        loginForm.querySelectorAll('input').forEach(input => {
+            input.classList.remove('border-red-500');
+        });
+
+        return {
+            isValid: isEmailValid && isPasswordValid,
+            errors: {
+                email: isEmailValid ? null : 'Please enter a valid email address.',
+                password: isPasswordValid ? null : 'Password must be at least 6 characters.'
+            }
+        };
     };
 
     [emailInput, passwordInput].forEach(input => {
         input.addEventListener('input', validateForm);
     });
 
-    validateForm();
-
     loginForm.addEventListener('submit', event => {
         event.preventDefault();
         errorMessage.classList.add('hidden');
+
+        const validation = validateForm();
+        if (!validation.isValid) {
+            if (validation.errors.email) {
+                document.getElementById('error-email').classList.remove('hidden');
+                emailInput.classList.add('border-red-500');
+            }
+            if (validation.errors.password) {
+                document.getElementById('error-password').classList.remove('hidden');
+                passwordInput.classList.add('border-red-500');
+            }
+            return;
+        }
 
         const email = emailInput.value;
         const password = passwordInput.value;
@@ -235,7 +270,8 @@
         </span>`;
 
         auth.signInWithEmailAndPassword(email, password)
-            .then(userCredential => {
+            .then(async (userCredential) => {
+                await logUserTrace(userCredential.user.uid, 'login');
                 const redirectUrl = sessionStorage.getItem('redirectUrl');
                 if (redirectUrl) {
                     sessionStorage.removeItem('redirectUrl');

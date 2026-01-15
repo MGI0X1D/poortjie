@@ -13,6 +13,19 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
+// Connect to Firebase Emulators if running locally
+if (location.hostname === "localhost" || 
+    location.hostname === "127.0.0.1" || 
+    location.hostname.startsWith("192.168.") || 
+    location.hostname.startsWith("10.") || 
+    location.hostname.endsWith(".local")) {
+  const host = location.hostname;
+  console.log(`Connecting to Firebase Emulators at ${host}...`);
+  db.useEmulator(host, 8080);
+  auth.useEmulator(`http://${host}:9099`);
+  // If you use Storage, add: firebase.storage().useEmulator(host, 9199);
+}
+
 // Enable offline persistence with multi-tab support
 db.enablePersistence({ synchronizeTabs: true })
   .catch((err) => {
@@ -24,3 +37,19 @@ db.enablePersistence({ synchronizeTabs: true })
       console.warn('Firebase persistence failed: browser does not support it.');
     }
   });
+
+/**
+ * Logs a user trace (login or register event) to Firestore.
+ * @param {string} uid - The user's Firebase UID.
+ * @param {string} type - The type of event ('login' or 'register').
+ */
+async function logUserTrace(uid, type) {
+  try {
+    await db.collection('user_traces').doc(uid).set({
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      browser: navigator.userAgent
+    }, { merge: true });
+  } catch (error) {
+    console.error('Error logging user trace:', error);
+  }
+}

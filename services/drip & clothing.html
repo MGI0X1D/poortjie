@@ -133,31 +133,29 @@
         }
 
         // 2. Fetch from Firestore
-        db.collection('poortjie').doc('services').get()
-            .then(doc => {
-                if (doc.exists) {
-                    const homeScreenData = doc.data().homeScreen;
-                    const dripData = homeScreenData['Drip & Clothing'] ? homeScreenData['Drip & Clothing'].data : null;
-                    if (dripData && typeof dripData === 'object') {
-                        allProviders = Object.keys(dripData)
-                            .map(key => ({
-                                id: key,
-                                ...dripData[key]
-                            }))
-                            .filter(provider => provider.status === 'active');
-
-                        // 3. Update cache and render
-                        filterAndSort();
-                        try {
-                            sessionStorage.setItem('dripProvidersCache', JSON.stringify(allProviders));
-                        } catch (e) {
-                            console.error("Could not write to sessionStorage:", e);
+        db.collection('poortjie').doc('services').collection('Drip & Clothing').get()
+            .then(snapshot => {
+                if (!snapshot.empty) {
+                    allProviders = [];
+                    snapshot.forEach(doc => {
+                        const provider = doc.data();
+                        if (provider.status === 'active') {
+                            allProviders.push({
+                                id: doc.id,
+                                ...provider
+                            });
                         }
-                    } else {
-                        serviceProviderGrid.innerHTML = '<p>No drip & clothing services found.</p>';
+                    });
+
+                    // 3. Update cache and render
+                    filterAndSort();
+                    try {
+                        sessionStorage.setItem('dripProvidersCache', JSON.stringify(allProviders));
+                    } catch (e) {
+                        console.error("Could not write to sessionStorage:", e);
                     }
                 } else {
-                    serviceProviderGrid.innerHTML = '<p>Could not load service providers. Please try again later.</p>';
+                    serviceProviderGrid.innerHTML = '<p>No drip & clothing services found.</p>';
                 }
             })
             .catch(error => {

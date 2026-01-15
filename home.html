@@ -49,6 +49,9 @@
             <a id="admin-link" href="manage/business.html"
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Business
                 Admin</a>
+            <a id="home-admin-link" href="manage/home-manager.html"
+               class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Home
+                Manager</a>
             <a id="news-admin-link" href="manage/news-writer.html"
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Post
                 News/Alert</a>
@@ -379,6 +382,7 @@
         const menuItems = document.getElementById('menu-items');
         const logoutBtn = document.getElementById('logout-btn');
         const adminLink = document.getElementById('admin-link');
+        const homeAdminLink = document.getElementById('home-admin-link');
         const taxiAdminLink = document.getElementById('taxi-admin-link');
         const addBusinessLink = document.getElementById('add-business-link');
         const newsAdminLink = document.getElementById('news-admin-link');
@@ -408,6 +412,9 @@
                             newsAdminLink.classList.remove('hidden');
                             document.getElementById('news-admin-link').classList.remove('hidden');
                         }
+                        if (isSuperUser) {
+                            homeAdminLink.classList.remove('hidden');
+                        }
                         if (isSuperUser || isTaxiRankAdmin) {
                             taxiAdminLink.classList.remove('hidden');
                         }
@@ -417,6 +424,7 @@
                 logoutBtn.classList.add('hidden');
                 loginLink.classList.remove('hidden');
                 adminLink.classList.add('hidden');
+                homeAdminLink.classList.add('hidden');
                 taxiAdminLink.classList.add('hidden');
                 addBusinessLink.classList.add('hidden');
                 newsAdminLink.classList.add('hidden');

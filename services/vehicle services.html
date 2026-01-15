@@ -133,31 +133,29 @@
         }
 
         // 2. Fetch from Firestore
-        db.collection('poortjie').doc('services').get()
-            .then(doc => {
-                if (doc.exists) {
-                    const homeScreenData = doc.data().homeScreen;
-                    const vehicleData = homeScreenData['Vehicle Services'].data;
-                    if (vehicleData && typeof vehicleData === 'object') {
-                        allProviders = Object.keys(vehicleData)
-                            .map(key => ({
-                                id: key,
-                                ...vehicleData[key]
-                            }))
-                            .filter(provider => provider.status === 'active');
-
-                        // 3. Update cache and render
-                        filterAndSort();
-                        try {
-                            sessionStorage.setItem('vehicleProvidersCache', JSON.stringify(allProviders));
-                        } catch (e) {
-                            console.error("Could not write to sessionStorage:", e);
+        db.collection('poortjie').doc('services').collection('Vehicle Services').get()
+            .then(snapshot => {
+                if (!snapshot.empty) {
+                    allProviders = [];
+                    snapshot.forEach(doc => {
+                        const provider = doc.data();
+                        if (provider.status === 'active') {
+                            allProviders.push({
+                                id: doc.id,
+                                ...provider
+                            });
                         }
-                    } else {
-                        serviceProviderGrid.innerHTML = '<p>No vehicle services found.</p>';
+                    });
+
+                    // 3. Update cache and render
+                    filterAndSort();
+                    try {
+                        sessionStorage.setItem('vehicleProvidersCache', JSON.stringify(allProviders));
+                    } catch (e) {
+                        console.error("Could not write to sessionStorage:", e);
                     }
                 } else {
-                    serviceProviderGrid.innerHTML = '<p>Could not load service providers. Please try again later.</p>';
+                    serviceProviderGrid.innerHTML = '<p>No vehicle services found.</p>';
                 }
             })
             .catch(error => {
