@@ -56,11 +56,9 @@
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Taxi
                 Rank Admin</a>
 
-            <a href="services/business-form.html"
-               onclick="sessionStorage.setItem('redirectUrl', this.href);"
-               class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
-                Add Your Business
-            </a>
+            <a id="add-business-link" href="services/business-form.html"
+               class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Add
+                Your Business</a>
 
             <div id="auth-divider" class="hidden border-t border-gray-100 dark:border-slate-700 my-1"></div>
             <a id="login-link" href="authentication/login.html"
@@ -383,6 +381,8 @@
         const logoutBtn = document.getElementById('logout-btn');
         const adminLink = document.getElementById('admin-link');
         const taxiAdminLink = document.getElementById('taxi-admin-link');
+        const addBusinessLink = document.getElementById('add-business-link');
+        const newsAdminLink = document.getElementById('news-admin-link');
         const loginLink = document.getElementById('login-link');
         const authDivider = document.getElementById('auth-divider');
 
@@ -394,6 +394,7 @@
         firebase.auth().onAuthStateChanged(user => {
             authDivider.classList.remove('hidden');
             if (user) {
+                addBusinessLink.classList.remove('hidden');
                 logoutBtn.classList.remove('hidden');
                 loginLink.classList.add('hidden');
                 firebase.firestore().collection('users').doc(user.uid).get().then((doc) => {
@@ -405,6 +406,7 @@
 
                         if (isSuperUser || isPoortjieAdmin) {
                             adminLink.classList.remove('hidden');
+                            newsAdminLink.classList.remove('hidden');
                             document.getElementById('news-admin-link').classList.remove('hidden');
                         }
                         if (isSuperUser || isTaxiRankAdmin) {
@@ -417,6 +419,8 @@
                 loginLink.classList.remove('hidden');
                 adminLink.classList.add('hidden');
                 taxiAdminLink.classList.add('hidden');
+                addBusinessLink.classList.add('hidden');
+                newsAdminLink.classList.add('hidden');
             }
         });
 
