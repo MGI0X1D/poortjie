@@ -97,6 +97,9 @@
         </div>
     </div>
     <h1 class="text-6xl font-extrabold mb-4 tracking-tight">Poortjie</h1>
+    <div id="alert-container" class="max-w-2xl mx-auto mb-4 hidden">
+        <!-- Alerts will be injected here -->
+    </div>
     <div id="news-slider-container" class="max-w-2xl mx-auto mb-8 hidden">
         <div id="news-slider"
              class="bg-green-50 dark:bg-slate-800/50 border border-green-100 dark:border-slate-700 rounded-2xl p-6 relative group overflow-hidden">
@@ -287,27 +290,55 @@
         });
     }
 
-    // RUN ON LOAD
     window.onload = () => {
         // --- News Slider Logic ---
         let newsUpdates = [];
+        let alertUpdates = [];
         let currentNewsIndex = 0;
         let sliderInterval;
 
         function startNewsSlider() {
-            if (newsUpdates.length === 0) {
+            if (newsUpdates.length === 0 && alertUpdates.length === 0) {
                 document.getElementById('news-slider-container').classList.add('hidden');
+                document.getElementById('alert-container').classList.add('hidden');
                 document.getElementById('hero-static-text').classList.remove('hidden');
                 return;
             }
 
-            document.getElementById('news-slider-container').classList.remove('hidden');
             document.getElementById('hero-static-text').classList.add('hidden');
-            renderNewsSlide();
 
-            if (newsUpdates.length > 1) {
-                resetSliderTimer();
+            if (alertUpdates.length > 0) {
+                renderAlerts();
+            } else {
+                document.getElementById('alert-container').classList.add('hidden');
             }
+
+            if (newsUpdates.length > 0) {
+                document.getElementById('news-slider-container').classList.remove('hidden');
+                renderNewsSlide();
+                if (newsUpdates.length > 1) {
+                    resetSliderTimer();
+                }
+            } else {
+                document.getElementById('news-slider-container').classList.add('hidden');
+            }
+        }
+
+        function renderAlerts() {
+            const container = document.getElementById('alert-container');
+            container.innerHTML = alertUpdates.map(alert => `
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl p-4 flex items-start gap-4 text-left animate-bounce-subtle mb-2">
+                    <div class="bg-red-500 text-white p-2 rounded-full flex-shrink-0 mt-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-red-900 dark:text-red-400 uppercase text-xs tracking-wider">Emergency Alert</h3>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">${alert.title}</h2>
+                        <p class="text-sm opacity-80 leading-tight mt-1">${alert.content}</p>
+                    </div>
+                </div>
+            `).join('');
+            container.classList.remove('hidden');
         }
 
         const newsSlider = document.getElementById('news-slider');
@@ -361,10 +392,7 @@
                 let typeLabel = '';
                 let typeColor = 'bg-green-500';
 
-                if (news.type === 'alert') {
-                    typeLabel = '🚨 ALERT';
-                    typeColor = 'bg-red-500';
-                } else if (news.type === 'event') {
+                if (news.type === 'event') {
                     typeLabel = '📅 EVENT';
                     typeColor = 'bg-blue-500';
                 } else if (news.type === 'promo') {
@@ -406,25 +434,35 @@
                 .where('status', '==', 'active')
                 .onSnapshot(snapshot => {
                     newsUpdates = [];
+                    alertUpdates = [];
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         // Client-side expiry and showFrom check
                         const isExpired = data.expiry && data.expiry.toDate() < now;
                         const isFuture = data.showFrom && data.showFrom.toDate() > now;
                         if (!isExpired && !isFuture) {
-                            newsUpdates.push({id: doc.id, ...data});
+                            if (data.type === 'alert') {
+                                alertUpdates.push({id: doc.id, ...data});
+                            } else {
+                                newsUpdates.push({id: doc.id, ...data});
+                            }
                         }
                     });
 
                     // Client-side sort as fallback for missing composite index
-                    newsUpdates.sort((a, b) => {
+                    const sortFn = (a, b) => {
                         const dateA = a.createdAt?.toDate() || new Date(0);
                         const dateB = b.createdAt?.toDate() || new Date(0);
                         return dateB - dateA;
-                    });
+                    };
 
-                    // Limit to 5 most recent
+                    newsUpdates.sort(sortFn);
+                    alertUpdates.sort(sortFn);
+
+                    // Limit news to 5 most recent
                     newsUpdates = newsUpdates.slice(0, 5);
+                    // Limit alerts to 2 most recent
+                    alertUpdates = alertUpdates.slice(0, 2);
 
                     startNewsSlider();
                 }, error => {
