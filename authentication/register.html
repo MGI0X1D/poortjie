@@ -121,8 +121,8 @@
 <script src="../scripts/theme.js"></script>
 
 <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-<script src="../scripts/local-db.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="../scripts/firebase.js"></script>
@@ -377,7 +377,6 @@
         const displayName = displayNameInput.value;
         const phone = phoneNumberInput.value;
         const password = registerForm.password.value;
-        const confirmPassword = registerForm['confirm-password'].value;
 
         submitBtn.disabled = true;
         const originalText = submitBtn.innerHTML;
@@ -416,7 +415,7 @@
                         });
                     });
 
-                    await logUserTrace(user.uid, 'register');
+                    await logUserTrace(user.uid);
 
                     const redirectUrl = sessionStorage.getItem('redirectUrl');
                     if (redirectUrl) {

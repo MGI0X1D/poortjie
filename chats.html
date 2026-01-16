@@ -74,8 +74,8 @@
     <div class="p-4 bg-white dark:bg-slate-900 border-t dark:border-slate-800 shrink-0">
         <form id="chat-form" class="flex gap-2 items-end">
             <div class="flex-grow">
-                <textarea id="message-input" rows="1" placeholder="Type a message..."
-                          class="w-full p-3 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition resize-none max-h-32"></textarea>
+                <label for="message-input"></label><textarea id="message-input" rows="1" placeholder="Type a message..."
+                                                             class="w-full p-3 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition resize-none max-h-32"></textarea>
             </div>
             <button type="submit" id="send-btn"
                     class="p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition shadow-md disabled:opacity-50">
@@ -89,6 +89,7 @@
 
 <script src="scripts/theme.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="scripts/firebase.js"></script>

@@ -78,9 +78,9 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">News Content</label>
-                    <textarea id="news-content" rows="4"
-                              class="w-full p-4 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
-                              placeholder="e.g., Taxi fares will increase by R2 starting next month."></textarea>
+                    <label for="news-content"></label><textarea id="news-content" rows="4"
+                                                                class="w-full p-4 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                                                                placeholder="e.g., Taxi fares will increase by R2 starting next month."></textarea>
                 </div>
                 <div class="flex justify-end gap-3 pt-4">
                     <button id="close-news-modal"
@@ -104,32 +104,32 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Origin</label>
-                    <input type="text" id="route-origin"
-                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
-                           value="Poortjie">
+                    <label for="route-origin"></label><input type="text" id="route-origin"
+                                                             class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                                                             value="Poortjie">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Destination</label>
-                    <input type="text" id="route-destination"
-                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
-                           placeholder="e.g., Lenasia">
+                    <label for="route-destination"></label><input type="text" id="route-destination"
+                                                                  class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                                                                  placeholder="e.g., Lenasia">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Fare (Rand)</label>
-                    <input type="number" id="route-fare"
-                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
-                           placeholder="e.g., 25">
+                    <label for="route-fare"></label><input type="number" id="route-fare"
+                                                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                                                           placeholder="e.g., 25">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Operating Hours</label>
-                    <input type="text" id="route-hours"
-                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
-                           placeholder="e.g., 6am - 8pm">
+                    <label for="route-hours"></label><input type="text" id="route-hours"
+                                                            class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                                                            placeholder="e.g., 6am - 8pm">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 opacity-70">Route Type</label>
-                    <select id="route-type"
-                            class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none">
+                    <label for="route-type"></label><select id="route-type"
+                                                            class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none">
                         <option value="standard">Standard</option>
                         <option value="morning_only">Morning Only</option>
                         <option value="afternoon_only">Afternoon Only</option>
@@ -142,19 +142,19 @@
                 </div>
                 <div class="col-span-full">
                     <label class="block text-sm font-bold mb-2 opacity-70">Rank Location Name/Info</label>
-                    <input type="text" id="route-location"
-                           class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
-                           placeholder="e.g., Lenasia Main Taxi Rank">
+                    <label for="route-location"></label><input type="text" id="route-location"
+                                                               class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
+                                                               placeholder="e.g., Lenasia Main Taxi Rank">
                 </div>
                 <div class="col-span-full">
                     <label class="block text-sm font-bold mb-2 opacity-70">Rank Coordinates (Google Maps Pin)</label>
                     <div class="flex gap-2 mb-2">
-                        <input type="text" id="route-lat" readonly
-                               class="flex-grow p-3 border rounded-lg bg-gray-100 dark:bg-slate-700 dark:border-slate-600 outline-none text-sm"
-                               placeholder="Latitude">
-                        <input type="text" id="route-lng" readonly
-                               class="flex-grow p-3 border rounded-lg bg-gray-100 dark:bg-slate-700 dark:border-slate-600 outline-none text-sm"
-                               placeholder="Longitude">
+                        <label for="route-lat"></label><input type="text" id="route-lat" readonly
+                                                              class="flex-grow p-3 border rounded-lg bg-gray-100 dark:bg-slate-700 dark:border-slate-600 outline-none text-sm"
+                                                              placeholder="Latitude">
+                        <label for="route-lng"></label><input type="text" id="route-lng" readonly
+                                                              class="flex-grow p-3 border rounded-lg bg-gray-100 dark:bg-slate-700 dark:border-slate-600 outline-none text-sm"
+                                                              placeholder="Longitude">
                     </div>
                     <div id="map"
                          class="w-full h-64 rounded-lg bg-gray-200 dark:bg-slate-700 relative flex items-center justify-center overflow-hidden">
@@ -179,6 +179,7 @@
 
 <script src="../scripts/theme.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="../scripts/firebase.js"></script>

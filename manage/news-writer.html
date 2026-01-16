@@ -114,6 +114,7 @@
 
 <script src="../scripts/theme.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="../scripts/firebase.js"></script>
@@ -150,12 +151,11 @@
         const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
         // Format to YYYY-MM-DDTHH:MM for datetime-local
         const pad = (n) => n.toString().padStart(2, '0');
-        const formatted = midnight.getFullYear() + '-' + 
-                          pad(midnight.getMonth() + 1) + '-' + 
-                          pad(midnight.getDate()) + 'T' + 
-                          pad(midnight.getHours()) + ':' + 
-                          pad(midnight.getMinutes());
-        document.getElementById('news-expiry').value = formatted;
+        document.getElementById('news-expiry').value = midnight.getFullYear() + '-' +
+            pad(midnight.getMonth() + 1) + '-' +
+            pad(midnight.getDate()) + 'T' +
+            pad(midnight.getHours()) + ':' +
+            pad(midnight.getMinutes());
     }
 
     firebase.auth().onAuthStateChanged(user => {
