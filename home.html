@@ -394,7 +394,7 @@
         const hamburgerMenu = document.getElementById('hamburger-menu');
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const menuItems = document.getElementById('menu-items');
-        const logoutBtn = document.getElementById('logout-btn');
+        const profileLink = document.getElementById('profile-link');
         const adminLink = document.getElementById('admin-link');
         const homeAdminLink = document.getElementById('home-admin-link');
         const taxiAdminLink = document.getElementById('taxi-admin-link');
@@ -412,11 +412,23 @@
             authDivider.classList.remove('hidden');
             if (user) {
                 addBusinessLink.classList.remove('hidden');
-                logoutBtn.classList.remove('hidden');
+                profileLink.classList.remove('hidden');
                 loginLink.classList.add('hidden');
                 firebase.firestore().collection('users').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
+                        if (userData.displayName) {
+                            profileLink.textContent = userData.displayName;
+                        }
+                        if (userData.photoUrl) {
+                            // Optionally show user avatar in the menu
+                            const existingImg = profileLink.querySelector('img');
+                            if (existingImg) {
+                                existingImg.src = userData.photoUrl;
+                            } else {
+                                profileLink.innerHTML = `<img src="${userData.photoUrl}" class="w-6 h-6 rounded-full inline-block mr-2 object-cover"> ${userData.displayName || 'Profile'}`;
+                            }
+                        }
                         const isSuperUser = userData.roles?.digilayn?.isSuperUser === true;
                         const isPoortjieAdmin = userData.roles?.poortjie?.isAdmin === true;
                         const isTaxiRankAdmin = userData.roles?.poortjie?.isTaxiRankAdmin === true;
@@ -435,7 +447,8 @@
                     }
                 });
             } else {
-                logoutBtn.classList.add('hidden');
+                profileLink.classList.add('hidden');
+                profileLink.innerHTML = 'Profile'; // Reset content
                 loginLink.classList.remove('hidden');
                 adminLink.classList.add('hidden');
                 homeAdminLink.classList.add('hidden');
