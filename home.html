@@ -310,6 +310,19 @@
             }
         }
 
+        const newsSlider = document.getElementById('news-slider');
+        newsSlider.addEventListener('mouseenter', () => {
+            if (newsUpdates.length > 1) {
+                clearInterval(sliderInterval);
+            }
+        });
+
+        newsSlider.addEventListener('mouseleave', () => {
+            if (newsUpdates.length > 1) {
+                resetSliderTimer();
+            }
+        });
+
         function resetSliderTimer() {
             clearInterval(sliderInterval);
             sliderInterval = setInterval(() => {
@@ -469,7 +482,7 @@
                             if (existingImg) {
                                 existingImg.src = userData.photoUrl;
                             } else {
-                                profileLink.innerHTML = `<img src="${userData.photoUrl}" class="w-6 h-6 rounded-full inline-block mr-2 object-cover"> ${userData.displayName || 'Profile'}`;
+                                profileLink.innerHTML = `<img src="${userData.photoUrl}" class="w-6 h-6 rounded-full inline-block mr-2 object-cover" alt=""> ${userData.displayName || 'Profile'}`;
                             }
                         }
                         const isSuperUser = userData.roles?.digilayn?.isSuperUser === true;

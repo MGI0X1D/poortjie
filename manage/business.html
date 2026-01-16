@@ -77,7 +77,6 @@
 
 <script src="../scripts/theme.js"></script>
 <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-<script src="../scripts/local-db.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -360,15 +359,7 @@
                 const servicesDoc = await transaction.get(servicesRef);
                 const servicesData = servicesDoc.data() || {};
                 const homeScreen = servicesData.homeScreen || {};
-
-                const businessData = {
-                    ...appData,
-                    businessType: finalCategory,
-                    status: 'active',
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    approvedBy: currentUserId
-                };
-
+                firebase.firestore.FieldValue.serverTimestamp();
                 const updateData = {};
 
                 // If category doesn't exist, we need to initialize it
