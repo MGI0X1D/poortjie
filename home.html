@@ -24,6 +24,13 @@
             darkMode: 'class'
         }
     </script>
+    <style>
+        /* Critical CSS to prevent FOUC when using Tailwind CDN */
+        #loader-overlay { background-color: #ffffff; }
+        .dark #loader-overlay { background-color: #0f172a; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
@@ -91,6 +98,12 @@
 </div>
 
 <header class="max-w-6xl mx-auto pt-24 pb-16 px-6 text-center">
+    <div id="loader-overlay" class="fixed inset-0 bg-white dark:bg-slate-900 z-[60] flex items-center justify-center transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <div class="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
+            <p class="text-sm font-medium opacity-50">Loading Poortjie...</p>
+        </div>
+    </div>
     <div class="mb-4 flex justify-center">
         <div class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold tracking-widest uppercase">
             services
@@ -179,13 +192,13 @@
                    class="hover:underline">Poortjie Services</a>. Empowering poortjie economies.
 </footer>
 
-<script src="scripts/theme.js"></script>
-<script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="scripts/firebase.js"></script>
+<script src="scripts/theme.js" defer></script>
+<script src="https://unpkg.com/dexie/dist/dexie.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" defer></script>
+<script src="scripts/firebase.js" defer></script>
 
 <script>
     let allServices = [];
@@ -236,24 +249,26 @@
     }
 
     function fetchAndRenderServices() {
-        // 1. Try to load from cache first for instant UI
+        // 1. Try to load from cache first
         try {
-            const cachedServices = sessionStorage.getItem('servicesCache');
-            if (cachedServices) {
-                allServices = JSON.parse(cachedServices);
+            const cachedData = sessionStorage.getItem('homeServicesCache');
+            if (cachedData) {
+                allServices = JSON.parse(cachedData);
                 filterAndSort();
             }
         } catch (e) {
             console.error("Could not read from sessionStorage:", e);
         }
 
-        // 2. Fetch from Firestore to get the latest data
+        // 2. Fetch from Firestore
         const servicesDocRef = firebase.firestore().collection('poortjie').doc('services');
-        servicesDocRef.get().then((doc) => {
+        
+        // Use a helper to process data
+        const processData = (doc) => {
             if (doc.exists) {
                 const homeScreenData = doc.data().homeScreen;
                 if (homeScreenData && typeof homeScreenData === 'object') {
-                    allServices = Object.keys(homeScreenData)
+                    const newServices = Object.keys(homeScreenData)
                         .filter(key => homeScreenData[key].status !== 'inactive' && homeScreenData[key].status !== 'disabled')
                         .map(key => {
                             const service = homeScreenData[key];
@@ -268,30 +283,36 @@
                             };
                         });
 
-                    filterAndSort();
-                    try {
-                        sessionStorage.setItem('servicesCache', JSON.stringify(allServices));
-                    } catch (e) {
-                        console.error("Could not write to sessionStorage:", e);
+                    // Only update and re-render if data has changed
+                    if (JSON.stringify(newServices) !== JSON.stringify(allServices)) {
+                        allServices = newServices;
+                        filterAndSort();
+                        
+                        // 3. Update cache
+                        try {
+                            sessionStorage.setItem('homeServicesCache', JSON.stringify(allServices));
+                        } catch (e) {
+                            console.error("Could not write to sessionStorage:", e);
+                        }
                     }
-
-                } else {
-                    console.log("'homeScreen' data not found or is not an object.");
-                    allServices = [];
-                    filterAndSort();
                 }
-            } else {
-                console.log("No 'services' document found!");
-                allServices = [];
-                filterAndSort();
             }
-        }).catch((error) => {
+        };
+
+        // Get from server
+        servicesDocRef.get().then(processData).catch((error) => {
             console.error("Error fetching services:", error);
-            // Don't clear the grid if there's a network error, stale cache is better than nothing
         });
     }
 
     window.onload = () => {
+        // Hide loader once everything is ready
+        const loader = document.getElementById('loader-overlay');
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 500);
+        }
+
         // --- News Slider Logic ---
         let newsUpdates = [];
         let alertUpdates = [];
@@ -429,43 +450,68 @@
 
         function fetchNews() {
             const now = new Date();
-            // We use onSnapshot for real-time updates.
-            // Note: If this query fails in the console, you might need to create a Firestore index.
+            
+            // 1. Try to load from cache
+            try {
+                const cachedNews = sessionStorage.getItem('newsUpdatesCache');
+                const cachedAlerts = sessionStorage.getItem('alertUpdatesCache');
+                if (cachedNews) newsUpdates = JSON.parse(cachedNews);
+                if (cachedAlerts) alertUpdates = JSON.parse(cachedAlerts);
+                if (newsUpdates.length > 0 || alertUpdates.length > 0) {
+                    startNewsSlider();
+                }
+            } catch (e) {
+                console.error("Error reading news cache:", e);
+            }
+
+            // 2. Fetch from Firestore
             db.collection('poortjie').doc('news').collection('updates')
                 .where('status', '==', 'active')
                 .onSnapshot(snapshot => {
-                    newsUpdates = [];
-                    alertUpdates = [];
+                    const newNewsUpdates = [];
+                    const newAlertUpdates = [];
                     snapshot.forEach(doc => {
                         const data = doc.data();
-                        // Client-side expiry and showFrom check
                         const isExpired = data.expiry && data.expiry.toDate() < now;
                         const isFuture = data.showFrom && data.showFrom.toDate() > now;
                         if (!isExpired && !isFuture) {
                             if (data.type === 'alert') {
-                                alertUpdates.push({id: doc.id, ...data});
+                                newAlertUpdates.push({id: doc.id, ...data});
                             } else {
-                                newsUpdates.push({id: doc.id, ...data});
+                                newNewsUpdates.push({id: doc.id, ...data});
                             }
                         }
                     });
 
-                    // Client-side sort as fallback for missing composite index
                     const sortFn = (a, b) => {
                         const dateA = a.createdAt?.toDate() || new Date(0);
                         const dateB = b.createdAt?.toDate() || new Date(0);
                         return dateB - dateA;
                     };
 
-                    newsUpdates.sort(sortFn);
-                    alertUpdates.sort(sortFn);
+                    newNewsUpdates.sort(sortFn);
+                    newAlertUpdates.sort(sortFn);
 
-                    // Limit news to 5 most recent
-                    newsUpdates = newsUpdates.slice(0, 5);
-                    // Limit alerts to 2 most recent
-                    alertUpdates = alertUpdates.slice(0, 2);
+                    const finalNews = newNewsUpdates.slice(0, 5);
+                    const finalAlerts = newAlertUpdates.slice(0, 2);
 
-                    startNewsSlider();
+                    // 3. Compare and Update
+                    if (JSON.stringify(finalNews) !== JSON.stringify(newsUpdates) || 
+                        JSON.stringify(finalAlerts) !== JSON.stringify(alertUpdates)) {
+                        
+                        newsUpdates = finalNews;
+                        alertUpdates = finalAlerts;
+                        
+                        // Update Cache
+                        try {
+                            sessionStorage.setItem('newsUpdatesCache', JSON.stringify(newsUpdates));
+                            sessionStorage.setItem('alertUpdatesCache', JSON.stringify(alertUpdates));
+                        } catch (e) {
+                            console.error("Error saving news cache:", e);
+                        }
+
+                        startNewsSlider();
+                    }
                 }, error => {
                     console.error("Error fetching news:", error);
                     // If it's an index error, Firestore provides a link in the console

@@ -120,7 +120,7 @@
         }
     };
 
-    const fetchProviders = () => {
+        const fetchProviders = () => {
         // 1. Try to load from cache first
         try {
             const cachedData = sessionStorage.getItem('foodProvidersCache');
@@ -136,29 +136,31 @@
         db.collection('poortjie').doc('services').collection('Food & Catering').get()
             .then(snapshot => {
                 if (!snapshot.empty) {
-                    allProviders = [];
+                    const newProviders = [];
                     snapshot.forEach(doc => {
                         const provider = doc.data();
                         if (provider.status === 'active') {
-                            allProviders.push({
+                            newProviders.push({
                                 id: doc.id,
                                 ...provider
                             });
                         }
                     });
 
-                    // 3. Update cache and render
-                    filterAndSort();
-                    try {
-                        sessionStorage.setItem('foodProvidersCache', JSON.stringify(allProviders));
-                    } catch (e) {
-                        console.error("Could not write to sessionStorage:", e);
+                    // 3. Update cache and render if changed
+                    if (JSON.stringify(newProviders) !== JSON.stringify(allProviders)) {
+                        allProviders = newProviders;
+                        filterAndSort();
+                        try {
+                            sessionStorage.setItem('foodProvidersCache', JSON.stringify(allProviders));
+                        } catch (e) {
+                            console.error("Could not save to sessionStorage:", e);
+                        }
                     }
                 } else {
                     serviceProviderGrid.innerHTML = '<p>No food & catering services found.</p>';
                 }
-            })
-            .catch(error => {
+            }).catch(error => {
                 console.error("Error fetching services: ", error);
                 if (allProviders.length === 0) {
                     serviceProviderGrid.innerHTML = '<p>Could not load service providers. Please try again later.</p>';

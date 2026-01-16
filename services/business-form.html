@@ -300,15 +300,6 @@
     showLoader();
 
     const fetchCategories = () => {
-        try {
-            const cachedCategories = sessionStorage.getItem('categoriesCache');
-            if (cachedCategories) {
-                const categories = JSON.parse(cachedCategories);
-                renderCategoryOptions(categories);
-            }
-        } catch (e) {
-        }
-
         const servicesDocRef = db.collection('poortjie').doc('services');
         servicesDocRef.get().then(doc => {
             if (doc.exists) {
@@ -317,10 +308,6 @@
                     const categories = Object.keys(homeScreenData);
 
                     renderCategoryOptions(categories);
-                    try {
-                        sessionStorage.setItem('categoriesCache', JSON.stringify(categories));
-                    } catch (e) {
-                    }
                 }
             }
         }).catch(error => {
