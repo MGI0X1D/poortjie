@@ -69,10 +69,10 @@
                         <p class="text-[10px] opacity-50 mt-1">Leave blank to show immediately.</p>
                     </div>
                     <div>
-                        <label for="news-expiry" class="block text-sm font-bold mb-2">Expires (Optional)</label>
-                        <input type="datetime-local" id="news-expiry"
+                        <label for="news-expiry" class="block text-sm font-bold mb-2">Expires (Required, Max 7 days)</label>
+                        <input type="datetime-local" id="news-expiry" required
                                class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
-                        <p class="text-[10px] opacity-50 mt-1">Leave blank for no expiry.</p>
+                        <p class="text-[10px] opacity-50 mt-1">Default is tonight at midnight. Max 7 days from now.</p>
                     </div>
                 </div>
 
@@ -100,6 +100,21 @@
 
 <script>
     let currentUserName = '';
+    let isSuperUser = false;
+    let isPoortjieAdmin = false;
+
+    function setExpiryDefault() {
+        const now = new Date();
+        const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+        // Format to YYYY-MM-DDTHH:MM for datetime-local
+        const pad = (n) => n.toString().padStart(2, '0');
+        const formatted = midnight.getFullYear() + '-' + 
+                          pad(midnight.getMonth() + 1) + '-' + 
+                          pad(midnight.getDate()) + 'T' + 
+                          pad(midnight.getHours()) + ':' + 
+                          pad(midnight.getMinutes());
+        document.getElementById('news-expiry').value = formatted;
+    }
 
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
@@ -107,11 +122,12 @@
                 if (doc.exists) {
                     const userData = doc.data();
                     currentUserName = userData.displayName || 'Admin';
-                    const isSuperUser = userData.roles?.digilayn?.isSuperUser === true;
-                    const isPoortjieAdmin = userData.roles?.poortjie?.isAdmin === true;
+                    isSuperUser = userData.roles?.digilayn?.isSuperUser === true;
+                    isPoortjieAdmin = userData.roles?.poortjie?.isAdmin === true;
 
                     if (isSuperUser || isPoortjieAdmin) {
                         document.getElementById('admin-content').classList.remove('hidden');
+                        setExpiryDefault();
                         loadRecentNews();
                     } else {
                         window.top.location.replace('../index.html');
@@ -149,6 +165,16 @@
                 expiryDate = new Date(expiry);
             }
 
+            // Validation: Expiry is required and max 7 days
+            if (!expiryDate) {
+                throw new Error("Expiry date is required.");
+            }
+            const now = new Date();
+            const maxExpiry = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+            if (expiryDate > maxExpiry) {
+                throw new Error("Expiry date cannot be more than 7 days from now.");
+            }
+
             await db.collection('poortjie').doc('news').collection('updates').add({
                 title,
                 content,
@@ -162,6 +188,7 @@
             });
 
             newsForm.reset();
+            setExpiryDefault();
             alert('News posted successfully!');
         } catch (error) {
             console.error("Error posting news:", error);
@@ -201,6 +228,13 @@
                         scheduleInfo = `<p class="text-[10px] opacity-50 mt-1">Visible: ${fromStr} - ${toStr}</p>`;
                     }
 
+                    const canDelete = isSuperUser || (data.authorId === firebase.auth().currentUser.uid);
+                    const deleteBtn = canDelete ? `
+                        <button onclick="deleteNews('${doc.id}')" class="text-red-500 hover:text-red-700 p-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    ` : '';
+
                     return `
                         <div class="p-4 card rounded-xl border border-gray-100 dark:border-slate-800 flex justify-between items-center ${isExpired ? 'opacity-50' : ''} ${isFuture ? 'border-blue-200 dark:border-blue-900' : ''}">
                             <div>
@@ -209,9 +243,7 @@
                                 ${scheduleInfo}
                                 <p class="text-[10px] opacity-40 mt-1">Added by: ${data.authorName || 'Unknown'}</p>
                             </div>
-                            <button onclick="deleteNews('${doc.id}')" class="text-red-500 hover:text-red-700 p-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
+                            ${deleteBtn}
                         </div>
                     `;
                 }).join('');
@@ -221,6 +253,14 @@
     async function deleteNews(id) {
         if (confirm('Delete this post?')) {
             try {
+                // Fetch doc to verify ownership if not superuser
+                if (!isSuperUser) {
+                    const doc = await db.collection('poortjie').doc('news').collection('updates').doc(id).get();
+                    if (doc.exists && doc.data().authorId !== firebase.auth().currentUser.uid) {
+                        alert('You do not have permission to delete this post.');
+                        return;
+                    }
+                }
                 await db.collection('poortjie').doc('news').collection('updates').doc(id).delete();
             } catch (error) {
                 alert('Error deleting: ' + error.message);
