@@ -92,6 +92,26 @@
     </main>
 </div>
 
+<!-- News Content Modal -->
+<div id="content-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 id="modal-title" class="text-2xl font-bold">News Content</h3>
+            <button onclick="closeContentModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div id="modal-body-content" class="prose dark:prose-invert max-w-none">
+            <!-- Content will be injected here -->
+        </div>
+        <div class="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700 flex justify-end">
+            <button onclick="closeContentModal()" class="px-6 py-2 bg-gray-200 dark:bg-slate-700 rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-slate-600 transition">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="../scripts/theme.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -102,6 +122,28 @@
     let currentUserName = '';
     let isSuperUser = false;
     let isPoortjieAdmin = false;
+    let recentPostsData = {}; // Store posts data for modal
+
+    function showContent(id) {
+        const post = recentPostsData[id];
+        if (!post) return;
+        
+        document.getElementById('modal-title').textContent = post.title;
+        document.getElementById('modal-body-content').innerHTML = `<p class="whitespace-pre-wrap">${post.content}</p>`;
+        document.getElementById('content-modal').classList.remove('hidden');
+    }
+
+    function closeContentModal() {
+        document.getElementById('content-modal').classList.add('hidden');
+    }
+
+    // Close modal on click outside
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('content-modal');
+        if (e.target === modal) {
+            closeContentModal();
+        }
+    });
 
     function setExpiryDefault() {
         const now = new Date();
@@ -210,8 +252,11 @@
                     return;
                 }
 
+                recentPostsData = {}; // Clear old data
                 container.innerHTML = snapshot.docs.map(doc => {
                     const data = doc.data();
+                    recentPostsData[doc.id] = data; // Store for modal
+
                     let dateStr = 'Just now';
                     if (data.createdAt) {
                         dateStr = data.createdAt.toDate().toLocaleString();
@@ -230,13 +275,13 @@
 
                     const canDelete = isSuperUser || (data.authorId === firebase.auth().currentUser.uid);
                     const deleteBtn = canDelete ? `
-                        <button onclick="deleteNews('${doc.id}')" class="text-red-500 hover:text-red-700 p-2">
+                        <button onclick="deleteNews('${doc.id}'); event.stopPropagation();" class="text-red-500 hover:text-red-700 p-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     ` : '';
 
                     return `
-                        <div class="p-4 card rounded-xl border border-gray-100 dark:border-slate-800 flex justify-between items-center ${isExpired ? 'opacity-50' : ''} ${isFuture ? 'border-blue-200 dark:border-blue-900' : ''}">
+                        <div onclick="showContent('${doc.id}')" class="p-4 card rounded-xl border border-gray-100 dark:border-slate-800 flex justify-between items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors ${isExpired ? 'opacity-50' : ''} ${isFuture ? 'border-blue-200 dark:border-blue-900' : ''}">
                             <div>
                                 <h3 class="font-bold">${data.title}${statusBadge}</h3>
                                 <p class="text-xs opacity-60">${dateStr} • ${data.type}</p>
