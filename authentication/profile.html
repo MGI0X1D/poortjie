@@ -31,8 +31,8 @@
         
         <form id="profile-form">
             <div class="flex flex-col items-center mb-6">
-                <div class="relative group">
-                    <img id="profile-picture" src="https://via.placeholder.com/150" alt="Profile Picture" class="w-32 h-32 rounded-full object-cover border-4 border-green-500 shadow-md">
+                <div class="relative group cursor-pointer">
+                    <img id="profile-picture" src="https://via.placeholder.com/150" alt="Profile Picture" class="w-32 h-32 rounded-full object-cover border-4 border-green-500 shadow-md transition transform hover:scale-105">
                     <label for="photo-input" class="absolute bottom-0 right-0 bg-green-600 text-white p-2 rounded-full cursor-pointer hover:bg-green-700 transition shadow-lg">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     </label>
@@ -51,19 +51,22 @@
                 <input type="email" id="email" disabled class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 border-2 border-transparent cursor-not-allowed">
             </div>
             <div class="mb-4">
-                <label class="block text-xs opacity-50 mb-1 pl-1">Full Name</label>
-                <input type="text" id="display-name" name="display-name" placeholder="Full Name" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition" required pattern="^[A-Z][a-z]+(\s[A-Z][a-z]+)+$" title="Please enter your full name (e.g., John Doe). Each name must start with a capital letter.">
+                <label class="block text-xs opacity-50 mb-1 pl-1">Full Name (max 3 names)</label>
+                <input type="text" id="display-name" name="display-name" placeholder="Full Name" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition" required pattern="^[A-Za-z]+(\s[A-Za-z]+){0,2}$" title="Please enter your full name (max 3 names).">
             </div>
             <div class="mb-4">
-                <label class="block text-xs opacity-50 mb-1 pl-1">Phone Number</label>
-                <input type="tel" id="phone-number" name="phone-number" placeholder="Phone Number" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                <label class="block text-xs opacity-50 mb-1 pl-1">Phone Number (10 digits)</label>
+                <input type="tel" id="phone-number" name="phone-number" placeholder="e.g. 0123456789" maxlength="10" pattern="\d{10}" title="Please enter exactly 10 digits" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
             </div>
             <div class="mb-6">
-                <label class="block text-xs opacity-50 mb-1 pl-1">Bio / About</label>
-                <textarea id="bio" name="bio" rows="3" placeholder="Tell us about yourself..." class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"></textarea>
+                <div class="flex justify-between items-center mb-1 pl-1">
+                    <label class="block text-xs opacity-50">Bio / About</label>
+                    <span id="bio-counter" class="text-xs opacity-50">0/100</span>
+                </div>
+                <textarea id="bio" name="bio" rows="3" maxlength="100" placeholder="Tell us about yourself..." class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"></textarea>
             </div>
             
-            <button type="submit" id="save-btn" class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md mb-4">
+            <button type="submit" id="save-btn" disabled class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md mb-4 opacity-50 cursor-not-allowed">
                 Save Changes
             </button>
         </form>
@@ -73,6 +76,16 @@
         </button>
     </div>
 </main>
+
+<!-- Image Modal -->
+<div id="image-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300">
+    <button id="close-modal" class="absolute top-6 right-6 text-white hover:text-gray-300 focus:outline-none">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+    <img id="modal-image" src="" alt="Expanded Profile Picture" class="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl transform transition-transform duration-300">
+</div>
 
 <footer class="text-center py-12 border-t border-gray-100 dark:border-slate-800 opacity-50 text-xs">
     &copy; 2026 Poortjie Services. Empowering poortjie economies.
@@ -98,8 +111,13 @@
     const saveBtn = document.getElementById('save-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const profileLink = document.getElementById('profile-link');
+    const imageModal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    const closeModal = document.getElementById('close-modal');
+    const bioCounter = document.getElementById('bio-counter');
 
     const DEFAULT_AVATAR = "https://via.placeholder.com/150";
+    let initialData = {};
 
     function showStatus(message, isError = false) {
         statusMessage.textContent = message;
@@ -115,6 +133,61 @@
         }, 5000);
     }
 
+    function checkChanges() {
+        const currentData = {
+            displayName: displayNameInput.value.trim(),
+            phoneNumber: phoneNumberInput.value.trim(),
+            bio: bioInput.value.trim(),
+            photoUrl: photoUrlInput.value
+        };
+
+        const hasChanged = 
+            currentData.displayName !== initialData.displayName ||
+            currentData.phoneNumber !== initialData.phoneNumber ||
+            currentData.bio !== initialData.bio ||
+            currentData.photoUrl !== initialData.photoUrl;
+
+        saveBtn.disabled = !hasChanged;
+        if (saveBtn.disabled) {
+            saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    [displayNameInput, phoneNumberInput, bioInput].forEach(input => {
+        input.addEventListener('input', () => {
+            if (input === bioInput) {
+                bioCounter.textContent = `${input.value.length}/100`;
+            }
+            checkChanges();
+        });
+    });
+
+    phoneNumberInput.addEventListener('keypress', (e) => {
+        if (!/\d/.test(e.key)) {
+            e.preventDefault();
+        }
+    });
+
+    profilePicture.addEventListener('click', () => {
+        modalImage.src = profilePicture.src;
+        imageModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    });
+
+    closeModal.addEventListener('click', () => {
+        imageModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    });
+
+    imageModal.addEventListener('click', (e) => {
+        if (e.target === imageModal) {
+            imageModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    });
+
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
             emailInput.value = user.email;
@@ -127,6 +200,15 @@
                     bioInput.value = userData.bio || '';
                     photoUrlInput.value = userData.photoUrl || '';
                     profilePicture.src = userData.photoUrl || DEFAULT_AVATAR;
+
+                    initialData = {
+                        displayName: displayNameInput.value.trim(),
+                        phoneNumber: phoneNumberInput.value.trim(),
+                        bio: bioInput.value.trim(),
+                        photoUrl: photoUrlInput.value
+                    };
+                    bioCounter.textContent = `${bioInput.value.length}/100`;
+                    checkChanges();
                 }
             }).catch(error => {
                 console.error("Error fetching user data:", error);
@@ -141,14 +223,48 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        // In a real app, you'd upload to Firebase Storage. 
-        // Since we don't have it set up/configured here, we'll use a Base64 string for photoUrl 
-        // to demonstrate the functionality, or just show a preview.
-        // NOTE: Standard practice is Storage, but Firestore can hold small Base64 if needed.
         const reader = new FileReader();
         reader.onload = (event) => {
-            profilePicture.src = event.target.result;
-            photoUrlInput.value = event.target.result;
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Maximum dimension to keep it reasonable
+                const MAX_DIM = 1200;
+                if (width > height) {
+                    if (width > MAX_DIM) {
+                        height *= MAX_DIM / width;
+                        width = MAX_DIM;
+                    }
+                } else {
+                    if (height > MAX_DIM) {
+                        width *= MAX_DIM / height;
+                        height = MAX_DIM;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Start with high quality and reduce if needed
+                let quality = 0.9;
+                let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                
+                // Approximate size in bytes (base64 size is ~4/3 of actual size)
+                while (dataUrl.length * 0.75 > 500 * 1024 && quality > 0.1) {
+                    quality -= 0.1;
+                    dataUrl = canvas.toDataURL('image/jpeg', quality);
+                }
+                
+                profilePicture.src = dataUrl;
+                photoUrlInput.value = dataUrl;
+                checkChanges();
+            };
+            img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     });
@@ -174,6 +290,14 @@
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
             showStatus("Profile updated successfully!");
+            // Update initialData to current values after successful save
+            initialData = {
+                displayName: newDisplayName,
+                phoneNumber: newPhoneNumber,
+                bio: newBio,
+                photoUrl: newPhotoUrl
+            };
+            checkChanges();
             // Also update the auth profile if possible
             user.updateProfile({
                 displayName: newDisplayName,
@@ -198,11 +322,12 @@
         let value = e.target.value.trim().replace(/\s+/g, ' ');
         if (value) {
             const words = value.split(' ');
-            const formattedWords = words.map(word => {
+            const formattedWords = words.slice(0, 3).map(word => {
                 return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
             });
             e.target.value = formattedWords.join(' ');
         }
+        checkChanges();
     });
 </script>
 </body>
