@@ -77,6 +77,8 @@
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Add
                 Your Business</a>
 
+            <a id="profile-link" href="authentication/profile.html"
+               class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Profile</a>
             <div id="auth-divider" class="hidden border-t border-gray-100 dark:border-slate-700 my-1"></div>
             <a id="login-link" href="authentication/login.html"
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Login</a>
@@ -400,8 +402,9 @@
         const taxiAdminLink = document.getElementById('taxi-admin-link');
         const addBusinessLink = document.getElementById('add-business-link');
         const newsAdminLink = document.getElementById('news-admin-link');
-        const loginLink = document.getElementById('login-link');
         const authDivider = document.getElementById('auth-divider');
+        const loginLink = document.getElementById('login-link');
+        const logoutBtn = document.getElementById('logout-btn');
 
         hamburgerBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -414,6 +417,7 @@
                 addBusinessLink.classList.remove('hidden');
                 profileLink.classList.remove('hidden');
                 loginLink.classList.add('hidden');
+                logoutBtn.classList.add('hidden'); // Replaced by profile
                 firebase.firestore().collection('users').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
@@ -436,7 +440,6 @@
                         if (isSuperUser || isPoortjieAdmin) {
                             adminLink.classList.remove('hidden');
                             newsAdminLink.classList.remove('hidden');
-                            document.getElementById('news-admin-link').classList.remove('hidden');
                         }
                         if (isSuperUser) {
                             homeAdminLink.classList.remove('hidden');
@@ -447,7 +450,7 @@
                     }
                 });
             } else {
-                profileLink.classList.add('hidden');
+                profileLink.classList.add('hidden'); // Logout replaced by Profile, so Profile is only for logged in
                 profileLink.innerHTML = 'Profile'; // Reset content
                 loginLink.classList.remove('hidden');
                 adminLink.classList.add('hidden');
@@ -455,14 +458,17 @@
                 taxiAdminLink.classList.add('hidden');
                 addBusinessLink.classList.add('hidden');
                 newsAdminLink.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
             }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            firebase.auth().signOut();
         });
 
         window.onclick = (e) => {
             if (hamburgerMenu && !hamburgerMenu.contains(e.target)) menuItems.classList.add('hidden');
         };
-
-        logoutBtn.onclick = () => firebase.auth().signOut();
     };
 
     console.log("website developed by Musa Mgijima");
