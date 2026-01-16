@@ -357,9 +357,10 @@
                     newsUpdates = [];
                     snapshot.forEach(doc => {
                         const data = doc.data();
-                        // Client-side expiry check
+                        // Client-side expiry and showFrom check
                         const isExpired = data.expiry && data.expiry.toDate() < now;
-                        if (!isExpired) {
+                        const isFuture = data.showFrom && data.showFrom.toDate() > now;
+                        if (!isExpired && !isFuture) {
                             newsUpdates.push({id: doc.id, ...data});
                         }
                     });

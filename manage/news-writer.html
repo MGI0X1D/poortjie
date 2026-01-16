@@ -50,21 +50,29 @@
                               class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
                 </div>
 
+                <div>
+                    <label for="news-type" class="block text-sm font-bold mb-2">Type</label>
+                    <select id="news-type"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="news">General News</option>
+                        <option value="alert">Emergency Alert</option>
+                        <option value="event">Upcoming Event</option>
+                        <option value="promo">Business Promo</option>
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="news-type" class="block text-sm font-bold mb-2">Type</label>
-                        <select id="news-type"
-                                class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
-                            <option value="news">General News</option>
-                            <option value="alert">Emergency Alert</option>
-                            <option value="event">Upcoming Event</option>
-                            <option value="promo">Business Promo</option>
-                        </select>
+                        <label for="news-show-from" class="block text-sm font-bold mb-2">Show From (Optional)</label>
+                        <input type="datetime-local" id="news-show-from"
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <p class="text-[10px] opacity-50 mt-1">Leave blank to show immediately.</p>
                     </div>
                     <div>
                         <label for="news-expiry" class="block text-sm font-bold mb-2">Expires (Optional)</label>
-                        <input type="date" id="news-expiry"
+                        <input type="datetime-local" id="news-expiry"
                                class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <p class="text-[10px] opacity-50 mt-1">Leave blank for no expiry.</p>
                     </div>
                 </div>
 
@@ -91,11 +99,14 @@
 <script src="../scripts/firebase.js"></script>
 
 <script>
+    let currentUserName = '';
+
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
             db.collection('users').doc(user.uid).get().then((doc) => {
                 if (doc.exists) {
                     const userData = doc.data();
+                    currentUserName = userData.displayName || 'Admin';
                     const isSuperUser = userData.roles?.digilayn?.isSuperUser === true;
                     const isPoortjieAdmin = userData.roles?.poortjie?.isAdmin === true;
 
@@ -124,23 +135,29 @@
         const title = document.getElementById('news-title').value;
         const content = document.getElementById('news-content').value;
         const type = document.getElementById('news-type').value;
+        const showFrom = document.getElementById('news-show-from').value;
         const expiry = document.getElementById('news-expiry').value;
 
         try {
-            // Use local date for the object, but if expiry is chosen, set it to end of that day
+            let showFromDate = null;
+            if (showFrom) {
+                showFromDate = new Date(showFrom);
+            }
+
             let expiryDate = null;
             if (expiry) {
                 expiryDate = new Date(expiry);
-                expiryDate.setHours(23, 59, 59, 999);
             }
 
             await db.collection('poortjie').doc('news').collection('updates').add({
                 title,
                 content,
                 type,
+                showFrom: showFromDate,
                 expiry: expiryDate,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 authorId: firebase.auth().currentUser.uid,
+                authorName: currentUserName,
                 status: 'active'
             });
 
@@ -174,13 +191,23 @@
                     }
 
                     const isExpired = data.expiry && data.expiry.toDate() < new Date();
-                    const statusBadge = isExpired ? '<span class="text-[10px] bg-gray-500 text-white px-1 rounded ml-2">EXPIRED</span>' : '';
+                    const isFuture = data.showFrom && data.showFrom.toDate() > new Date();
+                    const statusBadge = isExpired ? '<span class="text-[10px] bg-gray-500 text-white px-1 rounded ml-2">EXPIRED</span>' : (isFuture ? '<span class="text-[10px] bg-blue-500 text-white px-1 rounded ml-2">SCHEDULED</span>' : '');
+
+                    let scheduleInfo = '';
+                    if (data.showFrom || data.expiry) {
+                        const fromStr = data.showFrom ? data.showFrom.toDate().toLocaleString() : 'Now';
+                        const toStr = data.expiry ? data.expiry.toDate().toLocaleString() : 'Forever';
+                        scheduleInfo = `<p class="text-[10px] opacity-50 mt-1">Visible: ${fromStr} - ${toStr}</p>`;
+                    }
 
                     return `
-                        <div class="p-4 card rounded-xl border border-gray-100 dark:border-slate-800 flex justify-between items-center ${isExpired ? 'opacity-50' : ''}">
+                        <div class="p-4 card rounded-xl border border-gray-100 dark:border-slate-800 flex justify-between items-center ${isExpired ? 'opacity-50' : ''} ${isFuture ? 'border-blue-200 dark:border-blue-900' : ''}">
                             <div>
                                 <h3 class="font-bold">${data.title}${statusBadge}</h3>
                                 <p class="text-xs opacity-60">${dateStr} • ${data.type}</p>
+                                ${scheduleInfo}
+                                <p class="text-[10px] opacity-40 mt-1">Added by: ${data.authorName || 'Unknown'}</p>
                             </div>
                             <button onclick="deleteNews('${doc.id}')" class="text-red-500 hover:text-red-700 p-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
