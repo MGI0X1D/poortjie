@@ -246,8 +246,8 @@
 <script src="../scripts/theme.js"></script>
 
 <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-<script src="../scripts/local-db.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="../scripts/firebase.js"></script>
@@ -674,7 +674,7 @@
                         validateForm();
                     });
                 }
-            }).catch(error => {
+            }).catch(() => {
                 hideLoader();
                 formContainer.classList.remove('hidden');
                 formContainer.classList.add('flex');
@@ -799,8 +799,7 @@
         google.maps.event.addListener(map, 'click', () => {
             document.getElementById('address-error').classList.add('hidden');
         });
-
-        const circle = new google.maps.Circle({
+        new google.maps.Circle({
             strokeColor: "#22c55e",
             strokeOpacity: 0.8,
             strokeWeight: 2,
@@ -811,7 +810,6 @@
             radius: 5000,
             clickable: false
         });
-
         marker = new google.maps.Marker({
             position: poortjieCenter,
             map: map,

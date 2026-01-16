@@ -58,11 +58,11 @@
     <div class="mb-8 flex flex-col md:flex-row gap-4">
         <div class="relative flex-grow">
             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            <input type="text" id="search-bar" placeholder="Search providers..."
-                   class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <label for="search-bar"></label><input type="text" id="search-bar" placeholder="Search providers..."
+                                                   class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
         </div>
-        <select id="sort-list"
-                class="px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+        <label for="sort-list"></label><select id="sort-list"
+                                               class="px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
             <option value="rating">Sort by Rating</option>
             <option value="name">Sort by Name (A-Z)</option>
         </select>
@@ -83,6 +83,7 @@
 
 <script src="../scripts/theme.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="../scripts/firebase.js"></script>

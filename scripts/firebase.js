@@ -12,6 +12,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
+const analytics = firebase.analytics();
 
 // Connect to Firebase Emulators if running locally
 // if (location.hostname === "localhost" ||
@@ -41,9 +42,8 @@ const auth = firebase.auth();
 /**
  * Logs a user trace (login or register event) to Firestore.
  * @param {string} uid - The user's Firebase UID.
- * @param {string} type - The type of event ('login' or 'register').
  */
-async function logUserTrace(uid, type) {
+async function logUserTrace(uid) {
   try {
     await db.collection('user_traces').doc(uid).set({
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
