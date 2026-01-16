@@ -45,7 +45,6 @@
         try {
             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
             
-            // Apply copy protection to iframe content
             iframeDoc.body.oncopy = () => false;
             iframeDoc.body.oncut = () => false;
             iframeDoc.body.oncontextmenu = () => false;

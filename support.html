@@ -156,8 +156,8 @@
             let admins = [];
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                // Check if user is a Poortjie admin
-                if (data.roles?.poortjie?.isAdmin === true && data.phone) {
+                // Check if user is a Poortjie admin and has opted in to be listed
+                if (data.roles?.poortjie?.isAdmin === true && data.phone && data.roles?.poortjie?.listForSupport === true) {
                     admins.push({
                         name: data.displayName || 'Admin',
                         phone: data.phone,
