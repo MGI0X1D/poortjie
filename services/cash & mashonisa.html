@@ -83,6 +83,7 @@
 
 <script src="../scripts/theme.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="../scripts/firebase.js"></script>
 <script src="../scripts/rating.js"></script>
@@ -92,15 +93,20 @@
     const serviceProviderGrid = document.getElementById('service-provider-grid');
     let allProviders = [];
 
-    const addRatingButtonListeners = () => {
-        document.querySelectorAll('.rate-service').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const serviceId = e.currentTarget.dataset.serviceId;
-                const serviceKey = e.currentTarget.dataset.serviceKey;
+    // Use event delegation for the "Rate" button to handle dynamic rendering
+    serviceProviderGrid.addEventListener('click', (e) => {
+        const button = e.target.closest('.rate-service');
+        if (button) {
+            e.preventDefault();
+            const serviceId = button.dataset.serviceId;
+            const serviceKey = button.dataset.serviceKey;
+            if (window.openRatingModal) {
                 window.openRatingModal(serviceId, serviceKey);
-            });
-        });
-    }
+            } else {
+                console.error("openRatingModal is not defined. Check rating.js loading.");
+            }
+        }
+    });
 
     const renderProviders = async (providers) => {
         serviceProviderGrid.innerHTML = '';
@@ -110,7 +116,6 @@
                 serviceProviderGrid.appendChild(card);
             }
         }
-        addRatingButtonListeners();
     };
 
     const fetchProviders = () => {

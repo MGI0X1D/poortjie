@@ -136,7 +136,11 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
             socialLinksHtml += `<a href="https://wa.me/27${provider.whatsapp.substring(1)}" target="_blank" class="text-green-500 hover:text-green-600 transition text-xl" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>`;
         }
         if (provider.facebook) {
-            const fbUrl = ensureHttps(provider.facebook);
+            let fbUrl = provider.facebook;
+            if (!fbUrl.toLowerCase().includes('facebook.com')) {
+                fbUrl = `facebook.com/${fbUrl.startsWith('/') ? fbUrl.substring(1) : fbUrl}`;
+            }
+            fbUrl = ensureHttps(fbUrl);
             socialLinksHtml += `<a href="${fbUrl}" target="_blank" class="text-blue-600 hover:text-blue-700 transition text-xl" title="Facebook"><i class="fab fa-facebook"></i></a>`;
         }
         if (provider.website) {
