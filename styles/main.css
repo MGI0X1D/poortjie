@@ -33,3 +33,12 @@ body {
 #star-rating .fas.fa-star.selected {
     color: #f59e0b; /* amber-500 */
 }
+
+@keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+.animate-bounce-subtle {
+    animation: bounce-subtle 3s ease-in-out infinite;
+}
