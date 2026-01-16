@@ -99,7 +99,7 @@
     <h1 class="text-6xl font-extrabold mb-4 tracking-tight">Poortjie</h1>
     <div id="news-slider-container" class="max-w-2xl mx-auto mb-8 hidden">
         <div id="news-slider"
-             class="bg-green-50 dark:bg-slate-800/50 border border-green-100 dark:border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+             class="bg-green-50 dark:bg-slate-800/50 border border-green-100 dark:border-slate-700 rounded-2xl p-6 relative group overflow-hidden">
             <div id="news-content-area" class="transition-opacity duration-500">
                 <!-- News content will be injected here -->
                 <div class="animate-pulse flex flex-col items-center">
@@ -107,6 +107,15 @@
                     <div class="h-3 bg-gray-200 dark:bg-slate-700 rounded w-1/2"></div>
                 </div>
             </div>
+
+            <!-- Navigation Arrows -->
+            <button id="prev-news" class="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/40 dark:bg-slate-900/20 dark:hover:bg-slate-900/40 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:outline-none" aria-label="Previous news">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <button id="next-news" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/40 dark:bg-slate-900/20 dark:hover:bg-slate-900/40 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:outline-none" aria-label="Next news">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+
             <div class="flex justify-center gap-2 mt-4" id="slider-dots"></div>
         </div>
     </div>
@@ -297,13 +306,36 @@
             renderNewsSlide();
 
             if (newsUpdates.length > 1) {
-                clearInterval(sliderInterval);
-                sliderInterval = setInterval(() => {
-                    currentNewsIndex = (currentNewsIndex + 1) % newsUpdates.length;
-                    renderNewsSlide();
-                }, 6000);
+                resetSliderTimer();
             }
         }
+
+        function resetSliderTimer() {
+            clearInterval(sliderInterval);
+            sliderInterval = setInterval(() => {
+                showNextNews();
+            }, 6000);
+        }
+
+        function showNextNews() {
+            currentNewsIndex = (currentNewsIndex + 1) % newsUpdates.length;
+            renderNewsSlide();
+        }
+
+        function showPrevNews() {
+            currentNewsIndex = (currentNewsIndex - 1 + newsUpdates.length) % newsUpdates.length;
+            renderNewsSlide();
+        }
+
+        document.getElementById('next-news').addEventListener('click', () => {
+            showNextNews();
+            resetSliderTimer();
+        });
+
+        document.getElementById('prev-news').addEventListener('click', () => {
+            showPrevNews();
+            resetSliderTimer();
+        });
 
         function renderNewsSlide() {
             const news = newsUpdates[currentNewsIndex];
@@ -339,13 +371,19 @@
                 // Render Dots
                 if (newsUpdates.length > 1) {
                     dotsArea.innerHTML = newsUpdates.map((_, i) => `
-                        <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === currentNewsIndex ? 'bg-green-600 w-4' : 'bg-gray-300 dark:bg-slate-600'}"></div>
+                        <div onclick="goToNews(${i})" class="cursor-pointer w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === currentNewsIndex ? 'bg-green-600 w-4' : 'bg-gray-300 dark:bg-slate-600'}"></div>
                     `).join('');
                 } else {
                     dotsArea.innerHTML = '';
                 }
             }, 300);
         }
+
+        window.goToNews = (index) => {
+            currentNewsIndex = index;
+            renderNewsSlide();
+            resetSliderTimer();
+        };
 
         function fetchNews() {
             const now = new Date();
