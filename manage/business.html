@@ -138,6 +138,18 @@
         }
     }
 
+    function toggleDetails(appId) {
+        const details = document.getElementById(`details-${appId}`);
+        const btn = event.currentTarget;
+        if (details.classList.contains('hidden')) {
+            details.classList.remove('hidden');
+            btn.textContent = 'Hide Details';
+        } else {
+            details.classList.add('hidden');
+            btn.textContent = 'Show Details';
+        }
+    }
+
     function getStatusBadge(status) {
         switch (status) {
             case 'approved':
@@ -226,6 +238,25 @@
         }
 
         renderApplications(filtered);
+        resolveUserNames();
+    }
+
+    function resolveUserNames() {
+        const nameElements = document.querySelectorAll('.user-name');
+        const uids = [...new Set([...nameElements].map(el => el.dataset.uid))];
+
+        uids.forEach(uid => {
+            if (!uid) return;
+            db.collection('users').doc(uid).get().then(doc => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const name = userData.displayName || 'Unknown User';
+                    document.querySelectorAll(`.user-name[data-uid="${uid}"]`).forEach(el => {
+                        el.textContent = name;
+                    });
+                }
+            });
+        });
     }
 
     function renderApplications(applications) {
@@ -254,6 +285,43 @@
                             <p><span class="font-semibold">Phone:</span> ${app.phone}</p>
                             <p><span class="font-semibold">Type:</span> ${app.businessType}</p>
                         </div>
+
+                        <div id="details-${app.id}" class="hidden mt-4 pt-4 border-t border-gray-100 dark:border-slate-800 text-sm space-y-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 opacity-80">
+                                <p><span class="font-semibold">Address:</span> ${app.address || 'N/A'}</p>
+                                <p><span class="font-semibold">WhatsApp:</span> ${app.whatsapp || 'N/A'}</p>
+                                <p><span class="font-semibold">Facebook:</span> ${app.facebook || 'N/A'}</p>
+                                <p><span class="font-semibold">Website:</span> ${app.website || 'N/A'}</p>
+                            </div>
+                            <p class="opacity-80"><span class="font-semibold">Description:</span> ${app.description || 'No description'}</p>
+                            ${app.approvedBy ? `
+                            <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-900/30">
+                                <p class="text-xs font-bold uppercase text-green-700 dark:text-green-400 mb-1">Approval Info</p>
+                                <div class="flex flex-col sm:flex-row gap-x-8 gap-y-1 text-xs">
+                                    <p><span class="font-semibold">Approved By:</span> <span class="user-name" data-uid="${app.approvedBy}">${app.approvedBy}</span></p>
+                                    <p><span class="font-semibold">Date:</span> ${app.approvedAt?.toDate ? app.approvedAt.toDate().toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</p>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${app.rejectedBy ? `
+                            <div class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30">
+                                <p class="text-xs font-bold uppercase text-red-700 dark:text-red-400 mb-1">Rejection Info</p>
+                                <div class="flex flex-col sm:flex-row gap-x-8 gap-y-1 text-xs">
+                                    <p><span class="font-semibold">Rejected By:</span> <span class="user-name" data-uid="${app.rejectedBy}">${app.rejectedBy}</span></p>
+                                    <p><span class="font-semibold">Date:</span> ${app.rejectedAt?.toDate ? app.rejectedAt.toDate().toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</p>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${app.disabledBy ? `
+                            <div class="mt-4 p-3 bg-slate-50 dark:bg-slate-900/20 rounded-lg border border-slate-100 dark:border-slate-800">
+                                <p class="text-xs font-bold uppercase text-slate-700 dark:text-slate-400 mb-1">Disabling Info</p>
+                                <div class="flex flex-col sm:flex-row gap-x-8 gap-y-1 text-xs">
+                                    <p><span class="font-semibold">Disabled By:</span> <span class="user-name" data-uid="${app.disabledBy}">${app.disabledBy}</span></p>
+                                    <p><span class="font-semibold">Date:</span> ${app.disabledAt?.toDate ? app.disabledAt.toDate().toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</p>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
                         
                         ${isPending && isOther ? `
                         <div class="mt-4 p-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg border border-gray-200 dark:border-slate-700">
@@ -269,6 +337,7 @@
                         ` : ''}
                     </div>
                     <div class="flex flex-wrap gap-2 shrink-0">
+                        <button onclick="toggleDetails('${app.id}')" class="text-xs font-bold uppercase tracking-wider opacity-60 hover:opacity-100 transition px-3 py-1 border border-gray-300 dark:border-slate-600 rounded-lg">Show Details</button>
                         ${isPending ? `
                         <button onclick="approveApplication('${app.id}')" class="bg-green-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-green-700 transition shadow-sm">Approve</button>
                         <button onclick="requestUpdate('${app.id}')" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-blue-700 transition shadow-sm">Update</button>
@@ -312,13 +381,15 @@
                 // 2. Update status in live services collection
                 transaction.set(liveServiceRef, {
                     status: 'disabled',
-                    disabledBy: currentUserId
+                    disabledBy: currentUserId,
+                    disabledAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
                 // 3. Update status in applications collection
                 transaction.update(appRef, {
                     status: 'disabled',
-                    disabledBy: currentUserId
+                    disabledBy: currentUserId,
+                    disabledAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             });
 
@@ -393,7 +464,8 @@
                 transaction.update(appRef, {
                     status: 'approved',
                     businessType: finalCategory, // Update the app record too
-                    approvedBy: currentUserId
+                    approvedBy: currentUserId,
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             });
 
@@ -411,7 +483,8 @@
             const currentUserId = firebase.auth().currentUser?.uid;
             db.doc(`poortjie/applications/listings/${appId}`).update({
                 status: 'rejected',
-                rejectedBy: currentUserId
+                rejectedBy: currentUserId,
+                rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 console.log("Application rejected!");
             }).catch(error => {
