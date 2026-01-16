@@ -24,6 +24,10 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         iframe {
@@ -33,17 +37,25 @@
         }
     </style>
 </head>
-<body>
+<body oncopy="return false" oncut="return false" oncontextmenu="return false">
 <iframe src="home.html" id="main-frame" title="Poortjie Services Main Content"></iframe>
 <script>
     const iframe = document.getElementById('main-frame');
     iframe.onload = function () {
         try {
-            const iframeTitle = iframe.contentDocument.title;
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
+            // Apply copy protection to iframe content
+            iframeDoc.body.oncopy = () => false;
+            iframeDoc.body.oncut = () => false;
+            iframeDoc.body.oncontextmenu = () => false;
+
+            const iframeTitle = iframeDoc.title;
             if (iframeTitle) {
                 document.title = iframeTitle;
             }
         } catch (e) {
+            console.warn("Could not apply protection to iframe due to cross-origin restrictions or other error:", e);
         }
     };
 </script>
