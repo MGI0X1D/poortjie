@@ -278,6 +278,7 @@
     const userApplicationsList = document.getElementById('user-applications-list');
 
     let currentEditingAppId = null;
+    let originalAppData = null;
 
     const mapContainer = document.getElementById('map-container');
     const toggleMapBtn = document.getElementById('toggle-map-btn');
@@ -381,6 +382,7 @@
             if (!app) return;
 
             currentEditingAppId = appId;
+            originalAppData = JSON.parse(JSON.stringify(app)); // Deep copy to store original state
 
             // Populate form
             ownerNameInput.value = app.ownerName || '';
@@ -480,12 +482,49 @@
 
         const isValid = isNameValid && isEmailValid && isPhoneValid && isBusinessNameValid && isDescValid && isBusinessTypeValid && isAddressValid;
 
-        if (isValid) {
+        let hasChanges = true;
+        if (currentEditingAppId && originalAppData) {
+            const currentData = {
+                phone: phoneInput.value.trim(),
+                businessName: businessNameInput.value.trim(),
+                subHeading: subHeadingInput.value.trim(),
+                businessType: businessTypeInput.value,
+                address: addressInput.value.trim() || null,
+                latitude: selectedLat,
+                longitude: selectedLng,
+                website: websiteInput.value.trim() || null,
+                whatsapp: whatsappInput.value.trim() || null,
+                facebook: facebookInput.value.trim() || null,
+                hours: hoursInput.value.trim(),
+                description: descInput.value.trim()
+            };
+
+            const fieldsToCompare = [
+                'phone', 'businessName', 'subHeading', 'businessType', 'address',
+                'latitude', 'longitude', 'website', 'whatsapp', 'facebook', 'hours', 'description'
+            ];
+
+            hasChanges = fieldsToCompare.some(field => {
+                const originalVal = originalAppData[field] === undefined ? null : originalAppData[field];
+                const currentVal = currentData[field] === undefined ? null : currentData[field];
+                return (originalVal || '').toString().trim() !== (currentVal || '').toString().trim();
+            });
+        }
+
+        if (isValid && hasChanges) {
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            if (currentEditingAppId) {
+                submitBtn.title = "";
+            }
         } else {
-            submitBtn.disabled = false; // Keep it enabled to capture clicks
+            submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            if (currentEditingAppId && isValid && !hasChanges) {
+                submitBtn.title = "No changes detected";
+            } else {
+                submitBtn.title = "";
+            }
         }
 
         if (showErrors || isValid) {
@@ -611,6 +650,12 @@
         e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
         validateForm(false);
     });
+
+    [businessNameInput, subHeadingInput, hoursInput, descInput].forEach(input => {
+        input.addEventListener('input', () => validateForm(false));
+    });
+
+    businessTypeInput.addEventListener('change', () => validateForm(false));
 
     addressInput.addEventListener('input', () => {
         isAddressSelectedFromAutocomplete = false;
