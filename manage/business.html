@@ -237,8 +237,9 @@
             filtered.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         }
 
-        renderApplications(filtered);
-        resolveUserNames();
+        renderApplications(filtered).then(() => {
+            resolveUserNames();
+        });
     }
 
     function resolveUserNames() {
@@ -259,18 +260,83 @@
         });
     }
 
-    function renderApplications(applications) {
+    async function renderApplications(applications) {
         const applicationsList = document.getElementById('applications-list');
+
+        const renderDiff = (oldData, newData) => {
+            if (!oldData) return '';
+            const fields = [
+                { label: 'Business Name', key: 'businessName' },
+                { label: 'Owner Name', key: 'ownerName' },
+                { label: 'Phone', key: 'phone' },
+                { label: 'Address', key: 'address' },
+                { label: 'WhatsApp', key: 'whatsapp' },
+                { label: 'Facebook', key: 'facebook' },
+                { label: 'Website', key: 'website' },
+                { label: 'Description', key: 'description' }
+            ];
+
+            let diffHtml = '<div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30 text-xs">';
+            diffHtml += '<p class="font-bold uppercase text-blue-700 dark:text-blue-400 mb-2">Data Differences (Live vs Application)</p>';
+            diffHtml += '<div class="space-y-1">';
+
+            let hasChanges = false;
+            fields.forEach(field => {
+                const oldVal = (oldData[field.key] || 'N/A').toString().trim();
+                const newVal = (newData[field.key] || 'N/A').toString().trim();
+
+                if (oldVal !== newVal) {
+                    hasChanges = true;
+                    diffHtml += `
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 py-1 border-b border-blue-100/50 dark:border-blue-900/30 last:border-0">
+                            <span class="font-bold">${field.label}:</span>
+                            <span class="text-red-600 dark:text-red-400 line-through truncate">${oldVal}</span>
+                            <span class="text-green-600 dark:text-green-400 font-semibold truncate">${newVal}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            if (!hasChanges) {
+                diffHtml += '<p class="opacity-60 italic">No significant field changes detected.</p>';
+            }
+
+            diffHtml += '</div></div>';
+            return diffHtml;
+        };
 
         if (applications.length === 0) {
             applicationsList.innerHTML = '<p class="text-center py-8 opacity-60">No matching applications found.</p>';
             return;
         }
 
+        // Pre-check for existence of pending applications to show "Approve Update"
+        const existenceChecks = await Promise.all(applications.map(async app => {
+            const isPending = !app.status || app.status === 'pending' || app.status === 'update';
+            if (isPending && app.businessType && app.businessType !== 'Other') {
+                try {
+                    const doc = await db.collection('poortjie').doc('services').collection(app.businessType).doc(app.id).get();
+                    return { id: app.id, exists: doc.exists, existingData: doc.exists ? doc.data() : null };
+                } catch (e) {
+                    console.error("Error checking existence for", app.id, e);
+                    return { id: app.id, exists: false, existingData: null };
+                }
+            }
+            return { id: app.id, exists: false, existingData: null };
+        }));
+
+        const existsMap = existenceChecks.reduce((acc, curr) => {
+            acc[curr.id] = { exists: curr.exists, data: curr.existingData };
+            return acc;
+        }, {});
+
         let html = '';
         applications.forEach(app => {
             const isPending = !app.status || app.status === 'pending' || app.status === 'update';
             const isOther = app.businessType === 'Other';
+            const check = existsMap[app.id];
+            const alreadyExists = check?.exists;
+            const existingData = check?.data;
 
             html += `
                 <div class="p-6 card rounded-xl border border-gray-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -294,6 +360,7 @@
                                 <p><span class="font-semibold">Website:</span> ${app.website || 'N/A'}</p>
                             </div>
                             <p class="opacity-80"><span class="font-semibold">Description:</span> ${app.description || 'No description'}</p>
+                            ${isPending && alreadyExists ? renderDiff(existingData, app) : ''}
                             ${app.approvedBy ? `
                             <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-900/30">
                                 <p class="text-xs font-bold uppercase text-green-700 dark:text-green-400 mb-1">Approval Info</p>
@@ -339,7 +406,7 @@
                     <div class="flex flex-wrap gap-2 shrink-0">
                         <button onclick="toggleDetails('${app.id}')" class="text-xs font-bold uppercase tracking-wider opacity-60 hover:opacity-100 transition px-3 py-1 border border-gray-300 dark:border-slate-600 rounded-lg">Show Details</button>
                         ${isPending ? `
-                        <button onclick="approveApplication('${app.id}')" class="bg-green-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-green-700 transition shadow-sm">Approve</button>
+                        <button onclick="approveApplication('${app.id}')" class="bg-green-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-green-700 transition shadow-sm">${alreadyExists ? 'Approve Update' : 'Approve'}</button>
                         <button onclick="requestUpdate('${app.id}')" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-blue-700 transition shadow-sm">Update</button>
                         <button onclick="rejectApplication('${app.id}')" class="bg-red-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-red-700 transition shadow-sm">Reject</button>
                         ` : ''}
