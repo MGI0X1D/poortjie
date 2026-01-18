@@ -14,6 +14,14 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
             </div>
         </div>
         <p class="text-sm opacity-70 mb-4">{{description}}</p>
+        
+        <div class="{{servicesVisibility}} mb-4">
+            <p class="text-xs font-bold uppercase tracking-wider opacity-50 mb-2">Services & Pricing</p>
+            <div class="grid grid-cols-1 gap-1">
+                {{servicesList}}
+            </div>
+        </div>
+
         <div class="text-sm font-medium space-y-2 mb-4">
             <p class="flex items-center gap-2"><i class="fas fa-phone text-green-500"></i> <a href="tel:{{phone}}">{{phone}}</a></p>
             <p class="flex items-center gap-2 {{hoursVisibility}}"><i class="fas fa-clock text-green-500"></i> {{hours}}</p>
@@ -62,8 +70,39 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
             ? `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
             : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + (address.toLowerCase().includes('poortjie') ? '' : ', Poortjie'))}`;
 
-        const hours = provider.hours || provider.operatingHours || provider.businessHours || 'N/A';
+        let hours = provider.hours || provider.operatingHours || provider.businessHours || 'N/A';
         const hoursVisibility = (provider.hours || provider.operatingHours || provider.businessHours) ? '' : 'hidden';
+
+        // Format hours if it's the long daily format to be more compact on card if possible, 
+        // but user asked to "show time selected on preview card", so we'll ensure it looks good.
+        if (hours.includes(', ')) {
+            const parts = hours.split(', ');
+            if (parts.length === 7) {
+                // Check if Mon-Fri are the same
+                const monFriSame = parts.slice(0, 5).every(p => p.split(' ')[1] === parts[0].split(' ')[1]);
+                if (monFriSame) {
+                    const time = parts[0].split(' ')[1];
+                    const sat = parts[5];
+                    const sun = parts[6];
+                    hours = `Mon-Fri ${time}, ${sat}, ${sun}`;
+                }
+            }
+        }
+
+        const services = provider.services || [];
+        const servicesVisibility = services.length > 0 ? '' : 'hidden';
+        const servicesListHtml = services.map(s => {
+            let priceDisplay = s.price || '';
+            if (priceDisplay && !priceDisplay.startsWith('R')) {
+                priceDisplay = 'R' + priceDisplay;
+            }
+            return `
+            <div class="flex justify-between items-center text-xs py-1 border-b border-gray-50 dark:border-slate-700/50 last:border-0">
+                <span class="opacity-80">${s.name}</span>
+                <span class="font-bold text-green-600 dark:text-green-400">${priceDisplay}</span>
+            </div>
+        `;
+        }).join('');
 
         // Process Ratings map into Comments HTML
         let commentsHtml;
@@ -160,6 +199,8 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
             .replace(/{{phone}}/g, provider.phone)
             .replace(/{{hours}}/g, hours)
             .replace(/{{hoursVisibility}}/g, hoursVisibility)
+            .replace(/{{servicesVisibility}}/g, servicesVisibility)
+            .replace(/{{servicesList}}/g, servicesListHtml)
             .replace(/{{serviceId}}/g, provider.id)
             .replace(/{{serviceKey}}/g, serviceKey)
             .replace(/{{socialLinks}}/g, socialLinksHtml)

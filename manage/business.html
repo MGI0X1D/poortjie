@@ -267,12 +267,15 @@
             if (!oldData) return '';
             const fields = [
                 { label: 'Business Name', key: 'businessName' },
+                { label: 'Sub Heading', key: 'subHeading' },
                 { label: 'Owner Name', key: 'ownerName' },
                 { label: 'Phone', key: 'phone' },
+                { label: 'Type', key: 'businessType' },
                 { label: 'Address', key: 'address' },
                 { label: 'WhatsApp', key: 'whatsapp' },
                 { label: 'Facebook', key: 'facebook' },
                 { label: 'Website', key: 'website' },
+                { label: 'Operating Hours', key: 'hours' },
                 { label: 'Description', key: 'description' }
             ];
 
@@ -281,21 +284,66 @@
             diffHtml += '<div class="space-y-1">';
 
             let hasChanges = false;
+
+            const normalize = (val) => {
+                if (val === null || val === undefined || val === '') return 'N/A';
+                return val.toString().trim().replace(/\s+/g, ' ');
+            };
+
             fields.forEach(field => {
-                const oldVal = (oldData[field.key] || 'N/A').toString().trim();
-                const newVal = (newData[field.key] || 'N/A').toString().trim();
+                const oldVal = normalize(oldData[field.key]);
+                const newVal = normalize(newData[field.key]);
 
                 if (oldVal !== newVal) {
                     hasChanges = true;
                     diffHtml += `
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 py-1 border-b border-blue-100/50 dark:border-blue-900/30 last:border-0">
                             <span class="font-bold">${field.label}:</span>
-                            <span class="text-red-600 dark:text-red-400 line-through truncate">${oldVal}</span>
-                            <span class="text-green-600 dark:text-green-400 font-semibold truncate">${newVal}</span>
+                            <span class="text-red-600 dark:text-red-400 line-through truncate" title="${oldVal}">${oldVal}</span>
+                            <span class="text-green-600 dark:text-green-400 font-semibold truncate" title="${newVal}">${newVal}</span>
                         </div>
                     `;
                 }
             });
+
+            // Compare Coordinates
+            const oldLat = oldData.latitude ? parseFloat(oldData.latitude).toFixed(6) : 'N/A';
+            const oldLng = oldData.longitude ? parseFloat(oldData.longitude).toFixed(6) : 'N/A';
+            const newLat = newData.latitude ? parseFloat(newData.latitude).toFixed(6) : 'N/A';
+            const newLng = newData.longitude ? parseFloat(newData.longitude).toFixed(6) : 'N/A';
+
+            if (oldLat !== newLat || oldLng !== newLng) {
+                hasChanges = true;
+                diffHtml += `
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 py-1 border-b border-blue-100/50 dark:border-blue-900/30 last:border-0">
+                        <span class="font-bold">Map Location:</span>
+                        <span class="text-red-600 dark:text-red-400 line-through truncate">${oldLat}, ${oldLng}</span>
+                        <span class="text-green-600 dark:text-green-400 font-semibold truncate">${newLat}, ${newLng}</span>
+                    </div>
+                `;
+            }
+
+            // Compare Services
+            const oldServices = oldData.services || [];
+            const newServices = newData.services || [];
+            const formatServices = (services) => {
+                if (services.length === 0) return 'None';
+                return services.map(s => `${s.name} (${s.price || 'No price'})`).join(', ');
+            };
+
+            const oldServicesStr = formatServices(oldServices);
+            const newServicesStr = formatServices(newServices);
+
+            if (oldServicesStr !== newServicesStr) {
+                hasChanges = true;
+                diffHtml += `
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 py-1 border-b border-blue-100/50 dark:border-blue-900/30 last:border-0">
+                        <span class="font-bold">Services:</span>
+                        <span class="text-red-600 dark:text-red-400 line-through truncate" title="${oldServicesStr}">${oldServicesStr}</span>
+                        <span class="text-green-600 dark:text-green-400 font-semibold truncate" title="${newServicesStr}">${newServicesStr}</span>
+                    </div>
+                `;
+            }
 
             if (!hasChanges) {
                 diffHtml += '<p class="opacity-60 italic">No significant field changes detected.</p>';
