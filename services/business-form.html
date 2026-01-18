@@ -51,10 +51,8 @@
                            placeholder="Enter your full name"
                            class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-700 cursor-not-allowed text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
                            readonly>
-                    <p id="owner-name-error"
-                       class="absolute right-2 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
-                        Required</p>
                 </div>
+                <p id="owner-name-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Required</p>
             </div>
 
             <div class="form-group mb-4">
@@ -63,10 +61,8 @@
                     <input type="email" id="email" name="email" placeholder="Enter your email"
                            class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-700 cursor-not-allowed text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
                            readonly>
-                    <p id="email-error"
-                       class="absolute right-2 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
-                        Invalid Email</p>
                 </div>
+                <p id="email-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Invalid Email</p>
             </div>
 
             <div class="form-group mb-4">
@@ -74,10 +70,8 @@
                 <div class="relative">
                     <input type="tel" id="phone" name="phone" placeholder="e.g. 0721234567" maxlength="10"
                            class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                    <p id="phone-error"
-                       class="absolute right-2 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
-                        Invalid Phone</p>
                 </div>
+                <p id="phone-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Invalid Phone</p>
             </div>
 
             <div class="form-group mb-4">
@@ -87,10 +81,8 @@
                     <input type="text" id="business-name" name="business_name" maxlength="50"
                            placeholder="What is your business called?"
                            class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                    <p id="business-name-error"
-                       class="absolute right-2 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
-                        Required</p>
                 </div>
+                <p id="business-name-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Required</p>
             </div>
 
             <div class="form-group mb-4">
@@ -109,10 +101,8 @@
                             class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
                         <option value="" disabled selected>Select a category</option>
                     </select>
-                    <p id="business-type-error"
-                       class="absolute right-8 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
-                        Required</p>
                 </div>
+                <p id="business-type-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Required</p>
             </div>
 
             <div class="form-group mb-4">
@@ -124,10 +114,8 @@
                     <div class="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
                         <i class="fa-solid fa-map-location-dot"></i>
                     </div>
-                    <p id="address-error"
-                       class="absolute right-2 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
-                        Required</p>
                 </div>
+                <p id="address-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Required</p>
                 <input type="hidden" id="latitude" name="latitude">
                 <input type="hidden" id="longitude" name="longitude">
             </div>
@@ -258,13 +246,11 @@
                               placeholder="Tell us what your business is about..."
                               class="w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition"
                               rows="4"></textarea>
-                    <p id="description-error"
-                       class="absolute right-2 top-2 px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm hidden">
-                        Required</p>
                     <div id="description-counter" class="absolute right-2 bottom-2 text-[10px] opacity-40 font-mono">
                         0/200
                     </div>
                 </div>
+                <p id="description-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Required</p>
             </div>
 
             <!-- Services/Price List Section -->
@@ -289,10 +275,12 @@
             <p class="text-xs text-center opacity-50 my-6 italic">Note: Rating and comments are for display purposes in
                 this preview.</p>
 
-            <button type="submit" form="business-form" id="submit-btn"
-                    class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md opacity-50 cursor-not-allowed">
-                Submit Business Details
-            </button>
+            <div id="submit-btn-wrapper" class="w-full">
+                <button type="submit" form="business-form" id="submit-btn"
+                        class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md opacity-50 cursor-not-allowed">
+                    Submit Business Details
+                </button>
+            </div>
         </div>
     </div>
 </main>
@@ -315,6 +303,7 @@
     const formContainer = document.getElementById('form-container');
     const businessForm = document.getElementById('business-form');
     const submitBtn = document.getElementById('submit-btn');
+    const submitBtnWrapper = document.getElementById('submit-btn-wrapper');
     const statusContainer = document.getElementById('status-container');
 
     const ownerNameInput = document.getElementById('owner-name');
@@ -654,8 +643,8 @@
                     el.disabled = false;
                 }
             });
-            submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitBtn.style.pointerEvents = 'auto';
             submitBtn.textContent = 'Update Business Details';
 
             // Update form description
@@ -677,8 +666,8 @@
 
     const lockForm = (data) => {
         businessForm.querySelectorAll('input, textarea, select').forEach(el => el.disabled = true);
-        submitBtn.disabled = true;
         submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        submitBtn.style.pointerEvents = 'none'; // Truly disable for locked forms
         submitBtn.textContent = 'Application Pending';
         const formDescription = document.querySelector('#form-container p');
         if (formDescription) {
@@ -756,14 +745,14 @@
         }
 
         if (isValid && hasChanges) {
-            submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitBtn.style.pointerEvents = 'auto';
             if (currentEditingAppId) {
                 submitBtn.title = "";
             }
         } else {
-            submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            submitBtn.style.pointerEvents = 'auto'; // Keep it clickable to show errors
             if (currentEditingAppId && isValid && !hasChanges) {
                 submitBtn.title = "No changes detected";
             } else {
@@ -771,7 +760,7 @@
             }
         }
 
-        if (showErrors || isValid) {
+        if (showErrors) {
             document.getElementById('owner-name-error').classList.toggle('hidden', isNameValid);
             document.getElementById('email-error').classList.toggle('hidden', isEmailValid);
             document.getElementById('phone-error').classList.toggle('hidden', isPhoneValid);
@@ -785,10 +774,19 @@
             } else {
                 addressError.classList.add('hidden');
             }
+        } else {
+            // Hide errors if they become valid while typing
+            if (isNameValid) document.getElementById('owner-name-error').classList.add('hidden');
+            if (isEmailValid) document.getElementById('email-error').classList.add('hidden');
+            if (isPhoneValid) document.getElementById('phone-error').classList.add('hidden');
+            if (isBusinessNameValid) document.getElementById('business-name-error').classList.add('hidden');
+            if (isBusinessTypeValid) document.getElementById('business-type-error').classList.add('hidden');
+            if (isDescValid) document.getElementById('description-error').classList.add('hidden');
+            if (isAddressValid) document.getElementById('address-error').classList.add('hidden');
         }
 
         updatePreview();
-        return isValid;
+        return isValid && hasChanges;
     };
 
     const updatePreview = async () => {
@@ -976,6 +974,11 @@
         event.preventDefault();
 
         if (!validateForm(true)) {
+            // Scroll to first error
+            const firstError = document.querySelector('p[id$="-error"]:not(.hidden)');
+            if (firstError) {
+                firstError.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
         }
 
