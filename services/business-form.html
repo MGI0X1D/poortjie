@@ -536,7 +536,7 @@
 
         applicationsSection.classList.remove('hidden');
         userApplicationsList.innerHTML = applications.map(app => {
-            const canEdit = app.status === 'approved' || app.status === 'update';
+            const canEdit = app.status === 'approved' || app.status === 'update' || app.status === 'rejected';
             return `
                 <div class="p-4 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 flex justify-between items-center">
                     <div>
@@ -655,7 +655,7 @@
             const formDescription = document.querySelector('#form-container p');
             if (formDescription) {
                 formDescription.textContent = 'Update your business details below.';
-                formDescription.classList.remove('text-yellow-600', 'dark:text-yellow-400', 'font-bold');
+                formDescription.classList.remove('text-yellow-600', 'dark:text-yellow-400', 'text-blue-600', 'dark:text-blue-400', 'text-red-600', 'dark:text-red-400', 'font-bold');
                 formDescription.classList.add('opacity-70');
             }
 
@@ -678,6 +678,9 @@
             if (data.status === 'update') {
                 formDescription.textContent = 'An update has been requested for your application. Please click "Edit" below to make changes.';
                 formDescription.classList.add('text-blue-600', 'dark:text-blue-400', 'font-bold');
+            } else if (data.status === 'rejected') {
+                formDescription.textContent = 'Your application was rejected. Please click "Edit" below to correct any issues and resubmit.';
+                formDescription.classList.add('text-red-600', 'dark:text-red-400', 'font-bold');
             } else {
                 formDescription.textContent = 'You have a pending application. Please wait for it to be reviewed before submitting another.';
                 formDescription.classList.add('text-yellow-600', 'dark:text-yellow-400', 'font-bold');
@@ -929,7 +932,7 @@
                 const applications = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 renderUserApplications(applications);
 
-                const pendingApplication = applications.find(app => app.status === 'pending' || app.status === 'update');
+                const pendingApplication = applications.find(app => app.status === 'pending' || app.status === 'update' || app.status === 'rejected');
                 if (pendingApplication) {
                     lockForm(pendingApplication);
 
