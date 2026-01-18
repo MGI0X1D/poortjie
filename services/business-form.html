@@ -426,6 +426,8 @@
 
                     try {
                         const user = auth.currentUser;
+                        if (!user) throw new Error("User not authenticated.");
+
                         const fileName = `${Date.now()}_${i}`;
                         const storageRef = firebase.storage().ref(`business-photos/${user.uid}/${fileName}`);
                         const snapshot = await storageRef.put(file);
@@ -436,7 +438,15 @@
                         updatePhotosSummary();
                     } catch (error) {
                         console.error("Upload failed:", error);
-                        alert('Upload failed: ' + error.message);
+                        let friendlyMsg = 'Upload failed: ' + error.message;
+                        if (location.protocol === 'file:') {
+                            friendlyMsg = 'Photo upload is not supported when opening the file directly (file://). Please host the website or use a local server.';
+                        } else if (error.code === 'storage/unauthorized') {
+                            friendlyMsg = 'You do not have permission to upload photos. Please try logging out and back in.';
+                        } else if (error.code === 'storage/retry-limit-exceeded') {
+                            friendlyMsg = 'Upload took too long. Please check your internet connection.';
+                        }
+                        alert(friendlyMsg);
                         renderGallery();
                     }
                 };
@@ -1241,16 +1251,6 @@
             });
     });
 
-    toggleMapBtn.addEventListener('click', () => {
-        mapContainer.classList.toggle('hidden');
-        if (!mapContainer.classList.contains('hidden')) {
-            if (!map) {
-                initMap();
-            } else {
-                google.maps.event.trigger(map, 'resize');
-            }
-        }
-    });
 
     function initMap() {
         const poortjieCenter = {lat: -26.456323807221267, lng: 27.77044633885547};
@@ -1292,7 +1292,7 @@
             title: "Drag to your business location",
             animation: google.maps.Animation.DROP,
             icon: {
-                url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+                url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png"
             }
         });
 
@@ -1353,6 +1353,10 @@
             fields: ["formatted_address", "geometry"],
             types: ["address"],
         });
+
+        // Hide friendly message about legacy autocomplete
+        const pacContainer = document.querySelector('.pac-container');
+        if (pacContainer) pacContainer.style.zIndex = '1000';
 
         autocomplete.addListener("place_changed", () => {
             const place = autocomplete.getPlace();

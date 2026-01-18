@@ -28,16 +28,18 @@ const analytics = firebase.analytics();
 // }
 
 // Enable offline persistence with multi-tab support
-db.enablePersistence({ synchronizeTabs: true })
-  .catch((err) => {
-    if (err.code == 'failed-precondition') {
-      // This can still happen if multiple tabs are open with different persistence settings.
-      console.warn('Firebase persistence failed: multiple tabs open with different settings.');
-    } else if (err.code == 'unimplemented') {
-      // The current browser does not support all of the features required to enable persistence.
-      console.warn('Firebase persistence failed: browser does not support it.');
-    }
-  });
+if (location.protocol !== 'file:') {
+  db.enablePersistence({ synchronizeTabs: true })
+    .catch((err) => {
+      if (err.code == 'failed-precondition') {
+        // This can still happen if multiple tabs are open with different persistence settings.
+        console.warn('Firebase persistence failed: multiple tabs open with different settings.');
+      } else if (err.code == 'unimplemented') {
+        // The current browser does not support all of the features required to enable persistence.
+        console.warn('Firebase persistence failed: browser does not support it.');
+      }
+    });
+}
 
 /**
  * Logs a user trace (login or register event) to Firestore.
