@@ -20,8 +20,10 @@
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
-<header class="max-w-6xl mx-auto pt-24 pb-16 px-6 text-center">
-    <a href="../index.html" onclick="window.location.replace('../index.html'); return false;" class="text-6xl font-extrabold mb-4 tracking-tight text-slate-900 dark:text-white">Poortjie</a>
+<header class="max-w-6xl mx-auto pt-24 pb-16 px-6 text-center text-gray-900 dark:text-gray-100">
+    <a href="../index.html"
+       onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
+       class="text-6xl font-extrabold mb-4 tracking-tight">Poortjie</a>
 </header>
 
 <main class="max-w-md mx-auto px-6 pb-24">
@@ -79,8 +81,8 @@
                 </div>
             </div>
             
-            <button type="submit" id="save-btn" disabled class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md mb-4 opacity-50 cursor-not-allowed">
-                Save Changes
+            <button type="button" id="save-btn" class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md mb-4">
+                Back
             </button>
         </form>
 
@@ -91,7 +93,7 @@
 </main>
 
 <!-- Image Modal -->
-<div id="image-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300">
+<div id="image-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300">
     <button id="close-modal" class="absolute top-6 right-6 text-white hover:text-gray-300 focus:outline-none">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -164,13 +166,28 @@
             currentData.photoUrl !== initialData.photoUrl ||
             currentData.listForSupport !== initialData.listForSupport;
 
-        saveBtn.disabled = !hasChanged;
-        if (saveBtn.disabled) {
-            saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        } else {
+        if (hasChanged) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
             saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            saveBtn.type = 'submit';
+        } else {
+            saveBtn.disabled = false; // Enabled for "Back" functionality
+            saveBtn.textContent = 'Back';
+            saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            saveBtn.type = 'button';
         }
     }
+
+    saveBtn.addEventListener('click', (e) => {
+        if (saveBtn.textContent === 'Back') {
+            if (history.length > 1) {
+                history.back();
+            } else {
+                window.location.replace('../index.html');
+            }
+        }
+    });
 
     [displayNameInput, phoneNumberInput, bioInput, listForSupportToggle].forEach(input => {
         const eventName = input.type === 'checkbox' ? 'change' : 'input';
@@ -255,31 +272,29 @@
                 let width = img.width;
                 let height = img.height;
                 
-                // Maximum dimension to keep it reasonable
-                const MAX_DIM = 1200;
-                if (width > height) {
-                    if (width > MAX_DIM) {
-                        height *= MAX_DIM / width;
-                        width = MAX_DIM;
-                    }
-                } else {
-                    if (height > MAX_DIM) {
-                        width *= MAX_DIM / height;
-                        height = MAX_DIM;
-                    }
-                }
+                // 1:1 Crop logic
+                let size = Math.min(width, height);
+                let xOffset = (width - size) / 2;
+                let yOffset = (height - size) / 2;
                 
-                canvas.width = width;
-                canvas.height = height;
+                // Maximum dimension to keep it reasonable
+                const MAX_DIM = 800; // Profile pictures don't need to be huge
+                let targetSize = Math.min(size, MAX_DIM);
+                
+                canvas.width = targetSize;
+                canvas.height = targetSize;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Draw cropped and resized image
+                ctx.drawImage(img, xOffset, yOffset, size, size, 0, 0, targetSize, targetSize);
                 
                 // Start with high quality and reduce if needed
                 let quality = 0.9;
                 let dataUrl = canvas.toDataURL('image/jpeg', quality);
                 
+                // Ensure size is under 1MB (1024 * 1024 bytes)
                 // Approximate size in bytes (base64 size is ~4/3 of actual size)
-                while (dataUrl.length * 0.75 > 500 * 1024 && quality > 0.1) {
+                while (dataUrl.length * 0.75 > 1024 * 1024 && quality > 0.1) {
                     quality -= 0.1;
                     dataUrl = canvas.toDataURL('image/jpeg', quality);
                 }
@@ -333,7 +348,6 @@
         }).catch(error => {
             console.error("Error updating profile:", error);
             showStatus("Error updating profile. Please try again.", true);
-        }).finally(() => {
             saveBtn.disabled = false;
             saveBtn.textContent = 'Save Changes';
         });
