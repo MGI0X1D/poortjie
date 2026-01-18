@@ -20,6 +20,7 @@
           integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <script src="../scripts/loader.js"></script>
+    <script src="../scripts/time-schedule.js"></script>
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
@@ -211,101 +212,8 @@
                         <option value="custom">Custom Text</option>
                     </select>
                     
-                    <div id="selected-hours-container" class="hidden animate-fadeIn space-y-3 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
-                        <div class="space-y-2">
-                            <!-- Monday -->
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="mon-closed" class="day-closed-check accent-green-600">
-                                    <span class="font-bold w-20">Monday</span>
-                                </div>
-                                <div class="flex items-center gap-2 day-times">
-                                    <input type="time" id="mon-open" value="08:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                    <span>to</span>
-                                    <input type="time" id="mon-close" value="17:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                </div>
-                                <span class="text-xs text-red-500 font-bold hidden day-closed-label">Closed</span>
-                            </div>
-                            <!-- Tuesday -->
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="tue-closed" class="day-closed-check accent-green-600">
-                                    <span class="font-bold w-20">Tuesday</span>
-                                </div>
-                                <div class="flex items-center gap-2 day-times">
-                                    <input type="time" id="tue-open" value="08:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                    <span>to</span>
-                                    <input type="time" id="tue-close" value="17:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                </div>
-                                <span class="text-xs text-red-500 font-bold hidden day-closed-label">Closed</span>
-                            </div>
-                            <!-- Wednesday -->
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="wed-closed" class="day-closed-check accent-green-600">
-                                    <span class="font-bold w-20">Wednesday</span>
-                                </div>
-                                <div class="flex items-center gap-2 day-times">
-                                    <input type="time" id="wed-open" value="08:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                    <span>to</span>
-                                    <input type="time" id="wed-close" value="17:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                </div>
-                                <span class="text-xs text-red-500 font-bold hidden day-closed-label">Closed</span>
-                            </div>
-                            <!-- Thursday -->
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="thu-closed" class="day-closed-check accent-green-600">
-                                    <span class="font-bold w-20">Thursday</span>
-                                </div>
-                                <div class="flex items-center gap-2 day-times">
-                                    <input type="time" id="thu-open" value="08:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                    <span>to</span>
-                                    <input type="time" id="thu-close" value="17:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                </div>
-                                <span class="text-xs text-red-500 font-bold hidden day-closed-label">Closed</span>
-                            </div>
-                            <!-- Friday -->
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="fri-closed" class="day-closed-check accent-green-600">
-                                    <span class="font-bold w-20">Friday</span>
-                                </div>
-                                <div class="flex items-center gap-2 day-times">
-                                    <input type="time" id="fri-open" value="08:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                    <span>to</span>
-                                    <input type="time" id="fri-close" value="17:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                </div>
-                                <span class="text-xs text-red-500 font-bold hidden day-closed-label">Closed</span>
-                            </div>
-                            <!-- Saturday -->
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="sat-closed" class="day-closed-check accent-green-600">
-                                    <span class="font-bold w-20">Saturday</span>
-                                </div>
-                                <div class="flex items-center gap-2 day-times">
-                                    <input type="time" id="sat-open" value="09:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                    <span>to</span>
-                                    <input type="time" id="sat-close" value="13:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                </div>
-                                <span class="text-xs text-red-500 font-bold hidden day-closed-label">Closed</span>
-                            </div>
-                            <!-- Sunday -->
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="sun-closed" checked class="day-closed-check accent-green-600">
-                                    <span class="font-bold w-20">Sunday</span>
-                                </div>
-                                <div class="flex items-center gap-2 day-times hidden">
-                                    <input type="time" id="sun-open" value="09:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                    <span>to</span>
-                                    <input type="time" id="sun-close" value="13:00" class="p-1 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                                </div>
-                                <span class="text-xs text-red-500 font-bold day-closed-label">Closed</span>
-                            </div>
-                        </div>
-                        <p class="text-[10px] opacity-50 italic mt-2">Uncheck day if closed</p>
+                    <div id="selected-hours-container" class="hidden animate-fadeIn bg-gray-50 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+                        <time-schedule id="time-schedule-component"></time-schedule>
                     </div>
 
                     <input type="text" id="hours" name="hours" maxlength="100" placeholder="e.g. Mon-Fri 9am-5pm"
@@ -393,27 +301,7 @@
     const hoursInput = document.getElementById('hours');
     const hoursTypeSelect = document.getElementById('hours-type');
     const selectedHoursContainer = document.getElementById('selected-hours-container');
-    const monOpen = document.getElementById('mon-open');
-    const monClose = document.getElementById('mon-close');
-    const monClosed = document.getElementById('mon-closed');
-    const tueOpen = document.getElementById('tue-open');
-    const tueClose = document.getElementById('tue-close');
-    const tueClosed = document.getElementById('tue-closed');
-    const wedOpen = document.getElementById('wed-open');
-    const wedClose = document.getElementById('wed-close');
-    const wedClosed = document.getElementById('wed-closed');
-    const thuOpen = document.getElementById('thu-open');
-    const thuClose = document.getElementById('thu-close');
-    const thuClosed = document.getElementById('thu-closed');
-    const friOpen = document.getElementById('fri-open');
-    const friClose = document.getElementById('fri-close');
-    const friClosed = document.getElementById('fri-closed');
-    const satOpen = document.getElementById('sat-open');
-    const satClose = document.getElementById('sat-close');
-    const satClosed = document.getElementById('sat-closed');
-    const sunOpen = document.getElementById('sun-open');
-    const sunClose = document.getElementById('sun-close');
-    const sunClosed = document.getElementById('sun-closed');
+    const timeScheduleComponent = document.getElementById('time-schedule-component');
 
     const updateHoursDisplay = () => {
         const type = hoursTypeSelect.value;
@@ -427,22 +315,15 @@
         } else if (type === 'selected') {
             selectedHoursContainer.classList.remove('hidden');
             
-            const days = [
-                { id: 'Mon', open: monOpen, close: monClose, closed: monClosed },
-                { id: 'Tue', open: tueOpen, close: tueClose, closed: tueClosed },
-                { id: 'Wed', open: wedOpen, close: wedClose, closed: wedClosed },
-                { id: 'Thu', open: thuOpen, close: thuClose, closed: thuClosed },
-                { id: 'Fri', open: friOpen, close: friClose, closed: friClosed },
-                { id: 'Sat', open: satOpen, close: satClose, closed: satClosed },
-                { id: 'Sun', open: sunOpen, close: sunClose, closed: sunClosed }
-            ];
-
-            const schedule = days.map(day => {
-                if (day.closed.checked) return `${day.id} Closed`;
-                return `${day.id} ${day.open.value}-${day.close.value}`;
-            });
-
-            hoursInput.value = schedule.join(', ');
+            if (timeScheduleComponent && typeof timeScheduleComponent.getScheduleData === 'function') {
+                const scheduleData = timeScheduleComponent.getScheduleData();
+                const schedule = scheduleData.map(day => {
+                    const shortDay = day.day.substring(0, 3);
+                    if (day.status === 'closed') return `${shortDay} Closed`;
+                    return `${shortDay} ${day.openingTime}-${day.closingTime}`;
+                });
+                hoursInput.value = schedule.join(', ');
+            }
         } else if (type === 'custom') {
             hoursInput.classList.remove('hidden');
         }
@@ -450,26 +331,7 @@
     };
 
     hoursTypeSelect.addEventListener('change', updateHoursDisplay);
-
-    document.querySelectorAll('.day-closed-check').forEach(check => {
-        check.addEventListener('change', (e) => {
-            const row = e.target.closest('.flex');
-            const times = row.querySelector('.day-times');
-            const label = row.querySelector('.day-closed-label');
-            if (e.target.checked) {
-                times.classList.add('hidden');
-                label.classList.remove('hidden');
-            } else {
-                times.classList.remove('hidden');
-                label.classList.add('hidden');
-            }
-            updateHoursDisplay();
-        });
-    });
-
-    document.querySelectorAll('#selected-hours-container input[type="time"]').forEach(input => {
-        input.addEventListener('change', updateHoursDisplay);
-    });
+    timeScheduleComponent.addEventListener('change', updateHoursDisplay);
 
     const descInput = document.getElementById('description');
     const descCounter = document.getElementById('description-counter');
@@ -656,82 +518,41 @@
                 hoursTypeSelect.value = 'appointment';
             } else if (app.hours && (app.hours.includes('Mon ') || app.hours.includes('Tue ') || app.hours.includes('Wed ') || app.hours.includes('Thu ') || app.hours.includes('Fri ') || app.hours.includes('Sat ') || app.hours.includes('Sun '))) {
                 hoursTypeSelect.value = 'selected';
-                const dayMap = {
-                    'Mon': { open: monOpen, close: monClose, closed: monClosed },
-                    'Tue': { open: tueOpen, close: tueClose, closed: tueClosed },
-                    'Wed': { open: wedOpen, close: wedClose, closed: wedClosed },
-                    'Thu': { open: thuOpen, close: thuClose, closed: thuClosed },
-                    'Fri': { open: friOpen, close: friClose, closed: friClosed },
-                    'Sat': { open: satOpen, close: satClose, closed: satClosed },
-                    'Sun': { open: sunOpen, close: sunClose, closed: sunClosed }
-                };
-
-                Object.keys(dayMap).forEach(day => {
-                    const regex = new RegExp(`${day} (\\d{2}:\\d{2})-(\\d{2}:\\d{2})`);
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                const scheduleData = days.map(day => {
+                    const shortDay = day.substring(0, 3);
+                    const regex = new RegExp(`${shortDay} (\\d{2}:\\d{2})-(\\d{2}:\\d{2})`);
                     const match = app.hours.match(regex);
                     if (match) {
-                        dayMap[day].open.value = match[1];
-                        dayMap[day].close.value = match[2];
-                        dayMap[day].closed.checked = false;
-                    } else if (app.hours.includes(`${day} Closed`)) {
-                        dayMap[day].closed.checked = true;
-                    }
-                    
-                    // Trigger UI updates for each day's closed status
-                    const row = dayMap[day].closed.closest('.flex');
-                    const times = row.querySelector('.day-times');
-                    const label = row.querySelector('.day-closed-label');
-                    if (dayMap[day].closed.checked) {
-                        times.classList.add('hidden');
-                        label.classList.remove('hidden');
+                        return { day, status: 'open', openingTime: match[1], closingTime: match[2] };
                     } else {
-                        times.classList.remove('hidden');
-                        label.classList.add('hidden');
+                        return { day, status: 'closed', openingTime: '08:00', closingTime: '17:00' };
                     }
                 });
+                if (timeScheduleComponent && typeof timeScheduleComponent.setScheduleData === 'function') {
+                    timeScheduleComponent.setScheduleData(scheduleData);
+                }
             } else if (app.hours && (app.hours.includes('Mon-Fri') || app.hours.includes('Sat'))) {
                 hoursTypeSelect.value = 'selected';
-                // Backward compatibility for old format: Mon-Fri HH:mm-HH:mm, Sat HH:mm-HH:mm, Sun HH:mm-HH:mm OR Sun Closed
                 const weekMatch = app.hours.match(/Mon-Fri (\d{2}:\d{2})-(\d{2}:\d{2})/);
-                if (weekMatch) {
-                    ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].forEach(day => {
-                        const d = { 'Mon': monOpen, 'Tue': tueOpen, 'Wed': wedOpen, 'Thu': thuOpen, 'Fri': friOpen }[day];
-                        const c = { 'Mon': monClose, 'Tue': tueClose, 'Wed': wedClose, 'Thu': thuClose, 'Fri': friClose }[day];
-                        const cl = { 'Mon': monClosed, 'Tue': tueClosed, 'Wed': wedClosed, 'Thu': thuClosed, 'Fri': friClosed }[day];
-                        d.value = weekMatch[1];
-                        c.value = weekMatch[2];
-                        cl.checked = false;
-                    });
-                }
                 const satMatch = app.hours.match(/Sat (\d{2}:\d{2})-(\d{2}:\d{2})/);
-                if (satMatch) {
-                    satOpen.value = satMatch[1];
-                    satClose.value = satMatch[2];
-                    satClosed.checked = false;
-                }
                 const sunMatch = app.hours.match(/Sun (\d{2}:\d{2})-(\d{2}:\d{2})/);
-                if (sunMatch) {
-                    sunOpen.value = sunMatch[1];
-                    sunClose.value = sunMatch[2];
-                    sunClosed.checked = false;
-                } else if (app.hours.includes('Sun Closed')) {
-                    sunClosed.checked = true;
-                }
-
-                // Sync UI
-                ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].forEach(id => {
-                    const closed = document.getElementById(`${id}-closed`);
-                    const row = closed.closest('.flex');
-                    const times = row.querySelector('.day-times');
-                    const label = row.querySelector('.day-closed-label');
-                    if (closed.checked) {
-                        times.classList.add('hidden');
-                        label.classList.remove('hidden');
-                    } else {
-                        times.classList.remove('hidden');
-                        label.classList.add('hidden');
+                
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                const scheduleData = days.map(day => {
+                    let status = 'closed', openingTime = '08:00', closingTime = '17:00';
+                    if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(day) && weekMatch) {
+                        status = 'open'; openingTime = weekMatch[1]; closingTime = weekMatch[2];
+                    } else if (day === 'Saturday' && satMatch) {
+                        status = 'open'; openingTime = satMatch[1]; closingTime = satMatch[2];
+                    } else if (day === 'Sunday' && sunMatch) {
+                        status = 'open'; openingTime = sunMatch[1]; closingTime = sunMatch[2];
                     }
+                    return { day, status, openingTime, closingTime };
                 });
+                if (timeScheduleComponent && typeof timeScheduleComponent.setScheduleData === 'function') {
+                    timeScheduleComponent.setScheduleData(scheduleData);
+                }
             } else if (app.hours) {
                 hoursTypeSelect.value = 'custom';
             }
