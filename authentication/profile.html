@@ -151,7 +151,7 @@
     function checkChanges() {
         const currentData = {
             displayName: displayNameInput.value.trim(),
-            phoneNumber: phoneNumberInput.value.trim(),
+            phone: phoneNumberInput.value.trim(),
             bio: bioInput.value.trim(),
             photoUrl: photoUrlInput.value,
             listForSupport: listForSupportToggle.checked
@@ -159,7 +159,7 @@
 
         const hasChanged = 
             currentData.displayName !== initialData.displayName ||
-            currentData.phoneNumber !== initialData.phoneNumber ||
+            currentData.phone !== initialData.phone ||
             currentData.bio !== initialData.bio ||
             currentData.photoUrl !== initialData.photoUrl ||
             currentData.listForSupport !== initialData.listForSupport;
@@ -226,7 +226,7 @@
 
                     initialData = {
                         displayName: displayNameInput.value.trim(),
-                        phoneNumber: phoneNumberInput.value.trim(),
+                        phone: phoneNumberInput.value.trim(),
                         bio: bioInput.value.trim(),
                         photoUrl: photoUrlInput.value,
                         listForSupport: listForSupportToggle.checked
@@ -309,7 +309,7 @@
 
         firebase.firestore().collection('users').doc(user.uid).update({
             displayName: newDisplayName,
-            phoneNumber: newPhoneNumber,
+            phone: newPhoneNumber,
             bio: newBio,
             photoUrl: newPhotoUrl,
             "roles.poortjie.listForSupport": newListForSupport,
@@ -319,7 +319,7 @@
             // Update initialData to current values after successful save
             initialData = {
                 displayName: newDisplayName,
-                phoneNumber: newPhoneNumber,
+                phone: newPhoneNumber,
                 bio: newBio,
                 photoUrl: newPhotoUrl,
                 listForSupport: newListForSupport
