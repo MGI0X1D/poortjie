@@ -427,16 +427,18 @@
 
     const addServiceRow = (name = '', price = '') => {
         const row = document.createElement('div');
-        row.className = 'flex gap-2 items-center animate-fadeIn';
+        row.className = 'flex flex-wrap sm:flex-nowrap gap-2 items-center animate-fadeIn p-3 bg-gray-50 dark:bg-slate-800/30 rounded-xl border border-gray-100 dark:border-slate-700/50';
         row.innerHTML = `
-            <input type="text" placeholder="Service name" value="${name}" class="service-name-input flex-1 p-2 text-sm rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-            <div class="relative w-28">
-                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs opacity-50">R</span>
-                <input type="text" placeholder="Price" value="${price.replace('R', '')}" class="service-price-input w-full p-2 pl-5 text-sm rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+            <input type="text" placeholder="Service name" value="${name}" class="service-name-input flex-1 min-w-[150px] p-2 text-sm rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <div class="relative flex-1 sm:w-28">
+                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs opacity-50">R</span>
+                    <input type="text" placeholder="Price" value="${price.replace('R', '')}" class="service-price-input w-full p-2 pl-5 text-sm rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                </div>
+                <button type="button" class="remove-service-btn text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition shrink-0">
+                    <i class="fas fa-trash-can"></i>
+                </button>
             </div>
-            <button type="button" class="remove-service-btn text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
-                <i class="fas fa-trash-can"></i>
-            </button>
         `;
         servicesList.appendChild(row);
 
@@ -462,13 +464,17 @@
     addServiceBtn.addEventListener('click', () => addServiceRow());
 
     const getServicesData = () => {
-        const rows = servicesList.querySelectorAll('.flex');
+        const rows = servicesList.children;
         const services = [];
-        rows.forEach(row => {
-            const name = row.querySelector('.service-name-input').value.trim();
-            const price = row.querySelector('.service-price-input').value.trim();
-            if (name) {
-                services.push({ name, price: price ? 'R' + price : '' });
+        Array.from(rows).forEach(row => {
+            const nameInput = row.querySelector('.service-name-input');
+            const priceInput = row.querySelector('.service-price-input');
+            if (nameInput) {
+                const name = nameInput.value.trim();
+                const price = priceInput.value.trim();
+                if (name) {
+                    services.push({ name, price: price ? 'R' + price : '' });
+                }
             }
         });
         return services;
