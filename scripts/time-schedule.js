@@ -123,11 +123,11 @@ class TimeSchedule extends HTMLElement {
                 this.dispatchEvent(new CustomEvent('change', { bubbles: true }));
             });
 
-            start.addEventListener('change', () => {
+            start.addEventListener('input', () => {
                 this.dispatchEvent(new CustomEvent('change', { bubbles: true }));
             });
 
-            end.addEventListener('change', () => {
+            end.addEventListener('input', () => {
                 this.dispatchEvent(new CustomEvent('change', { bubbles: true }));
             });
         });

@@ -328,13 +328,15 @@
             hoursInput.classList.remove('hidden');
         }
         
-        // Dispatch input event so validateForm/updatePreview is triggered
+        // Dispatch input event so listeners on hoursInput (like updatePreview) are triggered
         hoursInput.dispatchEvent(new Event('input', { bubbles: true }));
         validateForm(false);
     };
 
     hoursTypeSelect.addEventListener('change', updateHoursDisplay);
-    timeScheduleComponent.addEventListener('change', updateHoursDisplay);
+    timeScheduleComponent.addEventListener('change', () => {
+        updateHoursDisplay();
+    });
 
     const descInput = document.getElementById('description');
     const descCounter = document.getElementById('description-counter');
@@ -670,10 +672,17 @@
                         s.name !== originalServices[i].name || s.price !== originalServices[i].price
                     );
                 }
-                const originalVal = originalAppData[field] === undefined ? null : originalAppData[field];
-                const currentVal = currentData[field] === undefined ? null : currentData[field];
                 
-                return (originalVal || '').toString().trim() !== (currentVal || '').toString().trim();
+                let originalVal = originalAppData[field] === undefined ? null : originalAppData[field];
+                let currentVal = currentData[field] === undefined ? null : currentData[field];
+
+                // Normalize values for comparison
+                const normalize = (val) => {
+                    if (val === null || val === undefined) return '';
+                    return val.toString().trim().replace(/\s+/g, ' ');
+                };
+
+                return normalize(originalVal) !== normalize(currentVal);
             });
         }
 
@@ -822,10 +831,16 @@
     });
 
     [businessNameInput, subHeadingInput, hoursInput, descInput, hoursTypeSelect].forEach(input => {
-        input.addEventListener('input', () => validateForm(false));
+        input.addEventListener('input', () => {
+            validateForm(false);
+            updatePreview();
+        });
     });
 
-    businessTypeInput.addEventListener('change', () => validateForm(false));
+    businessTypeInput.addEventListener('change', () => {
+        validateForm(false);
+        updatePreview();
+    });
 
     addressInput.addEventListener('input', () => {
         isAddressSelectedFromAutocomplete = false;
