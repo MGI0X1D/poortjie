@@ -327,6 +327,9 @@
         } else if (type === 'custom') {
             hoursInput.classList.remove('hidden');
         }
+        
+        // Dispatch input event so validateForm/updatePreview is triggered
+        hoursInput.dispatchEvent(new Event('input', { bubbles: true }));
         validateForm(false);
     };
 
@@ -516,39 +519,25 @@
                 hoursTypeSelect.value = 'always';
             } else if (app.hours === 'By Appointment Only') {
                 hoursTypeSelect.value = 'appointment';
-            } else if (app.hours && (app.hours.includes('Mon ') || app.hours.includes('Tue ') || app.hours.includes('Wed ') || app.hours.includes('Thu ') || app.hours.includes('Fri ') || app.hours.includes('Sat ') || app.hours.includes('Sun '))) {
+            } else if (app.hours && (app.hours.includes('Mon ') || app.hours.includes('Tue ') || app.hours.includes('Wed ') || app.hours.includes('Thu ') || app.hours.includes('Fri ') || app.hours.includes('Sat ') || app.hours.includes('Sun ') || app.hours.includes('Mon-Fri '))) {
                 hoursTypeSelect.value = 'selected';
                 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                
+                // Try to match Mon-Fri combined format first
+                const weekMatch = app.hours.match(/Mon-Fri (\d{2}:\d{2})-(\d{2}:\d{2})/);
+                
                 const scheduleData = days.map(day => {
                     const shortDay = day.substring(0, 3);
                     const regex = new RegExp(`${shortDay} (\\d{2}:\\d{2})-(\\d{2}:\\d{2})`);
                     const match = app.hours.match(regex);
                     if (match) {
                         return { day, status: 'open', openingTime: match[1], closingTime: match[2] };
+                    } else if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(day) && weekMatch) {
+                        return { day, status: 'open', openingTime: weekMatch[1], closingTime: weekMatch[2] };
                     } else {
-                        return { day, status: 'closed', openingTime: '08:00', closingTime: '17:00' };
+                        const isClosed = app.hours.includes(`${shortDay} Closed`);
+                        return { day, status: isClosed ? 'closed' : 'open', openingTime: '08:00', closingTime: '17:00' };
                     }
-                });
-                if (timeScheduleComponent && typeof timeScheduleComponent.setScheduleData === 'function') {
-                    timeScheduleComponent.setScheduleData(scheduleData);
-                }
-            } else if (app.hours && (app.hours.includes('Mon-Fri') || app.hours.includes('Sat'))) {
-                hoursTypeSelect.value = 'selected';
-                const weekMatch = app.hours.match(/Mon-Fri (\d{2}:\d{2})-(\d{2}:\d{2})/);
-                const satMatch = app.hours.match(/Sat (\d{2}:\d{2})-(\d{2}:\d{2})/);
-                const sunMatch = app.hours.match(/Sun (\d{2}:\d{2})-(\d{2}:\d{2})/);
-                
-                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                const scheduleData = days.map(day => {
-                    let status = 'closed', openingTime = '08:00', closingTime = '17:00';
-                    if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(day) && weekMatch) {
-                        status = 'open'; openingTime = weekMatch[1]; closingTime = weekMatch[2];
-                    } else if (day === 'Saturday' && satMatch) {
-                        status = 'open'; openingTime = satMatch[1]; closingTime = satMatch[2];
-                    } else if (day === 'Sunday' && sunMatch) {
-                        status = 'open'; openingTime = sunMatch[1]; closingTime = sunMatch[2];
-                    }
-                    return { day, status, openingTime, closingTime };
                 });
                 if (timeScheduleComponent && typeof timeScheduleComponent.setScheduleData === 'function') {
                     timeScheduleComponent.setScheduleData(scheduleData);
@@ -683,6 +672,7 @@
                 }
                 const originalVal = originalAppData[field] === undefined ? null : originalAppData[field];
                 const currentVal = currentData[field] === undefined ? null : currentData[field];
+                
                 return (originalVal || '').toString().trim() !== (currentVal || '').toString().trim();
             });
         }
@@ -734,8 +724,9 @@
         const whatsapp = whatsappInput.value.trim();
         const facebook = facebookInput.value.trim();
         const services = getServicesData();
+        const hours = hoursInput.value.trim();
 
-        if (businessName || description || phone || services.length > 0) {
+        if (businessName || description || phone || services.length > 0 || hours) {
             previewContainer.classList.remove('hidden');
 
             const mockProvider = {
@@ -751,6 +742,7 @@
                 whatsapp: whatsapp,
                 facebook: facebook,
                 services: services,
+                hours: hours,
                 rating: 5.0,
                 ratings: {
                     'preview-user': {
@@ -777,7 +769,7 @@
         }
     };
 
-    [ownerNameInput, emailInput, phoneInput, businessNameInput, businessTypeInput, subHeadingInput, hoursInput, descInput].forEach(el => {
+    [ownerNameInput, emailInput, phoneInput, businessNameInput, businessTypeInput, subHeadingInput, hoursInput, descInput, hoursTypeSelect].forEach(el => {
         el.addEventListener('input', () => {
             if (el === descInput) {
                 const count = descInput.value.length;
@@ -829,7 +821,7 @@
         validateForm(false);
     });
 
-    [businessNameInput, subHeadingInput, hoursInput, descInput].forEach(input => {
+    [businessNameInput, subHeadingInput, hoursInput, descInput, hoursTypeSelect].forEach(input => {
         input.addEventListener('input', () => validateForm(false));
     });
 
