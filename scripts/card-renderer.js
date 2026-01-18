@@ -26,6 +26,11 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
             <p class="flex items-center gap-2"><i class="fas fa-phone text-green-500"></i> <a href="tel:{{phone}}">{{phone}}</a></p>
             <p class="flex items-center gap-2 {{hoursVisibility}}"><i class="fas fa-clock text-green-500"></i> {{hours}}</p>
             <a href="{{mapsUrl}}" target="_blank" class="flex items-center gap-2"><i class="fas fa-map-marker-alt text-green-500"></i> {{address}}</a>
+            <div class="{{galleryVisibility}} pt-2">
+                <button class="view-gallery-btn text-xs font-bold text-green-600 dark:text-green-400 hover:underline flex items-center gap-1" data-photos='{{photosData}}'>
+                    <i class="fas fa-images"></i> View Gallery
+                </button>
+            </div>
             <div class="flex gap-3 pt-2">
                 {{socialLinks}}
             </div>
@@ -91,6 +96,10 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
 
         const services = provider.services || [];
         const servicesVisibility = services.length > 0 ? '' : 'hidden';
+        const photos = provider.photos || [];
+        const galleryVisibility = photos.length > 0 ? '' : 'hidden';
+        const photosData = JSON.stringify(photos).replace(/'/g, "&#39;");
+
         const servicesListHtml = services.map(s => {
             let priceDisplay = s.price || '';
             if (priceDisplay && !priceDisplay.startsWith('R')) {
@@ -199,6 +208,8 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
             .replace(/{{phone}}/g, provider.phone)
             .replace(/{{hours}}/g, hours)
             .replace(/{{hoursVisibility}}/g, hoursVisibility)
+            .replace(/{{galleryVisibility}}/g, galleryVisibility)
+            .replace(/{{photosData}}/g, photosData)
             .replace(/{{servicesVisibility}}/g, servicesVisibility)
             .replace(/{{servicesList}}/g, servicesListHtml)
             .replace(/{{serviceId}}/g, provider.id)
@@ -241,6 +252,52 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
                 if (newCard) {
                     firstChild.replaceWith(newCard);
                 }
+            });
+        }
+
+        // Handle Gallery View
+        const viewGalleryBtn = firstChild.querySelector('.view-gallery-btn');
+        if (viewGalleryBtn) {
+            viewGalleryBtn.addEventListener('click', () => {
+                const photos = JSON.parse(viewGalleryBtn.dataset.photos);
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fadeIn';
+                modal.innerHTML = `
+                    <div class="relative w-full max-w-4xl max-h-[90vh] flex flex-col items-center">
+                        <button class="absolute -top-12 right-0 text-white text-3xl hover:text-green-500 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="w-full overflow-hidden rounded-2xl bg-black flex items-center justify-center">
+                            <img src="${photos[0]}" class="max-w-full max-h-[70vh] object-contain" id="main-gallery-img">
+                        </div>
+                        <div class="flex gap-2 mt-4 overflow-x-auto p-2 max-w-full">
+                            ${photos.map((p, i) => `
+                                <img src="${p}" class="w-16 h-16 object-cover rounded-lg cursor-pointer border-2 ${i === 0 ? 'border-green-500' : 'border-transparent'} hover:border-green-500 transition gallery-thumb" data-index="${i}">
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                const mainImg = modal.querySelector('#main-gallery-img');
+                const thumbs = modal.querySelectorAll('.gallery-thumb');
+                const closeBtn = modal.querySelector('button');
+
+                thumbs.forEach(thumb => {
+                    thumb.addEventListener('click', () => {
+                        mainImg.src = thumb.src;
+                        thumbs.forEach(t => t.classList.remove('border-green-500'));
+                        thumb.classList.add('border-green-500');
+                    });
+                });
+
+                const closeModal = () => {
+                    modal.classList.add('opacity-0');
+                    setTimeout(() => modal.remove(), 200);
+                };
+
+                closeBtn.onclick = closeModal;
+                modal.onclick = (e) => { if (e.target === modal) closeModal(); };
             });
         }
 

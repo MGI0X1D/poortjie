@@ -31,19 +31,21 @@
        class="text-6xl font-extrabold mb-4 tracking-tight">Poortjie</a>
 </header>
 
-<main class="max-w-xl mx-auto px-6 pb-24">
-    <div id="form-container" class="card hidden flex-col p-8 rounded-2xl border-l-4 border-l-green-500">
-        <div id="applications-section" class="mb-12 hidden">
-            <h2 class="text-2xl font-bold mb-6 text-center">My Applications</h2>
-            <div id="user-applications-list" class="space-y-4"></div>
-            <hr class="my-8 border-gray-200 dark:border-slate-700">
-        </div>
+<main class="max-w-6xl mx-auto px-6 pb-24">
+    <div id="form-container" class="hidden lg:grid-cols-2 lg:gap-12 items-start">
+        <!-- Left Column: Form -->
+        <div class="card flex flex-col p-8 rounded-2xl border-l-4 border-l-green-500 w-full lg:max-w-none max-w-xl mx-auto">
+            <div id="applications-section" class="mb-12 hidden">
+                <h2 class="text-2xl font-bold mb-6 text-center lg:text-left">My Applications</h2>
+                <div id="user-applications-list" class="space-y-4"></div>
+                <hr class="my-8 border-gray-200 dark:border-slate-700">
+            </div>
 
-        <h2 class="text-2xl font-bold mb-6 text-center">Business Listing</h2>
-        <div id="status-container" class="hidden text-center mb-4 space-y-2"></div>
-        <p class="text-center opacity-70 mb-8">Fill in the details below to list your business on Poortjie Services.</p>
+            <h2 class="text-2xl font-bold mb-6 text-center lg:text-left">Business Listing</h2>
+            <div id="status-container" class="hidden text-center lg:text-left mb-4 space-y-2"></div>
+            <p class="text-center lg:text-left opacity-70 mb-8">Fill in the details below to list your business on Poortjie Services.</p>
 
-        <form id="business-form" novalidate>
+            <form id="business-form" novalidate>
             <div class="form-group mb-4">
                 <label for="owner-name" class="block mb-1 font-bold text-sm uppercase tracking-wider">Full Name</label>
                 <div class="relative">
@@ -266,9 +268,50 @@
                 </div>
                 <p class="text-[10px] mt-2 opacity-50 italic">Optional: List what you do and how much it costs.</p>
             </div>
-        </form>
 
-        <div id="preview-container" class="mt-12 pt-12 border-t border-gray-100 dark:border-slate-700 hidden">
+            <!-- Photos Section -->
+            <div class="form-group mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block font-bold text-sm uppercase tracking-wider">Business Photos</label>
+                    <button type="button" id="open-gallery-btn" class="text-xs bg-green-600 text-white px-2 py-1 rounded font-bold hover:bg-green-700 transition">
+                        <i class="fas fa-camera mr-1"></i> Add Photos
+                    </button>
+                </div>
+                <div id="photos-summary" class="flex gap-2 overflow-x-auto pb-2">
+                    <!-- Photo thumbnails will appear here -->
+                    <p class="text-xs opacity-50 italic py-2">No photos added yet (max 5).</p>
+                </div>
+                <input type="hidden" id="business-photos" name="photos">
+            </div>
+
+            <div id="gallery-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-slate-800">
+                    <div class="p-6 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold">Business Gallery</h3>
+                            <p class="text-xs opacity-50">Upload up to 5 photos (max 1MB each)</p>
+                        </div>
+                        <button type="button" id="close-gallery-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4" id="gallery-grid">
+                            <!-- 5 Photo Slots -->
+                        </div>
+                    </div>
+                    <div class="p-6 bg-gray-50 dark:bg-slate-800/50 flex justify-end">
+                        <button type="button" id="save-gallery" class="px-8 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">
+                            Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+        </div>
+
+        <!-- Right Column: Preview -->
+        <div id="preview-container" class="lg:sticky lg:top-24 mt-12 lg:mt-0 pt-12 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-slate-700 hidden">
             <h3 class="text-xl font-bold mb-6 text-center">Preview Your Listing</h3>
             <div id="card-preview" class="max-w-sm mx-auto">
             </div>
@@ -296,6 +339,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="../scripts/firebase.js"></script>
 <script src="../scripts/card-renderer.js"></script>
 
@@ -326,6 +370,103 @@
     const hoursTypeSelect = document.getElementById('hours-type');
     const selectedHoursContainer = document.getElementById('selected-hours-container');
     const timeScheduleComponent = document.getElementById('time-schedule-component');
+    const photosInput = document.getElementById('business-photos');
+    const photosSummary = document.getElementById('photos-summary');
+    const galleryModal = document.getElementById('gallery-modal');
+    const openGalleryBtn = document.getElementById('open-gallery-btn');
+    const closeGalleryModalBtn = document.getElementById('close-gallery-modal');
+    const saveGalleryBtn = document.getElementById('save-gallery');
+    const galleryGrid = document.getElementById('gallery-grid');
+    let uploadedPhotos = []; // Array of URLs
+
+    const renderGallery = () => {
+        galleryGrid.innerHTML = '';
+        for (let i = 0; i < 5; i++) {
+            const photoUrl = uploadedPhotos[i];
+            const slot = document.createElement('div');
+            slot.className = 'relative aspect-square rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700 overflow-hidden group flex items-center justify-center bg-gray-50 dark:bg-slate-800/50';
+            
+            if (photoUrl) {
+                slot.innerHTML = `
+                    <img src="${photoUrl}" class="w-full h-full object-cover">
+                    <button type="button" class="remove-photo absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg" data-index="${i}">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                `;
+                slot.querySelector('.remove-photo').onclick = (e) => {
+                    e.stopPropagation();
+                    uploadedPhotos.splice(i, 1);
+                    renderGallery();
+                    updatePhotosSummary();
+                };
+            } else {
+                slot.innerHTML = `
+                    <label class="cursor-pointer flex flex-col items-center justify-center w-full h-full hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+                        <i class="fa-solid fa-plus text-gray-400"></i>
+                        <input type="file" class="hidden photo-upload-input" accept="image/*" data-index="${i}">
+                    </label>
+                `;
+                const fileInput = slot.querySelector('.photo-upload-input');
+                fileInput.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    if (file.size > 1 * 1024 * 1024) {
+                        alert('Photo is too large! Maximum size is 1MB.');
+                        return;
+                    }
+
+                    // Show local loader
+                    slot.innerHTML = `
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
+                            <span class="text-[8px] font-bold opacity-50 uppercase">Uploading...</span>
+                        </div>
+                    `;
+
+                    try {
+                        const user = auth.currentUser;
+                        const fileName = `${Date.now()}_${i}`;
+                        const storageRef = firebase.storage().ref(`business-photos/${user.uid}/${fileName}`);
+                        const snapshot = await storageRef.put(file);
+                        const url = await snapshot.ref.getDownloadURL();
+                        
+                        uploadedPhotos.push(url);
+                        renderGallery();
+                        updatePhotosSummary();
+                    } catch (error) {
+                        console.error("Upload failed:", error);
+                        alert('Upload failed: ' + error.message);
+                        renderGallery();
+                    }
+                };
+            }
+            galleryGrid.appendChild(slot);
+        }
+    };
+
+    const updatePhotosSummary = () => {
+        photosInput.value = JSON.stringify(uploadedPhotos);
+        if (uploadedPhotos.length === 0) {
+            photosSummary.innerHTML = '<p class="text-xs opacity-50 italic py-2">No photos added yet (max 5).</p>';
+        } else {
+            photosSummary.innerHTML = uploadedPhotos.map((url, i) => `
+                <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100 dark:border-slate-800 shrink-0 shadow-sm">
+                    <img src="${url}" class="w-full h-full object-cover">
+                </div>
+            `).join('');
+        }
+        validateForm(false);
+        updatePreview();
+    };
+
+    openGalleryBtn.addEventListener('click', () => {
+        galleryModal.classList.remove('hidden');
+        renderGallery();
+    });
+
+    closeGalleryModalBtn.addEventListener('click', () => galleryModal.classList.add('hidden'));
+    saveGalleryBtn.addEventListener('click', () => galleryModal.classList.add('hidden'));
 
     const updateHoursDisplay = () => {
         const type = hoursTypeSelect.value;
@@ -581,6 +722,10 @@
             facebookInput.value = app.facebook || '';
             hoursInput.value = app.hours || '';
 
+            // Handle photos population
+            uploadedPhotos = app.photos || [];
+            updatePhotosSummary();
+
             // Handle hours population
             if (app.hours === 'Always Open') {
                 hoursTypeSelect.value = 'always';
@@ -646,6 +791,9 @@
             // Update character counter
             const count = descInput.value.length;
             descCounter.textContent = `${count}/200`;
+
+            // Clear previous error messages if any
+            document.querySelectorAll('p[id$="-error"]').forEach(el => el.classList.add('hidden'));
 
             // Unlock form fields
             businessForm.querySelectorAll('input, textarea, select').forEach(el => {
@@ -731,7 +879,7 @@
 
             const fieldsToCompare = [
                 'phone', 'businessName', 'subHeading', 'businessType', 'address',
-                'latitude', 'longitude', 'website', 'whatsapp', 'facebook', 'hours', 'description', 'services'
+                'latitude', 'longitude', 'website', 'whatsapp', 'facebook', 'hours', 'description', 'services', 'photos'
             ];
 
             hasChanges = fieldsToCompare.some(field => {
@@ -742,6 +890,13 @@
                     return currentServices.some((s, i) => 
                         s.name !== originalServices[i].name || s.price !== originalServices[i].price
                     );
+                }
+                
+                if (field === 'photos') {
+                    const currentPhotos = uploadedPhotos;
+                    const originalPhotos = originalAppData.photos || [];
+                    if (currentPhotos.length !== originalPhotos.length) return true;
+                    return currentPhotos.some((p, i) => p !== originalPhotos[i]);
                 }
                 
                 let originalVal = originalAppData[field] === undefined ? null : originalAppData[field];
@@ -814,8 +969,15 @@
         const facebook = facebookInput.value.trim();
         const services = getServicesData();
         const hours = hoursInput.value.trim();
+        const photos = uploadedPhotos;
 
-        if (businessName || description || phone || services.length > 0 || hours || (hoursTypeSelect && hoursTypeSelect.value)) {
+        const hasAnyData = businessName || description || phone || services.length > 0 || hours || (hoursTypeSelect && hoursTypeSelect.value) || photos.length > 0;
+
+        if (hasAnyData) {
+            if (window.innerWidth >= 1024) {
+                formContainer.classList.remove('lg:grid-cols-1', 'max-w-xl', 'mx-auto');
+                formContainer.classList.add('lg:grid-cols-2');
+            }
             previewContainer.classList.remove('hidden');
 
             const mockProvider = {
@@ -832,6 +994,7 @@
                 facebook: facebook,
                 services: services,
                 hours: hours,
+                photos: photos,
                 rating: 5.0,
                 ratings: {
                     'preview-user': {
@@ -854,6 +1017,10 @@
                 cardPreview.appendChild(card);
             }
         } else {
+            if (window.innerWidth >= 1024) {
+                formContainer.classList.remove('lg:grid-cols-2');
+                formContainer.classList.add('lg:grid-cols-1', 'max-w-xl', 'mx-auto');
+            }
             previewContainer.classList.add('hidden');
         }
     };
@@ -950,7 +1117,7 @@
 
                     hideLoader();
                     formContainer.classList.remove('hidden');
-                    formContainer.classList.add('flex');
+                    formContainer.classList.add('block', 'lg:grid');
                 } else {
                     const userDocRef = db.collection('users').doc(user.uid);
                     userDocRef.get().then((userDoc) => {
@@ -965,7 +1132,7 @@
                     }).finally(() => {
                         hideLoader();
                         formContainer.classList.remove('hidden');
-                        formContainer.classList.add('flex');
+                        formContainer.classList.add('block', 'lg:grid');
 
                         // Initial character count for description
                         const count = descInput.value.length;
@@ -978,7 +1145,7 @@
             }).catch(() => {
                 hideLoader();
                 formContainer.classList.remove('hidden');
-                formContainer.classList.add('flex');
+                formContainer.classList.add('block', 'lg:grid');
             });
         } else {
             sessionStorage.setItem('redirectUrl', window.top.location.href);
@@ -1032,6 +1199,7 @@
             facebook: facebookInput.value,
             services: getServicesData(),
             hours: hoursInput.value,
+            photos: uploadedPhotos,
             description: descInput.value,
             status: 'pending',
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
