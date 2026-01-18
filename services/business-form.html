@@ -413,16 +413,11 @@
                     const file = e.target.files[0];
                     if (!file) return;
 
-                    if (file.size > 1 * 1024 * 1024) {
-                        alert('Photo is too large! Maximum size is 1MB.');
-                        return;
-                    }
-
                     // Show local loader
                     slot.innerHTML = `
                         <div class="flex flex-col items-center gap-2">
                             <div class="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
-                            <span class="text-[8px] font-bold opacity-50 uppercase">Uploading...</span>
+                            <span class="text-[8px] font-bold opacity-50 uppercase">Processing...</span>
                         </div>
                     `;
 
@@ -430,9 +425,60 @@
                         const user = auth.currentUser;
                         if (!user) throw new Error("User not authenticated.");
 
+                        // Resize and Crop Image to 1:1 and ensure < 1MB
+                        const processImage = (file) => {
+                            return new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        const canvas = document.createElement('canvas');
+                                        let width = img.width;
+                                        let height = img.height;
+                                        
+                                        // 1:1 Crop logic
+                                        let size = Math.min(width, height);
+                                        let xOffset = (width - size) / 2;
+                                        let yOffset = (height - size) / 2;
+                                        
+                                        const MAX_DIM = 1200;
+                                        let targetSize = Math.min(size, MAX_DIM);
+                                        
+                                        canvas.width = targetSize;
+                                        canvas.height = targetSize;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, xOffset, yOffset, size, size, 0, 0, targetSize, targetSize);
+                                        
+                                        let quality = 0.9;
+                                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                        
+                                        while (dataUrl.length * 0.75 > 1024 * 1024 && quality > 0.1) {
+                                            quality -= 0.1;
+                                            dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                        }
+                                        
+                                        // Convert dataUrl back to Blob for Firebase Upload
+                                        fetch(dataUrl)
+                                            .then(res => res.blob())
+                                            .then(blob => resolve(blob))
+                                            .catch(reject);
+                                    };
+                                    img.onerror = reject;
+                                    img.src = event.target.result;
+                                };
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                            });
+                        };
+
+                        const processedBlob = await processImage(file);
+                        
+                        // Update loader text
+                        slot.querySelector('span').textContent = 'Uploading...';
+
                         const fileName = `${Date.now()}_${i}`;
                         const storageRef = firebase.storage().ref(`business-photos/${user.uid}/${fileName}`);
-                        const snapshot = await storageRef.put(file);
+                        const snapshot = await storageRef.put(processedBlob);
                         const url = await snapshot.ref.getDownloadURL();
                         
                         uploadedPhotos.push(url);

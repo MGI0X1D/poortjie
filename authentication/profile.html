@@ -272,31 +272,29 @@
                 let width = img.width;
                 let height = img.height;
                 
-                // Maximum dimension to keep it reasonable
-                const MAX_DIM = 1200;
-                if (width > height) {
-                    if (width > MAX_DIM) {
-                        height *= MAX_DIM / width;
-                        width = MAX_DIM;
-                    }
-                } else {
-                    if (height > MAX_DIM) {
-                        width *= MAX_DIM / height;
-                        height = MAX_DIM;
-                    }
-                }
+                // 1:1 Crop logic
+                let size = Math.min(width, height);
+                let xOffset = (width - size) / 2;
+                let yOffset = (height - size) / 2;
                 
-                canvas.width = width;
-                canvas.height = height;
+                // Maximum dimension to keep it reasonable
+                const MAX_DIM = 800; // Profile pictures don't need to be huge
+                let targetSize = Math.min(size, MAX_DIM);
+                
+                canvas.width = targetSize;
+                canvas.height = targetSize;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Draw cropped and resized image
+                ctx.drawImage(img, xOffset, yOffset, size, size, 0, 0, targetSize, targetSize);
                 
                 // Start with high quality and reduce if needed
                 let quality = 0.9;
                 let dataUrl = canvas.toDataURL('image/jpeg', quality);
                 
+                // Ensure size is under 1MB (1024 * 1024 bytes)
                 // Approximate size in bytes (base64 size is ~4/3 of actual size)
-                while (dataUrl.length * 0.75 > 500 * 1024 && quality > 0.1) {
+                while (dataUrl.length * 0.75 > 1024 * 1024 && quality > 0.1) {
                     quality -= 0.1;
                     dataUrl = canvas.toDataURL('image/jpeg', quality);
                 }
