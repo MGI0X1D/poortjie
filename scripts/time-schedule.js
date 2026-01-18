@@ -39,7 +39,7 @@ class TimeSchedule extends HTMLElement {
           display: flex; 
           align-items: center; 
           gap: 12px; 
-          width: 120px;
+          width: 130px;
         }
         
         .time-group { 
@@ -83,24 +83,20 @@ class TimeSchedule extends HTMLElement {
         const rows = this.days.map(day => `
       <div class="day-row" id="row-${day}">
         <div class="label-group">
-          <input type="checkbox" ${day === 'Sunday' ? '' : 'checked'} id="check-${day}">
+          <input type="checkbox" checked id="check-${day}">
           <label><strong>${day}</strong></label>
         </div>
-        <div class="time-group ${day === 'Sunday' ? 'hidden' : ''}" id="group-${day}">
-          <input type="time" value="${day === 'Saturday' ? '09:00' : '08:00'}" id="start-${day}" ${day === 'Sunday' ? 'disabled' : ''}>
+        <div class="time-group" id="group-${day}">
+          <input type="time" value="08:00" id="start-${day}">
           <span>to</span>
-          <input type="time" value="${day === 'Saturday' ? '13:00' : '17:00'}" id="end-${day}" ${day === 'Sunday' ? 'disabled' : ''}>
+          <input type="time" value="17:00" id="end-${day}">
         </div>
-        <div class="status-label ${day === 'Sunday' ? '' : 'open'}" id="status-${day}">${day === 'Sunday' ? 'CLOSED' : 'OPEN'}</div>
+        <div class="status-label open" id="status-${day}">OPEN</div>
       </div>
     `).join('');
 
         this.shadowRoot.innerHTML = style + rows;
         this.setupEvents();
-        if (this.days.includes('Sunday')) {
-            const sunRow = this.shadowRoot.getElementById('row-Sunday');
-            if (sunRow) sunRow.classList.add('closed');
-        }
     }
 
     setupEvents() {
