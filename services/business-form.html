@@ -341,12 +341,14 @@
             
             if (timeScheduleComponent && typeof timeScheduleComponent.getScheduleData === 'function') {
                 const scheduleData = timeScheduleComponent.getScheduleData();
-                const schedule = scheduleData.map(day => {
-                    const shortDay = day.day.substring(0, 3);
-                    if (day.status === 'closed') return `${shortDay} Closed`;
-                    return `${shortDay} ${day.openingTime}-${day.closingTime}`;
-                });
-                hoursInput.value = schedule.join(', ');
+                if (scheduleData && scheduleData.length > 0) {
+                    const schedule = scheduleData.map(day => {
+                        const shortDay = day.day.substring(0, 3);
+                        if (day.status === 'closed') return `${shortDay} Closed`;
+                        return `${shortDay} ${day.openingTime}-${day.closingTime}`;
+                    });
+                    hoursInput.value = schedule.join(', ');
+                }
             }
         } else if (type === 'custom') {
             hoursInput.classList.remove('hidden');
@@ -358,9 +360,11 @@
     };
 
     hoursTypeSelect.addEventListener('change', updateHoursDisplay);
-    timeScheduleComponent.addEventListener('change', () => {
-        updateHoursDisplay();
-    });
+    if (timeScheduleComponent) {
+        timeScheduleComponent.addEventListener('change', () => {
+            updateHoursDisplay();
+        });
+    }
 
     const descInput = document.getElementById('description');
     const descCounter = document.getElementById('description-counter');
@@ -802,7 +806,7 @@
         const services = getServicesData();
         const hours = hoursInput.value.trim();
 
-        if (businessName || description || phone || services.length > 0 || hours) {
+        if (businessName || description || phone || services.length > 0 || hours || (hoursTypeSelect && hoursTypeSelect.value)) {
             previewContainer.classList.remove('hidden');
 
             const mockProvider = {
@@ -933,6 +937,8 @@
                     const count = descInput.value.length;
                     descCounter.textContent = `${count}/200`;
 
+                    updateHoursDisplay();
+
                     hideLoader();
                     formContainer.classList.remove('hidden');
                     formContainer.classList.add('flex');
@@ -957,6 +963,7 @@
                         descCounter.textContent = `${count}/200`;
 
                         validateForm();
+                        updateHoursDisplay();
                     });
                 }
             }).catch(() => {
