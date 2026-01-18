@@ -149,8 +149,8 @@
                         <time-schedule id="time-schedule-component"></time-schedule>
                     </div>
 
-                    <input type="text" id="hours" name="hours" maxlength="100" placeholder="e.g. Mon-Fri 9am-5pm"
-                           class="hidden w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                    <label for="hours"></label><input type="text" id="hours" name="hours" maxlength="100" placeholder="e.g. Mon-Fri 9am-5pm"
+                                                      class="hidden w-full p-3 rounded-lg bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-green-500 focus:outline-none transition">
                 </div>
             </div>
 
@@ -390,7 +390,7 @@
             
             if (photoUrl) {
                 slot.innerHTML = `
-                    <img src="${photoUrl}" class="w-full h-full object-cover">
+                    <img src="${photoUrl}" class="w-full h-full object-cover" alt="">
                     <button type="button" class="remove-photo absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg" data-index="${i}">
                         <i class="fa-solid fa-xmark text-xs"></i>
                     </button>
@@ -520,7 +520,7 @@
         } else {
             photosSummary.innerHTML = uploadedPhotos.map((url, i) => `
                 <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100 dark:border-slate-800 shrink-0 shadow-sm">
-                    <img src="${url}" class="w-full h-full object-cover">
+                    <img src="${url}" class="w-full h-full object-cover" alt="">
                 </div>
             `).join('');
         }
