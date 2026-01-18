@@ -439,8 +439,18 @@
                     } catch (error) {
                         console.error("Upload failed:", error);
                         let friendlyMsg = 'Upload failed: ' + error.message;
+                        
+                        // Check for CORS or Network errors
+                        const isCorsError = error.message && (
+                            error.message.includes('CORS') || 
+                            error.message.includes('preflight') || 
+                            error.message.includes('access control check')
+                        );
+
                         if (location.protocol === 'file:') {
                             friendlyMsg = 'Photo upload is not supported when opening the file directly (file://). Please host the website or use a local server.';
+                        } else if (isCorsError) {
+                            friendlyMsg = 'Upload blocked by CORS policy. Please ensure your Firebase Storage bucket is configured to allow requests from ' + window.location.origin + '.';
                         } else if (error.code === 'storage/unauthorized') {
                             friendlyMsg = 'You do not have permission to upload photos. Please try logging out and back in.';
                         } else if (error.code === 'storage/retry-limit-exceeded') {
