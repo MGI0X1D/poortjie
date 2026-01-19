@@ -221,6 +221,8 @@
         if (searchTerm) {
             filtered = filtered.filter(app =>
                 app.businessName?.toLowerCase().includes(searchTerm) ||
+                app.subHeading?.toLowerCase().includes(searchTerm) ||
+                app.description?.toLowerCase().includes(searchTerm) ||
                 app.ownerName?.toLowerCase().includes(searchTerm) ||
                 app.userEmail?.toLowerCase().includes(searchTerm)
             );
@@ -356,7 +358,7 @@
                 hasChanges = true;
                 const renderPhotosList = (photos) => {
                     if (photos.length === 0) return 'None';
-                    return photos.map(p => `<img src="${p}" class="w-8 h-8 object-cover rounded border border-gray-200 inline-block mr-1">`).join('');
+                    return photos.map(p => `<img src="${p}" class="w-8 h-8 object-cover rounded border border-gray-200 inline-block mr-1" alt="">`).join('');
                 };
                 diffHtml += `
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 py-1 border-b border-blue-100/50 dark:border-blue-900/30 last:border-0">
@@ -437,7 +439,7 @@
                                     <div class="flex gap-2 overflow-x-auto pb-2">
                                         ${app.photos.map(url => `
                                             <a href="${url}" target="_blank" class="shrink-0">
-                                                <img src="${url}" class="w-20 h-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700 hover:scale-105 transition">
+                                                <img src="${url}" class="w-20 h-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700 hover:scale-105 transition" alt="">
                                             </a>
                                         `).join('')}
                                     </div>

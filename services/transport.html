@@ -182,8 +182,20 @@
         const sortValue = sortList.value;
 
         let filteredProviders = allProviders.filter(provider => {
-            const name = provider.businessName.toLowerCase();
-            return name.includes(searchTerm);
+            const searchTermLower = searchTerm.toLowerCase();
+            const name = (provider.businessName || "").toLowerCase();
+            const subHeading = (provider.subHeading || "").toLowerCase();
+            const description = (provider.description || "").toLowerCase();
+            const tags = Array.isArray(provider.tags) ? provider.tags.join(" ").toLowerCase() : (provider.tags || "").toLowerCase();
+            const services = Array.isArray(provider.services) 
+                ? provider.services.map(s => `${s.name || ""} ${s.description || ""}`).join(" ").toLowerCase()
+                : "";
+
+            return name.includes(searchTermLower) || 
+                   subHeading.includes(searchTermLower) || 
+                   description.includes(searchTermLower) || 
+                   tags.includes(searchTermLower) ||
+                   services.includes(searchTermLower);
         });
 
         if (sortValue === 'rating') {

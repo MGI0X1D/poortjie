@@ -236,6 +236,7 @@
             service.category.toLowerCase().includes(searchTerm) ||
             service.title.toLowerCase().includes(searchTerm) ||
             service.description.toLowerCase().includes(searchTerm) ||
+            (service.tags && Array.isArray(service.tags) ? service.tags.join(" ").toLowerCase().includes(searchTerm) : (service.tags || "").toLowerCase().includes(searchTerm)) ||
             service.list.some(item => item.toLowerCase().includes(searchTerm))
         );
 
