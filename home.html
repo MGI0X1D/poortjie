@@ -417,7 +417,7 @@
                                 <p class="text-sm font-bold text-green-600 dark:text-green-400 mb-1">Results found inside:</p>
                                 <h4 class="text-lg font-bold mb-2">${cat}</h4>
                                 <p class="text-xs opacity-70 mb-3">Businesses like: ${grouped[cat].slice(0, 3).join(', ')}${grouped[cat].length > 3 ? '...' : ''}</p>
-                                <a href="services/${cat.toLowerCase()}.html" class="inline-block text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-3 py-1 rounded-full font-bold hover:bg-green-600 hover:text-white transition">Go to ${cat}</a>
+                                <a href="services/${cat.toLowerCase()}.html?search=${encodeURIComponent(searchTerm)}" class="inline-block text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-3 py-1 rounded-full font-bold hover:bg-green-600 hover:text-white transition">Go to ${cat}</a>
                             </div>
                         `).join('');
                     }

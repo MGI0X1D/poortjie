@@ -204,6 +204,13 @@
     searchBar.addEventListener('input', filterAndSort);
     sortList.addEventListener('change', filterAndSort);
 
+    // Prefill search from URL if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const prefillSearch = urlParams.get('search');
+    if (prefillSearch) {
+        searchBar.value = prefillSearch;
+    }
+
     // Initial fetch
     fetchProviders();
 </script>
