@@ -172,6 +172,24 @@
     <div id="services-grid" class="grid md:grid-cols-3 gap-8">
     </div>
 
+    <div id="no-results-container" class="hidden mt-12 text-center p-12 bg-gray-50 dark:bg-slate-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-slate-700">
+        <div class="mb-4 text-5xl">🔍</div>
+        <h3 class="text-xl font-bold mb-2">No categories match your search</h3>
+        <p class="text-slate-500 dark:text-slate-400 mb-6">Can't find what you're looking for? We can search through all individual businesses.</p>
+        <button id="global-search-btn" class="px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md">
+            Search All Services
+        </button>
+        <div id="global-search-loading" class="hidden mt-4">
+            <div class="flex flex-col items-center">
+                <div class="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-2"></div>
+                <p class="text-sm">Searching every corner...</p>
+            </div>
+        </div>
+        <div id="global-results" class="mt-8 grid md:grid-cols-2 gap-4 text-left">
+            <!-- Global search results will appear here -->
+        </div>
+    </div>
+
     <section class="mt-24 card p-10 rounded-3xl bg-gradient-to-br from-green-50 to-transparent dark:from-green-900/10">
         <div class="max-w-3xl">
             <h2 class="text-3xl font-bold mb-4">Built for the community, by the community.</h2>
@@ -231,6 +249,9 @@
     function filterAndSort() {
         const searchTerm = document.getElementById('search-bar').value.toLowerCase();
         const sortValue = document.getElementById('sort-list').value;
+        const noResultsContainer = document.getElementById('no-results-container');
+        const servicesGrid = document.getElementById('services-grid');
+        const globalResults = document.getElementById('global-results');
 
         let filtered = allServices.filter(service =>
             service.category.toLowerCase().includes(searchTerm) ||
@@ -247,6 +268,15 @@
         }
 
         renderCards(filtered);
+
+        if (filtered.length === 0 && searchTerm.trim() !== '') {
+            noResultsContainer.classList.remove('hidden');
+            servicesGrid.classList.add('hidden');
+        } else {
+            noResultsContainer.classList.add('hidden');
+            servicesGrid.classList.remove('hidden');
+            globalResults.innerHTML = ''; // Clear old global results when searching something else
+        }
     }
 
     function fetchAndRenderServices() {
@@ -307,6 +337,118 @@
     }
 
     window.onload = () => {
+        // Handle Global Search button
+        const globalSearchBtn = document.getElementById('global-search-btn');
+        if (globalSearchBtn) {
+            globalSearchBtn.onclick = async () => {
+                const user = firebase.auth().currentUser;
+                if (!user) {
+                    const currentSearch = document.getElementById('search-bar').value;
+                    sessionStorage.setItem('pendingSearch', currentSearch);
+                    sessionStorage.setItem('redirectUrl', '../home.html');
+                    window.location.href = 'authentication/login.html';
+                    return;
+                }
+                
+                // Perform global search
+                const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+                const loading = document.getElementById('global-search-loading');
+                const resultsArea = document.getElementById('global-results');
+                
+                loading.classList.remove('hidden');
+                globalSearchBtn.classList.add('hidden');
+                resultsArea.innerHTML = '';
+
+                try {
+                    // Optimized Global Search: Search across all categories
+                    // Since we want to find WHICH category contains the item, 
+                    // we'll use a Collection Group query if they share a common field 
+                    // or a consolidated search approach.
+                    
+                    const matches = [];
+                    const categories = allServices.map(s => s.category);
+                    
+                    // Fetch from all active categories in parallel
+                    const searchPromises = categories.map(async (cat) => {
+                        const snapshot = await firebase.firestore()
+                            .collection('poortjie')
+                            .doc('services')
+                            .collection(cat)
+                            .where('status', '==', 'active')
+                            .get();
+                        
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            const name = (data.businessName || "").toLowerCase();
+                            const sub = (data.subHeading || "").toLowerCase();
+                            const desc = (data.description || "").toLowerCase();
+                            const tags = Array.isArray(data.tags) ? data.tags.join(" ").toLowerCase() : (data.tags || "").toLowerCase();
+                            const services = Array.isArray(data.services) 
+                                ? data.services.map(s => `${s.name || ""} ${s.description || ""}`).join(" ").toLowerCase()
+                                : "";
+
+                            if (name.includes(searchTerm) || sub.includes(searchTerm) || desc.includes(searchTerm) || tags.includes(searchTerm) || services.includes(searchTerm)) {
+                                matches.push({
+                                    businessName: data.businessName,
+                                    category: cat,
+                                    url: `services/${cat.toLowerCase()}.html`
+                                });
+                            }
+                        });
+                    });
+
+                    await Promise.all(searchPromises);
+
+                    loading.classList.add('hidden');
+                    globalSearchBtn.classList.remove('hidden');
+
+                    if (matches.length === 0) {
+                        resultsArea.innerHTML = '<p class="text-center col-span-full opacity-50">Still nothing found. Try a different keyword?</p>';
+                    } else {
+                        // Group by category to show "X is inside Y"
+                        const grouped = matches.reduce((acc, match) => {
+                            if (!acc[match.category]) acc[match.category] = [];
+                            acc[match.category].push(match.businessName);
+                            return acc;
+                        }, {});
+
+                        resultsArea.innerHTML = Object.keys(grouped).map(cat => `
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-green-100 dark:border-green-900/30">
+                                <p class="text-sm font-bold text-green-600 dark:text-green-400 mb-1">Results found inside:</p>
+                                <h4 class="text-lg font-bold mb-2">${cat}</h4>
+                                <p class="text-xs opacity-70 mb-3">Businesses like: ${grouped[cat].slice(0, 3).join(', ')}${grouped[cat].length > 3 ? '...' : ''}</p>
+                                <a href="services/${cat.toLowerCase()}.html" class="inline-block text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-3 py-1 rounded-full font-bold hover:bg-green-600 hover:text-white transition">Go to ${cat}</a>
+                            </div>
+                        `).join('');
+                    }
+
+                } catch (error) {
+                    console.error("Global search failed:", error);
+                    loading.classList.add('hidden');
+                    globalSearchBtn.classList.remove('hidden');
+                    resultsArea.innerHTML = '<p class="text-red-500 text-center col-span-full">Something went wrong. Please try again.</p>';
+                }
+            };
+        }
+
+        // Check for pending search after login
+        const pendingSearch = sessionStorage.getItem('pendingSearch');
+        if (pendingSearch) {
+            document.getElementById('search-bar').value = pendingSearch;
+            sessionStorage.removeItem('pendingSearch');
+            // Wait for allServices to load then filter
+            const interval = setInterval(() => {
+                if (allServices.length > 0) {
+                    filterAndSort();
+                    // Auto-trigger global search if user just came back from login
+                    if (firebase.auth().currentUser) {
+                        globalSearchBtn.click();
+                    }
+                    clearInterval(interval);
+                }
+            }, 500);
+        }
+
         // Hide loader once everything is ready
         const loader = document.getElementById('loader-overlay');
         if (loader) {
