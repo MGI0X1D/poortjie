@@ -521,6 +521,11 @@
                         ${isSuperUser && app.status === 'approved' ? `
                         <button onclick="disableListing('${app.id}')" class="bg-slate-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-slate-700 transition shadow-sm">Disable</button>
                         ` : ''}
+                        ${isSuperUser ? `
+                        <button onclick="brutalDelete('${app.id}', '${app.businessType}')" class="bg-red-700 text-white px-5 py-2 rounded-lg font-bold hover:bg-red-800 transition shadow-sm">
+                            <i class="fas fa-trash-alt mr-1"></i> Delete
+                        </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -572,6 +577,36 @@
         } catch (error) {
             console.error("Error disabling listing:", error);
             alert('Failed to disable listing: ' + error);
+        }
+    }
+
+    async function brutalDelete(appId, businessType) {
+        if (!isSuperUser) {
+            alert("Unauthorized: Only super users can perform this action.");
+            return;
+        }
+
+        const confirmMsg = `DANGER: You are about to BRUTALLY DELETE this business.\n\n` +
+                          `Business ID: ${appId}\n` +
+                          `Category: ${businessType}\n\n` +
+                          `This will delete the LIVE listing AND the application record. This action cannot be undone.\n\n` +
+                          `Are you absolutely sure?`;
+
+        if (!confirm(confirmMsg)) return;
+
+        try {
+            const appRef = db.collection('poortjie').doc('applications').collection('listings').doc(appId);
+            const liveServiceRef = db.collection('poortjie').doc('services').collection(businessType).doc(appId);
+
+            await db.runTransaction(async (transaction) => {
+                transaction.delete(appRef);
+                transaction.delete(liveServiceRef);
+            });
+
+            alert(`Business ${appId} has been brutally deleted.`);
+        } catch (error) {
+            console.error("Error performing brutal delete:", error);
+            alert('Failed to delete: ' + (error.message || error));
         }
     }
 
