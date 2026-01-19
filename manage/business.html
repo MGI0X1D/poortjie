@@ -510,7 +510,7 @@
                         ${isPending ? `
                         <button onclick="approveApplication('${app.id}')" class="bg-green-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-green-700 transition shadow-sm">${alreadyExists ? 'Approve Update' : 'Approve'}</button>
                         <button onclick="requestUpdate('${app.id}')" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-blue-700 transition shadow-sm">Update</button>
-                        <button onclick="rejectApplication('${app.id}')" class="bg-red-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-red-700 transition shadow-sm">Reject</button>
+                        ${!alreadyExists ? `<button onclick="rejectApplication('${app.id}')" class="bg-red-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-red-700 transition shadow-sm">Reject</button>` : ''}
                         ` : ''}
                         ${isSuperUser && app.status === 'approved' ? `
                         <button onclick="disableListing('${app.id}')" class="bg-slate-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-slate-700 transition shadow-sm">Disable</button>
