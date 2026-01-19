@@ -59,12 +59,35 @@
     </div>
 
     <!-- Admin WhatsApp Links -->
-    <div id="admin-contacts-section" class="hidden card p-8 rounded-2xl border-l-4 border-l-blue-500 bg-white dark:bg-slate-800 shadow-lg">
+    <div id="admin-contacts-section" class="hidden card p-8 rounded-2xl border-l-4 border-l-blue-500 bg-white dark:bg-slate-800 shadow-lg mb-8">
         <h3 class="text-xl font-bold mb-4">Chat with Poortjie Admins</h3>
         <p class="mb-6 opacity-80">Need immediate help? Reach out to one of our administrators on WhatsApp.</p>
         
         <div id="admins-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Admin links will be injected here -->
+        </div>
+    </div>
+
+    <!-- Data & Privacy Policy -->
+    <div class="card p-8 rounded-2xl border-l-4 border-l-amber-500 bg-white dark:bg-slate-800 shadow-lg mb-8">
+        <h3 class="text-xl font-bold mb-4">Data & Privacy Policy</h3>
+        <div class="space-y-4 text-sm opacity-90 leading-relaxed">
+            <p>
+                <span class="font-bold text-amber-600 dark:text-amber-400">Your Responsibility:</span> 
+                By using Poortjie Services, you agree that you are solely responsible for any data, text, images, or other information you add or upload to the platform. You must ensure that your content is accurate and does not violate any laws or third-party rights.
+            </p>
+            <p>
+                <span class="font-bold text-amber-600 dark:text-amber-400">Ownership:</span> 
+                You retain full ownership of all content you upload. We do not claim any ownership rights over your data.
+            </p>
+            <p>
+                <span class="font-bold text-amber-600 dark:text-amber-400">Hosting:</span> 
+                Our platform is powered by <span class="font-bold">Google Firebase</span>. Your data is securely hosted on Google's infrastructure, ensuring high availability and protection.
+            </p>
+            <p>
+                <span class="font-bold text-amber-600 dark:text-amber-400">Data Deletion:</span> 
+                Your privacy is important to us. Upon request, we will delete your account and all associated data from our systems immediately. To request data deletion, please contact an admin via WhatsApp or submit a suggestion with the subject "Data Deletion".
+            </p>
         </div>
     </div>
 
@@ -78,6 +101,10 @@
 <footer class="text-center py-12 border-t border-gray-100 dark:border-slate-800 opacity-50 text-xs">
     &copy; 2026 Poortjie Services. Empowering poortjie economies.
 </footer>
+
+<div class="mt-2 text-center opacity-50 text-[10px]">
+    <a href="support.html" class="hover:underline">Data Policy</a>
+</div>
 
 <script src="scripts/theme.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
