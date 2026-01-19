@@ -102,6 +102,16 @@
                         No Match</p>
                 </div>
             </div>
+            <div class="form-group mb-6">
+                <label class="flex items-start gap-3 cursor-pointer group">
+                    <input type="checkbox" id="policy-confirm" name="policy-confirm" required
+                           class="mt-1 w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 transition cursor-pointer">
+                    <span class="text-xs opacity-80 leading-tight group-hover:opacity-100 transition">
+                        I confirm that I understand I am responsible for the data I add, and I retain ownership of my content hosted by Google Firebase.
+                    </span>
+                </label>
+                <p id="error-policy-confirm" class="text-[10px] text-red-500 font-bold mt-1 hidden">Please confirm you understand the data policy.</p>
+            </div>
             <div class="flex items-center justify-between mb-4">
                 <button type="submit" class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md">
                     Register
@@ -137,6 +147,7 @@
     const usernameInput = document.getElementById('username');
     const displayNameInput = document.getElementById('display-name');
     const phoneNumberInput = document.getElementById('phone-number');
+    const policyConfirmInput = document.getElementById('policy-confirm');
 
     usernameInput.addEventListener('input', (e) => {
         let value = e.target.value.toLowerCase().replace(/\s/g, '');
@@ -312,6 +323,7 @@
         const isPhoneValid = phoneNumber === '' || /^\d{10}$/.test(phoneNumber);
         const isPasswordValid = password.length >= 6;
         const passwordsMatch = password === confirmPassword && password !== '';
+        const isPolicyConfirmed = policyConfirmInput.checked;
 
         // Clear error messages as user types
         document.getElementById('error-username').classList.add('hidden');
@@ -320,26 +332,31 @@
         document.getElementById('error-phone-number').classList.add('hidden');
         document.getElementById('error-password').classList.add('hidden');
         document.getElementById('error-confirm-password').classList.add('hidden');
+        document.getElementById('error-policy-confirm').classList.add('hidden');
 
         registerForm.querySelectorAll('input').forEach(input => {
             input.classList.remove('border-red-500');
         });
 
         return {
-            isValid: isUsernameValid && isEmailValid && isDisplayNameValid && isPhoneValid && isPasswordValid && passwordsMatch,
+            isValid: isUsernameValid && isEmailValid && isDisplayNameValid && isPhoneValid && isPasswordValid && passwordsMatch && isPolicyConfirmed,
             errors: {
                 username: isUsernameValid ? null : 'Username must be lowercase and contain no spaces.',
                 email: isEmailValid ? null : 'Please enter a valid email address.',
                 displayName: isDisplayNameValid ? null : 'Full name (max 3 names).',
                 phoneNumber: isPhoneValid ? null : 'Phone number must be 10 digits.',
                 password: isPasswordValid ? null : 'Password must be at least 6 characters.',
-                confirmPassword: passwordsMatch ? null : 'Passwords do not match.'
+                confirmPassword: passwordsMatch ? null : 'Passwords do not match.',
+                policyConfirm: isPolicyConfirmed ? null : 'Please confirm you understand the data policy.'
             }
         };
     };
 
     registerForm.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', validateForm);
+        if (input.type === 'checkbox') {
+            input.addEventListener('change', validateForm);
+        }
     });
 
     registerForm.addEventListener('submit', event => {
@@ -371,6 +388,9 @@
             if (validation.errors.confirmPassword) {
                 document.getElementById('error-confirm-password').classList.remove('hidden');
                 registerForm['confirm-password'].classList.add('border-red-500');
+            }
+            if (validation.errors.policyConfirm) {
+                document.getElementById('error-policy-confirm').classList.remove('hidden');
             }
             return;
         }
