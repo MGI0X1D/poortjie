@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taxi Rank Info | Poortjie Services</title>
+    <title>Public Transport | Poortjie Services</title>
     <meta name="description"
-          content="Check local taxi rank information, routes, fares, and operating hours in Poortjie.">
+          content="Check local public transport information, routes, fares, and operating hours in Poortjie (Taxis & Buses).">
     <meta name="theme-color" content="#22c55e">
 
     <link rel="icon" href="../favicon/favicon.ico">
@@ -74,7 +74,7 @@
             <div class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold tracking-widest uppercase inline-block">
                 Transport
             </div>
-            <h1 class="text-4xl md:text-6xl font-extrabold mt-2 tracking-tight">Taxi Rank Info</h1>
+            <h1 class="text-4xl md:text-6xl font-extrabold mt-2 tracking-tight">Public Transport</h1>
         </div>
         <a
                 href="../index.html"
@@ -107,8 +107,18 @@
         </div>
     </div>
 
-    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-        <span class="w-8 h-1 bg-green-500"></span> Routes & Fares
+    <!-- Tabs Section -->
+    <div class="flex border-b border-gray-200 dark:border-slate-800 mb-8">
+        <button id="tab-taxis" class="px-6 py-3 font-bold text-lg border-b-4 border-green-500 text-green-600 dark:text-green-400">
+            <i class="fas fa-taxi mr-2"></i>Taxis
+        </button>
+        <button id="tab-buses" class="px-6 py-3 font-bold text-lg border-b-4 border-transparent text-gray-500 hover:text-green-500 transition">
+            <i class="fas fa-bus mr-2"></i>Buses
+        </button>
+    </div>
+
+    <h2 id="grid-title" class="text-2xl font-bold mb-6 flex items-center gap-3">
+        <span class="w-8 h-1 bg-green-500"></span> Taxi Routes & Fares
     </h2>
     <div id="routes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Routes will be injected here -->
@@ -133,6 +143,32 @@
     const routesGrid = document.getElementById('routes-grid');
     const newsSection = document.getElementById('news-section');
     const newsContainer = document.getElementById('news-container');
+    const tabTaxis = document.getElementById('tab-taxis');
+    const tabBuses = document.getElementById('tab-buses');
+    const gridTitle = document.getElementById('grid-title');
+
+    let currentMode = 'taxis'; // 'taxis' or 'buses'
+    let allData = { news: [], routes: {}, bus_routes: {} };
+
+    tabTaxis.addEventListener('click', () => switchTab('taxis'));
+    tabBuses.addEventListener('click', () => switchTab('buses'));
+
+    function switchTab(mode) {
+        currentMode = mode;
+        
+        // Update UI tabs
+        if (mode === 'taxis') {
+            tabTaxis.className = 'px-6 py-3 font-bold text-lg border-b-4 border-green-500 text-green-600 dark:text-green-400';
+            tabBuses.className = 'px-6 py-3 font-bold text-lg border-b-4 border-transparent text-gray-500 hover:text-green-500 transition';
+            gridTitle.innerHTML = '<span class="w-8 h-1 bg-green-500"></span> Taxi Routes & Fares';
+            renderRoutes(allData.routes);
+        } else {
+            tabBuses.className = 'px-6 py-3 font-bold text-lg border-b-4 border-green-500 text-green-600 dark:text-green-400';
+            tabTaxis.className = 'px-6 py-3 font-bold text-lg border-b-4 border-transparent text-gray-500 hover:text-green-500 transition';
+            gridTitle.innerHTML = '<span class="w-8 h-1 bg-green-500"></span> Bus Routes & Fares';
+            renderRoutes(allData.bus_routes || {});
+        }
+    }
 
     function goBack() {
         if (document.referrer.indexOf(window.location.host) !== -1) {
@@ -146,19 +182,28 @@
         try {
             const doc = await db.collection('poortjie').doc('taxi_routes').get();
             if (doc.exists) {
-                const data = doc.data();
-                if (data.news && data.news.length > 0) {
-                    renderNews(data.news);
+                allData = doc.data();
+                if (allData.news && allData.news.length > 0) {
+                    renderNews(allData.news);
                 } else {
                     renderNoNews();
                 }
-                if (data.routes) {
-                    renderRoutes(data.routes);
+                
+                if (currentMode === 'taxis') {
+                    if (allData.routes) {
+                        renderRoutes(allData.routes);
+                    } else {
+                        routesGrid.innerHTML = '<p class="col-span-full text-center py-12 opacity-60">No taxi routes found.</p>';
+                    }
                 } else {
-                    routesGrid.innerHTML = '<p class="col-span-full text-center py-12 opacity-60">No taxi routes found.</p>';
+                    if (allData.bus_routes) {
+                        renderRoutes(allData.bus_routes);
+                    } else {
+                        routesGrid.innerHTML = '<p class="col-span-full text-center py-12 opacity-60">No bus routes found.</p>';
+                    }
                 }
             } else {
-                routesGrid.innerHTML = '<p class="col-span-full text-center py-12 opacity-60">No taxi routes found.</p>';
+                routesGrid.innerHTML = '<p class="col-span-full text-center py-12 opacity-60">No public transport data found.</p>';
                 renderNoNews();
             }
         } catch (error) {

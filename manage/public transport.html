@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taxi Rank Info Manager | Poortjie Services</title>
+    <title>Public Transport Manager | Poortjie Services</title>
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#22c55e">
 
@@ -26,9 +26,8 @@
     <header class="max-w-6xl mx-auto pt-24 pb-16 px-6">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-4xl font-extrabold mb-4 tracking-tight">Taxi Rank Info Manager</h1>
-                <p id="welcome-message" class="text-xl opacity-80">Manage taxi news, routes, and rank locations for
-                    Poortjie</p>
+                <h1 class="text-4xl font-extrabold mb-4 tracking-tight">Public Transport Manager</h1>
+                <p id="welcome-message" class="text-xl opacity-80">Manage news, taxi routes, and bus schedules for Poortjie</p>
             </div>
             <a href="../index.html"
                onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
@@ -39,6 +38,16 @@
     </header>
 
     <main class="max-w-6xl mx-auto px-6 pb-24 space-y-8">
+        <!-- Tabs Section -->
+        <div class="flex border-b border-gray-200 dark:border-slate-800 mb-8">
+            <button id="tab-taxis" class="px-6 py-3 font-bold text-lg border-b-4 border-green-500 text-green-600 dark:text-green-400">
+                <i class="fas fa-taxi mr-2"></i>Taxis
+            </button>
+            <button id="tab-buses" class="px-6 py-3 font-bold text-lg border-b-4 border-transparent text-gray-500 hover:text-green-500 transition">
+                <i class="fas fa-bus mr-2"></i>Buses
+            </button>
+        </div>
+
         <!-- News Management -->
         <div class="card p-8 rounded-2xl bg-white dark:bg-slate-800 shadow-xl">
             <div class="flex justify-between items-center mb-6">
@@ -56,7 +65,7 @@
         <!-- Routes Management -->
         <div class="card p-8 rounded-2xl bg-white dark:bg-slate-800 shadow-xl">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-green-600 dark:text-green-400">Routes & Fares</h2>
+                <h2 id="routes-title" class="text-2xl font-bold text-green-600 dark:text-green-400">Taxi Routes & Fares</h2>
                 <button id="add-route-btn"
                         class="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-sm">
                     <i class="fas fa-plus mr-2"></i>Add Route
@@ -141,10 +150,10 @@
                     <label for="route-returns" class="text-sm font-bold opacity-70">Returns available?</label>
                 </div>
                 <div class="col-span-full">
-                    <label class="block text-sm font-bold mb-2 opacity-70">Rank Location Name/Info</label>
+                    <label class="block text-sm font-bold mb-2 opacity-70">Station/Rank Location Name/Info</label>
                     <label for="route-location"></label><input type="text" id="route-location"
                                                                class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none"
-                                                               placeholder="e.g., Lenasia Main Taxi Rank">
+                                                               placeholder="e.g., Lenasia Main Taxi Rank or Bus Station">
                 </div>
                 <div class="col-span-full">
                     <label class="block text-sm font-bold mb-2 opacity-70">Rank Coordinates (Google Maps Pin)</label>
@@ -194,6 +203,31 @@
     const newsList = document.getElementById('news-list');
     const routesList = document.getElementById('routes-list');
     const statusMsg = document.getElementById('status-message');
+    const tabTaxis = document.getElementById('tab-taxis');
+    const tabBuses = document.getElementById('tab-buses');
+    const routesTitle = document.getElementById('routes-title');
+    const addRouteBtn = document.getElementById('add-route-btn');
+
+    let currentMode = 'taxis'; // 'taxis' or 'buses'
+
+    tabTaxis.onclick = () => switchTab('taxis');
+    tabBuses.onclick = () => switchTab('buses');
+
+    function switchTab(mode) {
+        currentMode = mode;
+        if (mode === 'taxis') {
+            tabTaxis.className = 'px-6 py-3 font-bold text-lg border-b-4 border-green-500 text-green-600 dark:text-green-400';
+            tabBuses.className = 'px-6 py-3 font-bold text-lg border-b-4 border-transparent text-gray-500 hover:text-green-500 transition';
+            routesTitle.textContent = 'Taxi Routes & Fares';
+            addRouteBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Add Taxi Route';
+        } else {
+            tabBuses.className = 'px-6 py-3 font-bold text-lg border-b-4 border-green-500 text-green-600 dark:text-green-400';
+            tabTaxis.className = 'px-6 py-3 font-bold text-lg border-b-4 border-transparent text-gray-500 hover:text-green-500 transition';
+            routesTitle.textContent = 'Bus Routes & Fares';
+            addRouteBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Add Bus Route';
+        }
+        renderRoutes();
+    }
 
     // Modals
     const newsModal = document.getElementById('news-modal');
@@ -233,7 +267,7 @@
     }
 
     // State
-    let currentData = {news: [], routes: {}};
+    let currentData = {news: [], routes: {}, bus_routes: {}};
     let editingNewsIndex = -1;
     let editingRouteKey = null;
 
@@ -280,6 +314,7 @@
                 currentData = doc.data();
                 if (!currentData.news) currentData.news = [];
                 if (!currentData.routes) currentData.routes = {};
+                if (!currentData.bus_routes) currentData.bus_routes = {};
             }
             renderAll();
         } catch (err) {
@@ -312,16 +347,17 @@
     }
 
     function renderRoutes() {
-        routesList.innerHTML = Object.keys(currentData.routes).length === 0 ?
-            '<p class="col-span-full text-center py-8 opacity-50 italic text-sm">No routes added yet.</p>' : '';
+        const routesData = currentMode === 'taxis' ? currentData.routes : (currentData.bus_routes || {});
+        routesList.innerHTML = Object.keys(routesData).length === 0 ?
+            `<p class="col-span-full text-center py-8 opacity-50 italic text-sm">No ${currentMode} routes added yet.</p>` : '';
 
         // Sort by destination
-        const sortedKeys = Object.keys(currentData.routes).sort((a, b) =>
-            currentData.routes[a].destination.localeCompare(currentData.routes[b].destination)
+        const sortedKeys = Object.keys(routesData).sort((a, b) =>
+            routesData[a].destination.localeCompare(routesData[b].destination)
         );
 
         sortedKeys.forEach(key => {
-            const route = currentData.routes[key];
+            const route = routesData[key];
             const div = document.createElement('div');
             div.className = 'card p-6 rounded-xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between';
             div.innerHTML = `
@@ -355,11 +391,11 @@
 
     document.getElementById('add-route-btn').onclick = () => {
         editingRouteKey = null;
-        document.getElementById('route-modal-title').textContent = 'Add Route';
+        document.getElementById('route-modal-title').textContent = currentMode === 'taxis' ? 'Add Taxi Route' : 'Add Bus Route';
         document.getElementById('route-origin').value = 'Poortjie';
         document.getElementById('route-destination').value = '';
         document.getElementById('route-fare').value = '';
-        document.getElementById('route-hours').value = '6am - 7pm';
+        document.getElementById('route-hours').value = currentMode === 'taxis' ? '6am - 7pm' : '5am - 8pm';
         document.getElementById('route-type').value = 'standard';
         document.getElementById('route-returns').checked = true;
         document.getElementById('route-location').value = '';
@@ -398,8 +434,9 @@
 
     window.editRoute = (key) => {
         editingRouteKey = key;
-        const route = currentData.routes[key];
-        document.getElementById('route-modal-title').textContent = 'Edit Route';
+        const routesData = currentMode === 'taxis' ? currentData.routes : (currentData.bus_routes || {});
+        const route = routesData[key];
+        document.getElementById('route-modal-title').textContent = currentMode === 'taxis' ? 'Edit Taxi Route' : 'Edit Bus Route';
         document.getElementById('route-origin').value = route.origin;
         document.getElementById('route-destination').value = route.destination;
         document.getElementById('route-fare').value = route.fare;
@@ -428,8 +465,12 @@
     };
 
     window.deleteRoute = async (key) => {
-        if (confirm('Delete this route?')) {
-            delete currentData.routes[key];
+        if (confirm(`Delete this ${currentMode === 'taxis' ? 'taxi' : 'bus'} route?`)) {
+            if (currentMode === 'taxis') {
+                delete currentData.routes[key];
+            } else {
+                delete currentData.bus_routes[key];
+            }
             await saveToFirestore('Route deleted successfully');
             renderRoutes();
         }
@@ -506,7 +547,13 @@
         };
 
         const key = editingRouteKey || `${origin.toLowerCase().replace(/\s+/g, '_')}_to_${dest.toLowerCase().replace(/\s+/g, '_')}`;
-        currentData.routes[key] = routeData;
+        
+        if (currentMode === 'taxis') {
+            currentData.routes[key] = routeData;
+        } else {
+            if (!currentData.bus_routes) currentData.bus_routes = {};
+            currentData.bus_routes[key] = routeData;
+        }
 
         await saveToFirestore('Route saved successfully');
         routeModal.classList.add('hidden');
