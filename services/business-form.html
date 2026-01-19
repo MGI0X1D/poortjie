@@ -1008,7 +1008,8 @@
 
         newListingBtn.classList.remove('hidden');
         userApplicationsList.innerHTML = applications.map(app => {
-            const canEdit = app.status === 'approved' || app.status === 'update' || app.status === 'rejected';
+            const isRejected = app.status === 'rejected';
+            const canEdit = (app.status === 'approved' || app.status === 'update') && !isRejected;
             return `
                 <div class="p-4 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 flex justify-between items-center">
                     <div>
@@ -1022,10 +1023,31 @@
                                 <i class="fa-solid fa-pen-to-square"></i> Edit
                             </button>
                         ` : ''}
+                        ${isRejected ? `
+                            <button onclick="removeApplication('${app.id}')" class="text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i> Remove
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
         }).join('');
+
+        window.removeApplication = async (appId) => {
+            if (!confirm('Are you sure you want to remove this rejected application? This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                await db.collection('poortjie').doc('applications').collection('listings').doc(appId).delete();
+                alert('Application removed.');
+                // UI will refresh via onSnapshot or manual reload
+                location.reload();
+            } catch (error) {
+                console.error("Error removing application:", error);
+                alert('Failed to remove application: ' + error.message);
+            }
+        };
 
         window.editApplication = async (appId) => {
             const app = applications.find(a => a.id === appId);
@@ -1190,7 +1212,7 @@
             formDescription.classList.add('text-blue-600', 'dark:text-blue-400', 'font-bold');
             formDescription.classList.remove('opacity-70');
         } else if (data.status === 'rejected') {
-            formDescription.textContent = 'Your application was rejected. Please click "Edit" below to correct any issues and resubmit.';
+            formDescription.textContent = 'Your application was rejected. You can remove it and start a new one if you wish.';
             formDescription.classList.add('text-red-600', 'dark:text-red-400', 'font-bold');
             formDescription.classList.remove('opacity-70');
         }
