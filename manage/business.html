@@ -605,7 +605,7 @@
                 }
 
                 // Initialize/Update status in live services collection
-                const liveServiceRef = db.collection('poortjie').doc('services').collection(finalCategory).doc(appId);
+                const liveServiceRef = db.doc(`poortjie/services/${finalCategory}/${appId}`);
                 transaction.set(liveServiceRef, {
                     ...appData,
                     businessType: finalCategory,
@@ -618,7 +618,24 @@
                     status: 'approved',
                     businessType: finalCategory, // Update the app record too
                     approvedBy: currentUserId,
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    businessRef: `poortjie/services/${finalCategory}/${appId}`,
+                    // Strip data
+                    ownerName: firebase.firestore.FieldValue.delete(),
+                    email: firebase.firestore.FieldValue.delete(),
+                    phone: firebase.firestore.FieldValue.delete(),
+                    businessName: firebase.firestore.FieldValue.delete(),
+                    subHeading: firebase.firestore.FieldValue.delete(),
+                    address: firebase.firestore.FieldValue.delete(),
+                    latitude: firebase.firestore.FieldValue.delete(),
+                    longitude: firebase.firestore.FieldValue.delete(),
+                    website: firebase.firestore.FieldValue.delete(),
+                    whatsapp: firebase.firestore.FieldValue.delete(),
+                    facebook: firebase.firestore.FieldValue.delete(),
+                    hours: firebase.firestore.FieldValue.delete(),
+                    description: firebase.firestore.FieldValue.delete(),
+                    photos: firebase.firestore.FieldValue.delete(),
+                    services: firebase.firestore.FieldValue.delete()
                 });
             });
 

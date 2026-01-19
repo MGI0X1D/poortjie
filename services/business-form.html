@@ -36,16 +36,29 @@
         <!-- Left Column: Form -->
         <div class="card flex flex-col p-8 rounded-2xl border-l-4 border-l-green-500 w-full lg:max-w-none max-w-xl mx-auto">
             <div id="applications-section" class="mb-12 hidden">
-                <h2 class="text-2xl font-bold mb-6 text-center lg:text-left">My Applications</h2>
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-bold text-center lg:text-left">My Applications</h2>
+                    <button id="new-listing-btn" class="w-full sm:w-auto px-6 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition flex items-center justify-center gap-2 shadow-lg shadow-green-500/20">
+                        <i class="fa-solid fa-plus"></i>
+                        New Listing
+                    </button>
+                </div>
                 <div id="user-applications-list" class="space-y-4"></div>
                 <hr class="my-8 border-gray-200 dark:border-slate-700">
             </div>
 
-            <h2 class="text-2xl font-bold mb-6 text-center lg:text-left">Business Listing</h2>
-            <div id="status-container" class="hidden text-center lg:text-left mb-4 space-y-2"></div>
-            <p class="text-center lg:text-left opacity-70 mb-8">Fill in the details below to list your business on Poortjie Services.</p>
+            <div id="form-content-wrapper">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 id="form-title" class="text-2xl font-bold text-center lg:text-left">Business Listing</h2>
+                    <button id="cancel-form-btn" class="hidden text-sm font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition flex items-center gap-1">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                </div>
+                <div id="status-container" class="hidden text-center lg:text-left mb-4 space-y-2"></div>
+                <div id="pending-status-container" class="hidden space-y-4 mb-8"></div>
+                <p id="form-description" class="text-center lg:text-left opacity-70 mb-8">Fill in the details below to list your business on Poortjie Services.</p>
 
-            <form id="business-form" novalidate>
+                <form id="business-form" novalidate>
             <div class="form-group mb-4">
                 <label for="owner-name" class="block mb-1 font-bold text-sm uppercase tracking-wider">Full Name</label>
                 <div class="relative">
@@ -199,6 +212,7 @@
             </div>
 
         </form>
+            </div>
         </div>
 
         <!-- Right Column: Preview -->
@@ -347,10 +361,16 @@
 
 <script>
     const formContainer = document.getElementById('form-container');
+    const formContentWrapper = document.getElementById('form-content-wrapper');
+    const formTitle = document.getElementById('form-title');
+    const formDescription = document.getElementById('form-description');
+    const cancelFormBtn = document.getElementById('cancel-form-btn');
+    const newListingBtn = document.getElementById('new-listing-btn');
     const businessForm = document.getElementById('business-form');
     const submitBtn = document.getElementById('submit-btn');
     const submitBtnWrapper = document.getElementById('submit-btn-wrapper');
     const statusContainer = document.getElementById('status-container');
+    const pendingStatusContainer = document.getElementById('pending-status-container');
 
     const ownerNameInput = document.getElementById('owner-name');
     const emailInput = document.getElementById('email');
@@ -380,6 +400,218 @@
     const saveGalleryBtn = document.getElementById('save-gallery');
     const galleryGrid = document.getElementById('gallery-grid');
     let uploadedPhotos = []; // Array of URLs
+    let userCategories = [];
+
+    newListingBtn.addEventListener('click', () => {
+        formContentWrapper.classList.remove('hidden');
+        applicationsSection.classList.add('hidden');
+        newListingBtn.classList.add('hidden');
+        cancelFormBtn.classList.remove('hidden');
+        formTitle.textContent = 'New Business Listing';
+        businessForm.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    cancelFormBtn.addEventListener('click', async () => {
+        if (currentEditingAppId || businessForm.dataset.changed === 'true') {
+            if (!confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+                return;
+            }
+
+            // If we were editing an existing business (has businessRef), revert application doc to just the ref
+            if (currentEditingAppId) {
+                const app = applications.find(a => a.id === currentEditingAppId);
+                const appRef = db.collection('poortjie').doc('applications').collection('listings').doc(currentEditingAppId);
+                if (app) {
+                    try {
+                        if (app.businessRef) {
+                            await appRef.update({
+                                status: 'approved',
+                                ownerName: firebase.firestore.FieldValue.delete(),
+                                email: firebase.firestore.FieldValue.delete(),
+                                phone: firebase.firestore.FieldValue.delete(),
+                                businessName: firebase.firestore.FieldValue.delete(),
+                                subHeading: firebase.firestore.FieldValue.delete(),
+                                address: firebase.firestore.FieldValue.delete(),
+                                latitude: firebase.firestore.FieldValue.delete(),
+                                longitude: firebase.firestore.FieldValue.delete(),
+                                website: firebase.firestore.FieldValue.delete(),
+                                whatsapp: firebase.firestore.FieldValue.delete(),
+                                facebook: firebase.firestore.FieldValue.delete(),
+                                hours: firebase.firestore.FieldValue.delete(),
+                                description: firebase.firestore.FieldValue.delete(),
+                                photos: firebase.firestore.FieldValue.delete(),
+                                services: firebase.firestore.FieldValue.delete(),
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        } else {
+                            // If it's a new listing that hasn't been submitted (pending) yet, 
+                            // we just reset the local state. But if it was already saved in DB 
+                            // (e.g. from a previous session or if we implement auto-save), we might want to delete.
+                            // However, 'new' listings only exist in DB when they are submitted (status: pending).
+                            // So if currentEditingAppId exists and has no businessRef, it must be a rejected/update one?
+                            // Actually, only approved/update/rejected can be edited (see renderUserApplications).
+                            // If it's rejected/update and has no businessRef, it's a NEW application that was rejected.
+                            // In that case, we should probably keep it but reset changes? 
+                            // The issue says "on cancel... removed the data all together leaving ref thats all, for new applications the will be no ref which is fine"
+                            // If there is no ref, and we "remove data all together", we are left with an empty document? 
+                            // Better to just delete the document if there's no ref.
+                            await appRef.delete();
+                        }
+                    } catch (e) {
+                        console.error("Error reverting/deleting application data:", e);
+                    }
+                }
+            }
+        }
+        resetFormState();
+    });
+
+    window.cancelPendingApplication = async (appId) => {
+        const user = auth.currentUser;
+        if (!user || !appId) return;
+
+        if (!confirm('Are you sure you want to cancel your pending application? This action cannot be undone.')) {
+            return;
+        }
+
+        const btn = document.querySelector(`button[onclick="cancelPendingApplication('${appId}')"]`);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Cancelling...';
+        }
+
+        try {
+            const app = applications.find(a => a.id === appId);
+            const appRef = db.collection('poortjie').doc('applications').collection('listings').doc(appId);
+
+            if (app && app.businessRef) {
+                // If it has a businessRef, it was an edit. Revert to approved and strip draft data.
+                await appRef.update({
+                    status: 'approved',
+                    ownerName: firebase.firestore.FieldValue.delete(),
+                    email: firebase.firestore.FieldValue.delete(),
+                    phone: firebase.firestore.FieldValue.delete(),
+                    businessName: firebase.firestore.FieldValue.delete(),
+                    subHeading: firebase.firestore.FieldValue.delete(),
+                    address: firebase.firestore.FieldValue.delete(),
+                    latitude: firebase.firestore.FieldValue.delete(),
+                    longitude: firebase.firestore.FieldValue.delete(),
+                    website: firebase.firestore.FieldValue.delete(),
+                    whatsapp: firebase.firestore.FieldValue.delete(),
+                    facebook: firebase.firestore.FieldValue.delete(),
+                    hours: firebase.firestore.FieldValue.delete(),
+                    description: firebase.firestore.FieldValue.delete(),
+                    photos: firebase.firestore.FieldValue.delete(),
+                    services: firebase.firestore.FieldValue.delete(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                // New application without businessRef, delete it entirely
+                await appRef.delete();
+            }
+            
+            // UI will be updated via onSnapshot
+            alert('Your application has been cancelled.');
+        } catch (error) {
+            console.error("Error cancelling application:", error);
+            alert('Failed to cancel application. Please try again.');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Cancel Application';
+            }
+        }
+    };
+
+    const renderPendingApplications = (pendingApplications) => {
+        if (!pendingApplications || pendingApplications.length === 0) {
+            pendingStatusContainer.innerHTML = '';
+            pendingStatusContainer.classList.add('hidden');
+            return;
+        }
+
+        pendingStatusContainer.classList.remove('hidden');
+        pendingStatusContainer.innerHTML = pendingApplications.map(app => `
+            <div class="p-6 rounded-2xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30 text-center lg:text-left">
+                <div class="flex flex-col items-center lg:items-start gap-4">
+                    <div class="w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center text-yellow-600 dark:text-yellow-400">
+                        <i class="fa-solid fa-clock-rotate-left text-xl animate-pulse"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-yellow-800 dark:text-yellow-300">Application Pending</h3>
+                        <p class="text-sm text-yellow-700 dark:text-yellow-400 opacity-90 mt-1">
+                            Your application for <span class="font-bold">${app.businessName}</span> is currently being reviewed.
+                        </p>
+                    </div>
+                    <button onclick="cancelPendingApplication('${app.id}')" class="px-6 py-2 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 font-bold rounded-xl border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-trash-can"></i>
+                        Cancel Application
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    function resetFormState() {
+        formContentWrapper.classList.add('hidden');
+        pendingStatusContainer.classList.add('hidden');
+        formDescription.classList.remove('hidden');
+        if (userCategories.length > 0) {
+            applicationsSection.classList.remove('hidden');
+            newListingBtn.classList.remove('hidden');
+        } else {
+            formContentWrapper.classList.remove('hidden');
+            applicationsSection.classList.add('hidden');
+            newListingBtn.classList.add('hidden');
+        }
+        cancelFormBtn.classList.add('hidden');
+        formTitle.textContent = 'Business Listing';
+        currentEditingAppId = null;
+        businessForm.reset();
+        uploadedPhotos = [];
+        updatePhotosSummary();
+        servicesList.innerHTML = '';
+        delete businessForm.dataset.changed;
+        
+        // Clear errors
+        document.querySelectorAll('p[id$="-error"]').forEach(el => el.classList.add('hidden'));
+        
+        // Reset description counter
+        descCounter.textContent = '0/200';
+        
+        // Ensure preview reflects reset state
+        updatePreview();
+
+        // Re-populate basic info if user is logged in
+        const user = auth.currentUser;
+        if (user) {
+            const userDocRef = db.collection('users').doc(user.uid);
+            userDocRef.get().then((userDoc) => {
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    ownerNameInput.value = userData.displayName || user.displayName || '';
+                    phoneInput.value = userData.phone || '';
+                } else {
+                    ownerNameInput.value = user.displayName || '';
+                }
+                emailInput.value = user.email || '';
+            });
+        }
+    }
+
+    businessTypeInput.addEventListener('change', () => {
+        const selectedType = businessTypeInput.value;
+        if (selectedType && userCategories.includes(selectedType)) {
+            const confirmNew = confirm(`You already have a listing in "${selectedType}". Are you sure you want to create another one? It might be better to edit your existing one.`);
+            if (!confirmNew) {
+                businessTypeInput.value = '';
+                validateForm(false);
+                updatePreview();
+                return;
+            }
+        }
+        validateForm(false);
+        updatePreview();
+    });
 
     const renderGallery = () => {
         galleryGrid.innerHTML = '';
@@ -586,6 +818,7 @@
 
     let currentEditingAppId = null;
     let originalAppData = null;
+    let applications = [];
 
     addressInput.addEventListener('click', () => {
         addressModal.classList.remove('hidden');
@@ -744,18 +977,40 @@
     };
 
     const renderUserApplications = (applications) => {
+        // userCategories is used to prevent duplicate listings in same category
+        userCategories = applications
+            .map(app => app.businessType);
+
         if (!applications || applications.length === 0) {
             applicationsSection.classList.add('hidden');
+            formContentWrapper.classList.remove('hidden');
+            businessForm.classList.remove('hidden');
+            formDescription.classList.remove('hidden');
+            newListingBtn.classList.add('hidden');
             return;
         }
 
         applicationsSection.classList.remove('hidden');
+        
+        // Check if there are any active applications
+        const hasActiveApplications = applications.some(app => app.status !== 'pending');
+        const hasPending = applications.some(app => app.status === 'pending');
+
+        if (hasActiveApplications || hasPending) {
+            formContentWrapper.classList.add('hidden');
+        } else {
+            formContentWrapper.classList.remove('hidden');
+            businessForm.classList.remove('hidden');
+            formDescription.classList.remove('hidden');
+        }
+
+        newListingBtn.classList.remove('hidden');
         userApplicationsList.innerHTML = applications.map(app => {
             const canEdit = app.status === 'approved' || app.status === 'update' || app.status === 'rejected';
             return `
                 <div class="p-4 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 flex justify-between items-center">
                     <div>
-                        <h4 class="font-bold text-sm">${app.businessName}</h4>
+                        <h4 class="font-bold text-sm">${app.businessName || 'Business Name'}</h4>
                         <p class="text-xs opacity-60">${app.businessType}</p>
                     </div>
                     <div class="flex items-center gap-3">
@@ -770,82 +1025,105 @@
             `;
         }).join('');
 
-        window.editApplication = (appId) => {
+        window.editApplication = async (appId) => {
             const app = applications.find(a => a.id === appId);
             if (!app) return;
 
+            let displayData = app;
+            if (app.businessRef && (!app.businessName || app.status === 'approved')) {
+                // Pull data from services if it's not in application (or if it's approved and we want the latest public data)
+                try {
+                    const docRef = db.doc(app.businessRef);
+                    const docSnap = await docRef.get();
+                    if (docSnap.exists) {
+                        displayData = { ...docSnap.data(), ...app, id: appId };
+                    }
+                } catch (e) {
+                    console.error("Error pulling data from businessRef:", e);
+                }
+            }
+
             currentEditingAppId = appId;
-            originalAppData = JSON.parse(JSON.stringify(app)); // Deep copy to store original state
+            originalAppData = JSON.parse(JSON.stringify(displayData)); // Deep copy to store original state
+
+            formContentWrapper.classList.remove('hidden');
+            applicationsSection.classList.add('hidden');
+            newListingBtn.classList.add('hidden');
+            cancelFormBtn.classList.remove('hidden');
+            formTitle.textContent = `Editing: ${displayData.businessName || 'Business'}`;
+            businessForm.scrollIntoView({ behavior: 'smooth' });
 
             // Populate form
-            ownerNameInput.value = app.ownerName || '';
-            emailInput.value = app.email || '';
-            phoneInput.value = app.phone || '';
-            businessNameInput.value = app.businessName || '';
-            subHeadingInput.value = app.subHeading || '';
-            businessTypeInput.value = app.businessType || '';
-            addressInput.value = app.address || '';
-            websiteInput.value = app.website || '';
-            whatsappInput.value = app.whatsapp || '';
-            facebookInput.value = app.facebook || '';
-            hoursInput.value = app.hours || '';
+            ownerNameInput.value = displayData.ownerName || '';
+            emailInput.value = displayData.email || '';
+            phoneInput.value = displayData.phone || '';
+            businessNameInput.value = displayData.businessName || '';
+            subHeadingInput.value = displayData.subHeading || '';
+            businessTypeInput.value = displayData.businessType || '';
+            addressInput.value = displayData.address || '';
+            websiteInput.value = displayData.website || '';
+            whatsappInput.value = displayData.whatsapp || '';
+            facebookInput.value = displayData.facebook || '';
+            hoursInput.value = displayData.hours || '';
 
             // Handle photos population
-            uploadedPhotos = app.photos || [];
+            uploadedPhotos = displayData.photos || [];
             updatePhotosSummary();
 
             // Handle hours population
-            if (app.hours === 'Always Open') {
+            if (displayData.hours === 'Always Open') {
                 hoursTypeSelect.value = 'always';
-            } else if (app.hours === 'By Appointment Only') {
+            } else if (displayData.hours === 'By Appointment Only') {
                 hoursTypeSelect.value = 'appointment';
-            } else if (app.hours && (app.hours.includes('Mon ') || app.hours.includes('Tue ') || app.hours.includes('Wed ') || app.hours.includes('Thu ') || app.hours.includes('Fri ') || app.hours.includes('Sat ') || app.hours.includes('Sun ') || app.hours.includes('Mon-Fri '))) {
+            } else if (displayData.hours && (displayData.hours.includes('Mon ') || displayData.hours.includes('Tue ') || displayData.hours.includes('Wed ') || displayData.hours.includes('Thu ') || displayData.hours.includes('Fri ') || displayData.hours.includes('Sat ') || displayData.hours.includes('Sun ') || displayData.hours.includes('Mon-Fri '))) {
                 hoursTypeSelect.value = 'selected';
                 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                
+            
                 // Try to match Mon-Fri combined format first
-                const weekMatch = app.hours.match(/Mon-Fri (\d{2}:\d{2})-(\d{2}:\d{2})/);
-                
+                const weekMatch = displayData.hours.match(/Mon-Fri (\d{2}:\d{2})-(\d{2}:\d{2})/);
+            
                 const scheduleData = days.map(day => {
                     const shortDay = day.substring(0, 3);
                     const regex = new RegExp(`${shortDay} (\\d{2}:\\d{2})-(\\d{2}:\\d{2})`);
-                    const match = app.hours.match(regex);
+                    const match = displayData.hours.match(regex);
                     if (match) {
                         return { day, status: 'open', openingTime: match[1], closingTime: match[2] };
                     } else if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(day) && weekMatch) {
                         return { day, status: 'open', openingTime: weekMatch[1], closingTime: weekMatch[2] };
                     } else {
-                        const isClosed = app.hours.includes(`${shortDay} Closed`);
+                        const isClosed = displayData.hours.includes(`${shortDay} Closed`);
                         return { day, status: isClosed ? 'closed' : 'open', openingTime: '08:00', closingTime: '17:00' };
                     }
                 });
                 if (timeScheduleComponent && typeof timeScheduleComponent.setScheduleData === 'function') {
                     timeScheduleComponent.setScheduleData(scheduleData);
                 }
-            } else if (app.hours) {
+            } else if (displayData.hours) {
                 hoursTypeSelect.value = 'custom';
             }
             updateHoursDisplay();
 
-            descInput.value = app.description || '';
+            descInput.value = displayData.description || '';
+            const count = descInput.value.length;
+            descCounter.textContent = `${count}/200`;
 
             // Populate services
             servicesList.innerHTML = '';
-            if (app.services && Array.isArray(app.services)) {
-                app.services.forEach(s => addServiceRow(s.name, s.price));
+            if (displayData.services && Array.isArray(displayData.services)) {
+                displayData.services.forEach(s => addServiceRow(s.name, s.price));
             }
 
-            selectedLat = app.latitude || null;
-            selectedLng = app.longitude || null;
+            selectedLat = displayData.latitude || null;
+            selectedLng = displayData.longitude || null;
             latitudeInput.value = selectedLat;
             longitudeInput.value = selectedLng;
-            isAddressSelectedFromAutocomplete = !!app.address;
+            isAddressSelectedFromAutocomplete = !!displayData.address;
 
             // Update social links summary
             const links = [];
-            if (app.whatsapp) links.push('WhatsApp');
-            if (app.facebook) links.push('Facebook');
-            if (app.website) links.push('Website');
+            if (displayData.whatsapp) links.push('WhatsApp');
+            if (displayData.facebook) links.push('Facebook');
+            if (displayData.website) links.push('Website');
             if (links.length > 0) {
                 socialLinksSummary.textContent = links.join(', ');
                 socialLinksSummary.classList.remove('opacity-70');
@@ -856,9 +1134,19 @@
                 socialLinksSummary.classList.remove('text-green-600', 'font-bold');
             }
 
+            // Make sure fields are editable in case they were locked by a pending app before
+            businessForm.querySelectorAll('input, textarea, select').forEach(el => {
+                if (!['owner-name', 'email'].includes(el.id)) {
+                    el.disabled = false;
+                }
+            });
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitBtn.style.pointerEvents = 'auto';
+            submitBtn.textContent = 'Submit Listing';
+
             // Update character counter
-            const count = descInput.value.length;
-            descCounter.textContent = `${count}/200`;
+            const countVal = descInput.value.length;
+            descCounter.textContent = `${countVal}/200`;
 
             // Clear previous error messages if any
             document.querySelectorAll('p[id$="-error"]').forEach(el => el.classList.add('hidden'));
@@ -874,11 +1162,11 @@
             submitBtn.textContent = 'Update Business Details';
 
             // Update form description
-            const formDescription = document.querySelector('#form-container p');
-            if (formDescription) {
-                formDescription.textContent = 'Update your business details below.';
-                formDescription.classList.remove('text-yellow-600', 'dark:text-yellow-400', 'text-blue-600', 'dark:text-blue-400', 'text-red-600', 'dark:text-red-400', 'font-bold');
-                formDescription.classList.add('opacity-70');
+            const formDesc = document.querySelector('#form-container p');
+            if (formDesc) {
+                formDesc.textContent = 'Update your business details below.';
+                formDesc.classList.remove('text-yellow-600', 'dark:text-yellow-400', 'text-blue-600', 'dark:text-blue-400', 'text-red-600', 'dark:text-red-400', 'font-bold');
+                formDesc.classList.add('opacity-70');
             }
 
             // Show form if it was hidden
@@ -895,18 +1183,13 @@
         submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
         submitBtn.style.pointerEvents = 'none'; // Truly disable for locked forms
         submitBtn.textContent = 'Application Pending';
-        const formDescription = document.querySelector('#form-container p');
-        if (formDescription) {
-            if (data.status === 'update') {
-                formDescription.textContent = 'An update has been requested for your application. Please click "Edit" below to make changes.';
-                formDescription.classList.add('text-blue-600', 'dark:text-blue-400', 'font-bold');
-            } else if (data.status === 'rejected') {
-                formDescription.textContent = 'Your application was rejected. Please click "Edit" below to correct any issues and resubmit.';
-                formDescription.classList.add('text-red-600', 'dark:text-red-400', 'font-bold');
-            } else {
-                formDescription.textContent = 'You have a pending application. Please wait for it to be reviewed before submitting another.';
-                formDescription.classList.add('text-yellow-600', 'dark:text-yellow-400', 'font-bold');
-            }
+        if (data.status === 'update') {
+            formDescription.textContent = 'An update has been requested for your application. Please click "Edit" below to make changes.';
+            formDescription.classList.add('text-blue-600', 'dark:text-blue-400', 'font-bold');
+            formDescription.classList.remove('opacity-70');
+        } else if (data.status === 'rejected') {
+            formDescription.textContent = 'Your application was rejected. Please click "Edit" below to correct any issues and resubmit.';
+            formDescription.classList.add('text-red-600', 'dark:text-red-400', 'font-bold');
             formDescription.classList.remove('opacity-70');
         }
     };
@@ -1152,10 +1435,6 @@
         });
     });
 
-    businessTypeInput.addEventListener('change', () => {
-        validateForm(false);
-        updatePreview();
-    });
 
     modalAddressInput.addEventListener('input', () => {
         isAddressSelectedFromAutocomplete = false;
@@ -1169,24 +1448,38 @@
         if (user) {
             fetchCategories();
             const applicationsRef = db.collection('poortjie').doc('applications').collection('listings').where('userId', '==', user.uid).orderBy('createdAt', 'desc');
-            applicationsRef.get().then(snapshot => {
-                const applications = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            applicationsRef.onSnapshot(snapshot => {
+                applications = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 renderUserApplications(applications);
 
-                const pendingApplication = applications.find(app => app.status === 'pending' || app.status === 'update' || app.status === 'rejected');
-                if (pendingApplication) {
-                    lockForm(pendingApplication);
+                    const pendingApplications = applications.filter(app => app.status === 'pending');
+                    if (pendingApplications.length > 0) {
+                        lockForm(pendingApplications[0]); // Lock with the first one found for defaults
+                        formContentWrapper.classList.remove('hidden');
+                        businessForm.classList.add('hidden'); // Hide the actual form
+                        formDescription.classList.add('hidden'); // Hide default description
+                        
+                        // Show all pending statuses
+                        renderPendingApplications(pendingApplications);
+                        
+                        newListingBtn.classList.add('hidden');
+                        cancelFormBtn.classList.add('hidden'); // Cannot cancel locked form via normal cancel
+                        formTitle.textContent = 'Application Pending';
 
-                    // Initial character count for description (even if locked)
-                    const count = descInput.value.length;
-                    descCounter.textContent = `${count}/200`;
+                        // Initial character count for description (even if locked)
+                        const count = descInput.value.length;
+                        descCounter.textContent = `${count}/200`;
 
-                    updateHoursDisplay();
+                        updateHoursDisplay();
 
-                    hideLoader();
-                    formContainer.classList.remove('hidden');
-                    formContainer.classList.add('block', 'lg:grid');
-                } else {
+                        hideLoader();
+                        formContainer.classList.remove('hidden');
+                        formContainer.classList.add('block', 'lg:grid');
+                    } else {
+                        // Reset if no pending application (might have been cancelled)
+                        businessForm.classList.remove('hidden');
+                        pendingStatusContainer.classList.add('hidden');
+                        formDescription.classList.remove('hidden');
                     const userDocRef = db.collection('users').doc(user.uid);
                     userDocRef.get().then((userDoc) => {
                         if (userDoc.exists) {
@@ -1219,6 +1512,10 @@
             sessionStorage.setItem('redirectUrl', window.top.location.href);
             window.top.location.replace('../authentication/login.html');
         }
+    });
+
+    businessForm.addEventListener('input', () => {
+        businessForm.dataset.changed = 'true';
     });
 
     businessForm.addEventListener('submit', event => {
