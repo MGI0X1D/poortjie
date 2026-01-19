@@ -418,15 +418,18 @@
                 return;
             }
 
-            // If we were editing an existing business (has businessRef), revert application doc to just the ref
+            // If we were editing a PENDING application, we might need to revert or delete
             if (currentEditingAppId) {
                 const app = applications.find(a => a.id === currentEditingAppId);
                 const appRef = db.collection('poortjie').doc('applications').collection('listings').doc(currentEditingAppId);
-                if (app) {
+                
+                // Only touch the DB if it's currently in a 'pending' state (meaning it's a submitted update/listing)
+                if (app && app.status === 'pending') {
                     try {
                         if (app.businessRef) {
-                            await appRef.update({
-                                status: 'approved',
+                            // If it has a businessRef and is pending, it's a submitted edit. 
+                            // Revert to approved and strip draft data.
+                            const updateData = {
                                 ownerName: firebase.firestore.FieldValue.delete(),
                                 email: firebase.firestore.FieldValue.delete(),
                                 phone: firebase.firestore.FieldValue.delete(),
@@ -442,20 +445,12 @@
                                 description: firebase.firestore.FieldValue.delete(),
                                 photos: firebase.firestore.FieldValue.delete(),
                                 services: firebase.firestore.FieldValue.delete(),
+                                status: 'approved',
                                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
+                            };
+                            await appRef.update(updateData);
                         } else {
-                            // If it's a new listing that hasn't been submitted (pending) yet, 
-                            // we just reset the local state. But if it was already saved in DB 
-                            // (e.g. from a previous session or if we implement auto-save), we might want to delete.
-                            // However, 'new' listings only exist in DB when they are submitted (status: pending).
-                            // So if currentEditingAppId exists and has no businessRef, it must be a rejected/update one?
-                            // Actually, only approved/update/rejected can be edited (see renderUserApplications).
-                            // If it's rejected/update and has no businessRef, it's a NEW application that was rejected.
-                            // In that case, we should probably keep it but reset changes? 
-                            // The issue says "on cancel... removed the data all together leaving ref thats all, for new applications the will be no ref which is fine"
-                            // If there is no ref, and we "remove data all together", we are left with an empty document? 
-                            // Better to just delete the document if there's no ref.
+                            // New application (no businessRef) that was pending, delete it
                             await appRef.delete();
                         }
                     } catch (e) {
@@ -485,30 +480,35 @@
             const app = applications.find(a => a.id === appId);
             const appRef = db.collection('poortjie').doc('applications').collection('listings').doc(appId);
 
-            if (app && app.businessRef) {
-                // If it has a businessRef, it was an edit. Revert to approved and strip draft data.
-                await appRef.update({
-                    status: 'approved',
-                    ownerName: firebase.firestore.FieldValue.delete(),
-                    email: firebase.firestore.FieldValue.delete(),
-                    phone: firebase.firestore.FieldValue.delete(),
-                    businessName: firebase.firestore.FieldValue.delete(),
-                    subHeading: firebase.firestore.FieldValue.delete(),
-                    address: firebase.firestore.FieldValue.delete(),
-                    latitude: firebase.firestore.FieldValue.delete(),
-                    longitude: firebase.firestore.FieldValue.delete(),
-                    website: firebase.firestore.FieldValue.delete(),
-                    whatsapp: firebase.firestore.FieldValue.delete(),
-                    facebook: firebase.firestore.FieldValue.delete(),
-                    hours: firebase.firestore.FieldValue.delete(),
-                    description: firebase.firestore.FieldValue.delete(),
-                    photos: firebase.firestore.FieldValue.delete(),
-                    services: firebase.firestore.FieldValue.delete(),
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } else {
-                // New application without businessRef, delete it entirely
-                await appRef.delete();
+            // Only touch the DB if it's currently in a 'pending' state
+            if (app && app.status === 'pending') {
+                if (app.businessRef) {
+                    // If it has a businessRef and is pending, it's a submitted edit. 
+                    // Revert to approved and strip draft data.
+                    const updateData = {
+                        ownerName: firebase.firestore.FieldValue.delete(),
+                        email: firebase.firestore.FieldValue.delete(),
+                        phone: firebase.firestore.FieldValue.delete(),
+                        businessName: firebase.firestore.FieldValue.delete(),
+                        subHeading: firebase.firestore.FieldValue.delete(),
+                        address: firebase.firestore.FieldValue.delete(),
+                        latitude: firebase.firestore.FieldValue.delete(),
+                        longitude: firebase.firestore.FieldValue.delete(),
+                        website: firebase.firestore.FieldValue.delete(),
+                        whatsapp: firebase.firestore.FieldValue.delete(),
+                        facebook: firebase.firestore.FieldValue.delete(),
+                        hours: firebase.firestore.FieldValue.delete(),
+                        description: firebase.firestore.FieldValue.delete(),
+                        photos: firebase.firestore.FieldValue.delete(),
+                        services: firebase.firestore.FieldValue.delete(),
+                        status: 'approved',
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    await appRef.update(updateData);
+                } else {
+                    // New application (no businessRef) that was pending, delete it
+                    await appRef.delete();
+                }
             }
             
             // UI will be updated via onSnapshot, but we also want to refresh the page as requested
