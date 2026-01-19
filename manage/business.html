@@ -507,12 +507,6 @@
                     </div>
                     <div class="flex flex-wrap gap-2 shrink-0">
                         <button onclick="toggleDetails('${app.id}')" class="text-xs font-bold uppercase tracking-wider opacity-60 hover:opacity-100 transition px-3 py-1 border border-gray-300 dark:border-slate-600 rounded-lg">Show Details</button>
-                        ${isOldData ? `
-                        <div class="flex flex-col items-center gap-1">
-                            <button onclick="fixData('${app.id}')" class="bg-yellow-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-yellow-700 transition shadow-sm">Fix Data</button>
-                            <span class="text-[10px] opacity-50 font-mono select-all">${app.id}</span>
-                        </div>
-                        ` : ''}
                         ${isPending ? `
                         <button onclick="approveApplication('${app.id}')" class="bg-green-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-green-700 transition shadow-sm">${alreadyExists ? 'Approve Update' : 'Approve'}</button>
                         <button onclick="requestUpdate('${app.id}')" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-blue-700 transition shadow-sm">Update</button>
