@@ -588,10 +588,26 @@
         
         try {
             await db.collection('poortjie').doc('applications').collection('listings').doc(appId).update({
-                businessRef: businessRef
+                businessRef: businessRef,
+                // Strip redundant data to match new structure
+                ownerName: firebase.firestore.FieldValue.delete(),
+                email: firebase.firestore.FieldValue.delete(),
+                phone: firebase.firestore.FieldValue.delete(),
+                businessName: firebase.firestore.FieldValue.delete(),
+                subHeading: firebase.firestore.FieldValue.delete(),
+                address: firebase.firestore.FieldValue.delete(),
+                latitude: firebase.firestore.FieldValue.delete(),
+                longitude: firebase.firestore.FieldValue.delete(),
+                website: firebase.firestore.FieldValue.delete(),
+                whatsapp: firebase.firestore.FieldValue.delete(),
+                facebook: firebase.firestore.FieldValue.delete(),
+                hours: firebase.firestore.FieldValue.delete(),
+                description: firebase.firestore.FieldValue.delete(),
+                photos: firebase.firestore.FieldValue.delete(),
+                services: firebase.firestore.FieldValue.delete()
             });
             console.log("Data fixed for application:", appId);
-            alert("Data fixed! businessRef added.");
+            alert("Data fixed! businessRef added and redundant fields removed.");
         } catch (error) {
             console.error("Error fixing data:", error);
             alert("Failed to fix data: " + error);
