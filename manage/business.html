@@ -58,6 +58,7 @@
                             <option value="newest">Newest First</option>
                             <option value="owner">Owner Name (A-Z)</option>
                             <option value="business">Business Name (A-Z)</option>
+                            <option value="ratings">Most Ratings</option>
                         </select>
                     </div>
                 </div>
@@ -200,7 +201,7 @@
         filterAndSort();
     }
 
-    function filterAndSort() {
+    async function filterAndSort() {
         const searchTerm = document.getElementById('search-apps').value.toLowerCase();
         const sortValue = document.getElementById('sort-apps').value;
 
@@ -211,7 +212,22 @@
         document.getElementById('count-rejected').textContent = `(${allApplications.filter(a => a.status === 'rejected').length})`;
         document.getElementById('count-disabled').textContent = `(${allApplications.filter(a => a.status === 'disabled').length})`;
 
-        let filtered = allApplications;
+        // Enrich for search and sort
+        let appsToProcess = await Promise.all(allApplications.map(async app => {
+            if (app.businessRef && !app.businessName) {
+                try {
+                    const doc = await db.doc(app.businessRef).get();
+                    if (doc.exists) {
+                        return { ...doc.data(), ...app };
+                    }
+                } catch (e) {
+                    console.error("Error fetching businessRef data for enrich:", e);
+                }
+            }
+            return app;
+        }));
+
+        let filtered = appsToProcess;
 
         // Apply Status Filter
         if (currentFilter !== 'all') {
@@ -244,9 +260,13 @@
         } else if (sortValue === 'business') {
             filtered.sort((a, b) => (a.businessName || '').localeCompare(b.businessName || ''));
         } else if (sortValue === 'newest') {
-            // Firestore doesn't always have a timestamp on all old docs, 
-            // but let's assume createdAt or just use array order/id as fallback
             filtered.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        } else if (sortValue === 'ratings') {
+            filtered.sort((a, b) => {
+                const countA = a.ratings ? Object.keys(a.ratings).length : 0;
+                const countB = b.ratings ? Object.keys(b.ratings).length : 0;
+                return countB - countA;
+            });
         }
 
         renderApplications(filtered).then(() => {
@@ -275,20 +295,8 @@
     async function renderApplications(applications) {
         const applicationsList = document.getElementById('applications-list');
 
-        // Fetch extra data for approved apps with businessRef but no details
-        const enrichedApplications = await Promise.all(applications.map(async app => {
-            if (app.businessRef && !app.businessName) {
-                try {
-                    const doc = await db.doc(app.businessRef).get();
-                    if (doc.exists) {
-                        return { ...doc.data(), ...app };
-                    }
-                } catch (e) {
-                    console.error("Error fetching businessRef data:", e);
-                }
-            }
-            return app;
-        }));
+        // We use applications directly as they are already enriched in filterAndSort
+        const enrichedApplications = applications;
 
         const renderDiff = (oldData, newData) => {
             if (!oldData) return '';
