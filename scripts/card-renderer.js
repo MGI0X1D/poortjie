@@ -15,8 +15,11 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
         </div>
         <p class="text-sm opacity-70 mb-4">{{description}}</p>
         
-        <div class="{{servicesVisibility}} mb-4">
-            <p class="text-xs font-bold uppercase tracking-wider opacity-50 mb-2">Services & Pricing</p>
+        <div class="{{servicesVisibility}} mb-4 bg-green-50/50 dark:bg-green-900/10 p-3 rounded-xl border border-green-100 dark:border-green-900/30">
+            <p class="text-xs font-bold uppercase tracking-wider text-green-600 dark:text-green-400 mb-2 flex items-center gap-2">
+                <i class="fas fa-tags text-[10px]"></i>
+                Services & Pricing
+            </p>
             <div class="grid grid-cols-1 gap-1">
                 {{servicesList}}
             </div>
@@ -106,9 +109,9 @@ async function renderServiceCard(provider, serviceKey, sortOption = 'most-liked'
                 priceDisplay = 'R' + priceDisplay;
             }
             return `
-            <div class="flex justify-between items-center text-xs py-1 border-b border-gray-50 dark:border-slate-700/50 last:border-0">
-                <span class="opacity-80">${s.name}</span>
-                <span class="font-bold text-green-600 dark:text-green-400">${priceDisplay}</span>
+            <div class="flex justify-between items-center text-xs py-1.5 border-b border-green-100/50 dark:border-green-900/20 last:border-0">
+                <span class="font-medium opacity-90">${s.name}</span>
+                <span class="font-bold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-md">${priceDisplay}</span>
             </div>
         `;
         }).join('');
