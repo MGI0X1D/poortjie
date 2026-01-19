@@ -8,6 +8,18 @@
     <meta name="description" content="Login to your Poortjie Services account.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // Disable Tailwind production warning
+        if (window.console && window.console.log) {
+            const originalLog = window.console.log;
+            window.console.log = function() {
+                if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('cdn.tailwindcss.com should not be used in production')) {
+                    return;
+                }
+                originalLog.apply(window.console, arguments);
+            };
+        }
+    </script>
+    <script>
         tailwind.config = {
             darkMode: 'class'
         }

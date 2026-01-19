@@ -20,7 +20,9 @@
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
 
 <header class="max-w-6xl mx-auto pt-24 pb-12 px-6 text-center">
-    <a href="index.html" class="text-6xl font-extrabold mb-4 tracking-tight block">Poortjie</a>
+    <a href="index.html"
+       onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('index.html'); return false; }"
+       class="text-6xl font-extrabold mb-4 tracking-tight">Poortjie</a>
     <h2 class="text-2xl font-bold mt-4">Support & Suggestions</h2>
 </header>
 

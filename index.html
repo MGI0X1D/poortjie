@@ -43,18 +43,24 @@
     const iframe = document.getElementById('main-frame');
     iframe.onload = function () {
         try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            
-            iframeDoc.body.oncopy = () => false;
-            iframeDoc.body.oncut = () => false;
-            iframeDoc.body.oncontextmenu = () => false;
+            // Check if we can access the iframe document (same-origin check)
+            if (iframe.contentWindow.location.origin === 'null' || iframe.contentWindow.location.origin === window.location.origin) {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                iframeDoc.body.oncopy = () => false;
+                iframeDoc.body.oncut = () => false;
+                iframeDoc.body.oncontextmenu = () => false;
 
-            const iframeTitle = iframeDoc.title;
-            if (iframeTitle) {
-                document.title = iframeTitle;
+                const iframeTitle = iframeDoc.title;
+                if (iframeTitle) {
+                    document.title = iframeTitle;
+                }
             }
         } catch (e) {
-            console.warn("Could not apply protection to iframe due to cross-origin restrictions or other error:", e);
+            // If it's a security error (cross-origin), we just skip the protection
+            // instead of spamming the console with a warning if possible, 
+            // but the browser might still log the SecurityError itself.
+            console.log("Iframe protection skipped (cross-origin or file protocol)");
         }
     };
 </script>

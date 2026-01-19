@@ -12,7 +12,14 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-const analytics = firebase.analytics();
+let analytics;
+try {
+  if (location.protocol !== 'file:') {
+    analytics = firebase.analytics();
+  }
+} catch (e) {
+  console.warn("Firebase Analytics could not be initialized:", e);
+}
 
 // Connect to Firebase Emulators if running locally
 // if (location.hostname === "localhost" ||
