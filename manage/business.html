@@ -265,6 +265,21 @@
     async function renderApplications(applications) {
         const applicationsList = document.getElementById('applications-list');
 
+        // Fetch extra data for approved apps with businessRef but no details
+        const enrichedApplications = await Promise.all(applications.map(async app => {
+            if (app.businessRef && !app.businessName) {
+                try {
+                    const doc = await db.doc(app.businessRef).get();
+                    if (doc.exists) {
+                        return { ...doc.data(), ...app };
+                    }
+                } catch (e) {
+                    console.error("Error fetching businessRef data:", e);
+                }
+            }
+            return app;
+        }));
+
         const renderDiff = (oldData, newData) => {
             if (!oldData) return '';
             const fields = [
@@ -383,7 +398,7 @@
         }
 
         // Pre-check for existence of pending applications to show "Approve Update"
-        const existenceChecks = await Promise.all(applications.map(async app => {
+        const existenceChecks = await Promise.all(enrichedApplications.map(async app => {
             const isPending = !app.status || app.status === 'pending' || app.status === 'update';
             if (isPending && app.businessType && app.businessType !== 'Other') {
                 try {
@@ -403,9 +418,10 @@
         }, {});
 
         let html = '';
-        applications.forEach(app => {
+        enrichedApplications.forEach(app => {
             const isPending = !app.status || app.status === 'pending' || app.status === 'update';
             const isOther = app.businessType === 'Other';
+            const isOldData = !app.businessRef && (app.status === 'approved' || app.status === 'update' || app.status === 'rejected');
             const check = existsMap[app.id];
             const alreadyExists = check?.exists;
             const existingData = check?.data;
@@ -491,6 +507,9 @@
                     </div>
                     <div class="flex flex-wrap gap-2 shrink-0">
                         <button onclick="toggleDetails('${app.id}')" class="text-xs font-bold uppercase tracking-wider opacity-60 hover:opacity-100 transition px-3 py-1 border border-gray-300 dark:border-slate-600 rounded-lg">Show Details</button>
+                        ${isOldData ? `
+                        <button onclick="fixData('${app.id}')" class="bg-yellow-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-yellow-700 transition shadow-sm">Fix Data</button>
+                        ` : ''}
                         ${isPending ? `
                         <button onclick="approveApplication('${app.id}')" class="bg-green-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-green-700 transition shadow-sm">${alreadyExists ? 'Approve Update' : 'Approve'}</button>
                         <button onclick="requestUpdate('${app.id}')" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-blue-700 transition shadow-sm">Update</button>
@@ -550,6 +569,29 @@
         } catch (error) {
             console.error("Error disabling listing:", error);
             alert('Failed to disable listing: ' + error);
+        }
+    }
+
+    async function fixData(appId) {
+        const app = allApplications.find(a => a.id === appId);
+        if (!app) return;
+
+        if (!app.businessType) {
+            alert("Error: Business category (businessType) is missing. Cannot fix data.");
+            return;
+        }
+
+        const businessRef = `poortjie/services/${app.businessType}/${appId}`;
+        
+        try {
+            await db.collection('poortjie').doc('applications').collection('listings').doc(appId).update({
+                businessRef: businessRef
+            });
+            console.log("Data fixed for application:", appId);
+            alert("Data fixed! businessRef added.");
+        } catch (error) {
+            console.error("Error fixing data:", error);
+            alert("Failed to fix data: " + error);
         }
     }
 

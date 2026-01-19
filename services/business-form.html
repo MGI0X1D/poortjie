@@ -463,7 +463,7 @@
                 }
             }
         }
-        resetFormState();
+        location.reload();
     });
 
     window.cancelPendingApplication = async (appId) => {
@@ -510,8 +510,9 @@
                 await appRef.delete();
             }
             
-            // UI will be updated via onSnapshot
+            // UI will be updated via onSnapshot, but we also want to refresh the page as requested
             alert('Your application has been cancelled.');
+            location.reload();
         } catch (error) {
             console.error("Error cancelling application:", error);
             alert('Failed to cancel application. Please try again.');
