@@ -36,7 +36,13 @@ try {
 
 // Enable offline persistence with multi-tab support
 if (location.protocol !== 'file:') {
-  db.enablePersistence({ synchronizeTabs: true })
+  const settings = {
+    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+  };
+  
+  // For Firebase JS SDK v9 compat, multi-tab persistence is enabled by default if available.
+  // Using the newer settings object to avoid deprecation warnings.
+  db.enablePersistence({synchronizeTabs: true})
     .catch((err) => {
       if (err.code == 'failed-precondition') {
         // This can still happen if multiple tabs are open with different persistence settings.

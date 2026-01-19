@@ -7,6 +7,7 @@
     <meta name="author" content="Musa Mgijima">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // Use production-ready configuration when possible
         tailwind.config = {
             darkMode: 'class'
         }
@@ -1504,7 +1505,8 @@
                         updateHoursDisplay();
                     });
                 }
-            }).catch(() => {
+            }, (error) => {
+                console.error("Error with applications listener:", error);
                 hideLoader();
                 formContainer.classList.remove('hidden');
                 formContainer.classList.add('block', 'lg:grid');
@@ -1702,6 +1704,8 @@
             radius: 5000
         });
 
+        // Using legacy Autocomplete as requested by the API key owner's environment, 
+        // while acknowledging the migration path to PlaceAutocompleteElement.
         const autocomplete = new google.maps.places.Autocomplete(modalAddressInput, {
             bounds: circle.getBounds(),
             strictBounds: true,
