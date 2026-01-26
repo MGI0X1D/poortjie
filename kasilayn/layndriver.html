@@ -239,16 +239,22 @@
     async function loadUserFleet(uid) {
         const fleetSection = document.getElementById('fleet-section');
         const fleetContainer = document.getElementById('fleet-container');
+        const addCarBtn = document.getElementById('add-car-btn');
         
         try {
+            // Check driver status first
+            const driverDoc = await db.collection('kasilayn').doc('fleet').collection('drivers').doc(uid).get();
+            const driverData = driverDoc.exists ? driverDoc.data() : null;
+            const assignedCarReg = driverData ? driverData.assignedCarReg : null;
+
             // Simplified query to avoid index issues and ensure older cars (without 'suspended' field) are loaded
             const snapshot = await db.collection('kasilayn').doc('fleet').collection('cars')
                 .where('addedByUid', '==', uid)
                 .get();
             
+            let cars = [];
             if (!snapshot.empty) {
                 // Filter and sort on client side
-                const cars = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.suspended !== true) {
@@ -262,34 +268,73 @@
                     const timeB = b.createdAt?.seconds || 0;
                     return timeB - timeA;
                 });
+            }
 
-                if (cars.length > 0) {
-                    fleetSection.classList.remove('hidden');
-                    fleetContainer.innerHTML = '';
-                    cars.forEach(car => {
-                        const carCard = document.createElement('div');
-                        carCard.className = 'p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 flex gap-4 items-center group relative';
-                        
-                        const photoUrl = (car.photoUrls && car.photoUrls.length > 0) ? car.photoUrls[0] : 'https://placehold.co/100?text=No+Photo';
-                        
-                        carCard.innerHTML = `
+            if (cars.length > 0 || driverData) {
+                fleetSection.classList.remove('hidden');
+                fleetContainer.innerHTML = '';
+
+                // If driver exists but car is not in their "added" list (unlikely but possible if someone else added it)
+                // we should make sure the assigned car is visible or at least indicated.
+                
+                cars.forEach(car => {
+                    const carCard = document.createElement('div');
+                    const isAssigned = car.registration === assignedCarReg;
+                    
+                    carCard.className = `p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border-2 ${isAssigned ? 'border-green-500 shadow-md' : 'border-gray-200 dark:border-slate-700'} flex gap-4 items-center group relative`;
+                    
+                    const photoUrl = (car.photoUrls && car.photoUrls.length > 0) ? car.photoUrls[0] : 'https://placehold.co/100?text=No+Photo';
+                    
+                    carCard.innerHTML = `
+                        <div class="relative">
                             <img src="${photoUrl}" class="w-16 h-16 rounded-lg object-cover border border-gray-200 dark:border-slate-700" alt="">
-                            <div class="flex-grow">
-                                <h4 class="font-bold text-sm uppercase tracking-wider">${car.make} ${car.model}</h4>
-                                <p class="text-xs opacity-60">${car.registration} • ${car.color} • ${car.bodyType}</p>
-                                <p class="text-[10px] mt-1 font-bold text-green-600">R${car.pricing?.baseFee} Base + R${car.pricing?.ratePerKm}/km</p>
-                            </div>
+                            ${isAssigned ? '<span class="absolute -top-2 -left-2 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">Assigned</span>' : ''}
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-sm uppercase tracking-wider">${car.make} ${car.model}</h4>
+                            <p class="text-xs opacity-60">${car.registration} • ${car.color} • ${car.bodyType}</p>
+                            <p class="text-[10px] mt-1 font-bold text-green-600">R${car.pricing?.baseFee} Base + R${car.pricing?.ratePerKm}/km</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${!isAssigned ? `
+                            <button type="button" onclick="switchCar('${car.registration}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition shadow-sm uppercase tracking-wider" title="Switch to this car">
+                                Drive
+                            </button>
                             <button type="button" onclick="suspendCar('${car.registration}')" class="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="Remove Car">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        `;
-                        fleetContainer.appendChild(carCard);
-                    });
+                            </button>` : `
+                            <div class="flex flex-col items-center">
+                                <i class="fa-solid fa-circle-check text-green-500"></i>
+                                <span class="text-[8px] font-bold text-green-500 uppercase">Active</span>
+                            </div>
+                            `}
+                        </div>
+                    `;
+                    fleetContainer.appendChild(carCard);
+                });
+
+                // Hide "Add New Car" if a car is already assigned
+                // If assignedCarReg exists, we allow switching but only show add button if they have space (though we enforce 1:1)
+                // Actually, per user request "1 car per driver", but they want to switch.
+                // If they have multiple cars in fleet, they can switch between them.
+                if (assignedCarReg) {
+                    addCarBtn.classList.add('hidden');
+                    
+                    // Show unassign button
+                    const unassignContainer = document.createElement('div');
+                    unassignContainer.className = 'mt-6 pt-4 border-t border-gray-100 dark:border-slate-800 text-center';
+                    unassignContainer.innerHTML = `
+                        <button type="button" onclick="unassignCar()" class="text-xs text-red-500 font-bold hover:underline uppercase tracking-widest">
+                            Stop Driving / Unassign
+                        </button>
+                    `;
+                    fleetContainer.appendChild(unassignContainer);
                 } else {
-                    fleetSection.classList.add('hidden');
+                    addCarBtn.classList.remove('hidden');
                 }
             } else {
                 fleetSection.classList.add('hidden');
+                addCarBtn.classList.remove('hidden');
             }
         } catch (err) {
             console.error("Error loading fleet:", err);
@@ -305,14 +350,61 @@
                 suspendedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             
-            // Reload fleet to reflect changes
             const user = auth.currentUser;
-            if (user) loadUserFleet(user.uid);
+            if (user) {
+                // If this was the assigned car, unassign it
+                const driverDoc = await db.collection('kasilayn').doc('fleet').collection('drivers').doc(user.uid).get();
+                if (driverDoc.exists && driverDoc.data().assignedCarReg === registration) {
+                    await db.collection('kasilayn').doc('fleet').collection('drivers').doc(user.uid).update({
+                        assignedCarReg: firebase.firestore.FieldValue.delete(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                loadUserFleet(user.uid);
+            }
             
             alert('Car has been removed from your active fleet.');
         } catch (err) {
             console.error("Error suspending car:", err);
             alert('Failed to remove car: ' + err.message);
+        }
+    }
+
+    async function switchCar(registration) {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        try {
+            await db.collection('kasilayn').doc('fleet').collection('drivers').doc(user.uid).set({
+                assignedCarReg: registration,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            loadUserFleet(user.uid);
+            alert(`You are now assigned to car: ${registration}`);
+        } catch (err) {
+            console.error("Error switching car:", err);
+            alert('Failed to switch car: ' + err.message);
+        }
+    }
+
+    async function unassignCar() {
+        if (!confirm("Are you sure you want to stop driving your current car? You will need to assign a car again to be active.")) return;
+        
+        const user = auth.currentUser;
+        if (!user) return;
+
+        try {
+            await db.collection('kasilayn').doc('fleet').collection('drivers').doc(user.uid).update({
+                assignedCarReg: firebase.firestore.FieldValue.delete(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            loadUserFleet(user.uid);
+            alert('You have successfully unassigned yourself from the car.');
+        } catch (err) {
+            console.error("Error unassigning car:", err);
+            alert('Failed to unassign car: ' + err.message);
         }
     }
 
@@ -329,10 +421,28 @@
             if (doc.exists) {
                 const carData = doc.data();
                 
-                // If it exists but is suspended, we might allow them to "reactivate" it 
-                // OR just block it because "add new car" usually means something not there.
-                // Given the instructions, if it exists, stop them.
-                
+                // Check if car is already assigned to another driver
+                const driversWithCar = await db.collection('kasilayn').doc('fleet').collection('drivers')
+                    .where('assignedCarReg', '==', normalizedReg)
+                    .limit(1)
+                    .get();
+
+                if (!driversWithCar.empty) {
+                    const assignedDriver = driversWithCar.docs[0].id;
+                    if (assignedDriver !== auth.currentUser.uid) {
+                        regError.textContent = "This car is already assigned to another driver.";
+                        regError.classList.remove('hidden');
+                        entryElement.querySelector('input[name="reg[]"]').classList.add('border-red-500');
+                        
+                        inputs.forEach(input => {
+                            input.disabled = true;
+                            input.classList.add('opacity-50', 'cursor-not-allowed');
+                        });
+                        photoGrid.classList.add('opacity-50', 'pointer-events-none');
+                        return false;
+                    }
+                }
+
                 regError.textContent = "Car registration already exists";
                 if (carData.suspended) {
                     regError.textContent = "Car registration exists but is currently suspended.";
@@ -350,7 +460,7 @@
                 return false;
             } else {
                 // Clear error if it was there
-                if (regError.textContent.includes("Car registration already exists") || regError.textContent.includes("suspended")) {
+                if (regError.textContent.includes("Car registration already exists") || regError.textContent.includes("suspended") || regError.textContent.includes("already assigned")) {
                     regError.classList.add('hidden');
                     entryElement.querySelector('input[name="reg[]"]').classList.remove('border-red-500');
                 }
@@ -642,7 +752,14 @@
                     suspended: false
                 };
 
-                return db.collection('kasilayn').doc('fleet').collection('cars').doc(registration).set(carData, { merge: true });
+                await db.collection('kasilayn').doc('fleet').collection('cars').doc(registration).set(carData, { merge: true });
+
+                // Link driver to car (1 driver per car, 1 car per driver)
+                return db.collection('kasilayn').doc('fleet').collection('drivers').doc(user.uid).set({
+                    assignedCarReg: registration,
+                    userRef: db.doc(`/users/${user.uid}`),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
             });
 
             await Promise.all(savePromises);
