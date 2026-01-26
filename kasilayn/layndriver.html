@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Registration | Poortjie Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="icon" type="image/png" sizes="48x48" href="../favicon/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="../favicon/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">
+</head>
+<body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+
+<header class="max-w-6xl mx-auto pt-16 pb-12 px-6 text-center text-gray-900 dark:text-gray-100">
+    <a href="../index.html"
+       onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
+       class="text-4xl font-extrabold mb-4 tracking-tight">Poortjie <span class="text-green-600">Drivers</span></a>
+</header>
+
+<main class="max-w-2xl mx-auto px-6 pb-24">
+    <div class="card p-8 rounded-2xl border-l-4 border-l-green-500">
+        <h2 class="text-2xl font-bold mb-6">Driver Details</h2>
+        
+        <form id="driver-form" class="space-y-8">
+            <!-- Cars Section -->
+            <section>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold">Your Cars</h3>
+                    <button type="button" id="add-car-btn" class="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-full transition shadow-sm flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add Car
+                    </button>
+                </div>
+                
+                <div id="cars-container" class="space-y-4">
+                    <!-- Car Entry Template -->
+                    <div class="car-entry p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 relative animate-fadeIn">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs opacity-50 mb-1 pl-1">Registration</label>
+                                <input type="text" name="reg[]" placeholder="ABC 123 GP" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs opacity-50 mb-1 pl-1">Make</label>
+                                <input type="text" name="make[]" placeholder="e.g. Toyota" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs opacity-50 mb-1 pl-1">Model</label>
+                                <input type="text" name="model[]" placeholder="e.g. Corolla" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs opacity-50 mb-1 pl-1">Color</label>
+                                <input type="text" name="color[]" placeholder="e.g. White" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs opacity-50 mb-1 pl-1">Body Type</label>
+                                <select name="body_type[]" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition appearance-none">
+                                    <option value="" disabled selected>Select body type</option>
+                                    <option value="hatchback">Hatchback</option>
+                                    <option value="sedan">Sedan</option>
+                                    <option value="suv">SUV</option>
+                                    <option value="minivan">Minivan</option>
+                                    <option value="bakkie">Bakkie / Pickup</option>
+                                    <option value="coupe">Coupe</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs opacity-50 mb-1 pl-1">Number of Seats</label>
+                                <input type="number" name="seats[]" placeholder="4" min="1" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs opacity-50 mb-1 pl-1">Year (Optional)</label>
+                                <input type="number" name="year[]" placeholder="e.g. 2020" class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pricing Section -->
+            <section class="border-t border-gray-200 dark:border-slate-700 pt-8">
+                <h3 class="text-xl font-semibold mb-4">Pricing</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="flex items-center gap-1 mb-1 pl-1">
+                            <label class="block text-xs opacity-50">Base Fee (R)</label>
+                            <button type="button" onclick="alert('The base fee is the minimum amount charged for any trip before distance is added.')" class="text-blue-500 hover:text-blue-600 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                        </div>
+                        <input type="number" name="base_fee" placeholder="0.00" step="0.01" required class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs opacity-50 mb-1 pl-1">Rate per KM (R)</label>
+                        <input type="number" name="rate_per_km" placeholder="0.00" step="0.01" required class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Destination Pricing Section -->
+            <section class="border-t border-gray-200 dark:border-slate-700 pt-8">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xl font-semibold">Destination Pricing (Optional)</h3>
+                    <span class="text-[10px] uppercase tracking-wider bg-gray-200 dark:bg-slate-700 px-2 py-0.5 rounded text-gray-600 dark:text-gray-400">Strictly Poortjie Pickups</span>
+                </div>
+                <p class="text-sm opacity-60 mb-4">Set fixed prices for common destinations from Poortjie.</p>
+                
+                <div id="destinations-container" class="space-y-3">
+                    <!-- Destination Template -->
+                    <div class="destination-entry flex gap-2 items-end animate-fadeIn">
+                        <div class="flex-grow">
+                            <label class="block text-xs opacity-50 mb-1 pl-1">Destination Name</label>
+                            <input type="text" name="dest_name[]" placeholder="e.g. Mall of Africa" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                        </div>
+                        <div class="w-32">
+                            <label class="block text-xs opacity-50 mb-1 pl-1">Price (R)</label>
+                            <input type="number" name="dest_price[]" placeholder="0.00" step="0.01" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                        </div>
+                        <button type="button" class="remove-dest-btn p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="button" id="add-dest-btn" class="mt-4 text-sm text-green-600 font-medium hover:underline flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Destination
+                </button>
+            </section>
+
+            <button type="submit" class="w-full px-8 py-4 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition shadow-lg text-lg">
+                Save Driver Profile
+            </button>
+        </form>
+    </div>
+</main>
+
+<script>
+    // Car Management
+    const carsContainer = document.getElementById('cars-container');
+    const addCarBtn = document.getElementById('add-car-btn');
+    
+    addCarBtn.addEventListener('click', () => {
+        const carEntry = document.createElement('div');
+        carEntry.className = 'car-entry p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 relative animate-fadeIn';
+        carEntry.innerHTML = `
+            <button type="button" class="remove-car-btn absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs opacity-50 mb-1 pl-1">Registration</label>
+                    <input type="text" name="reg[]" placeholder="ABC 123 GP" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs opacity-50 mb-1 pl-1">Make</label>
+                    <input type="text" name="make[]" placeholder="e.g. Toyota" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs opacity-50 mb-1 pl-1">Model</label>
+                    <input type="text" name="model[]" placeholder="e.g. Corolla" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs opacity-50 mb-1 pl-1">Color</label>
+                    <input type="text" name="color[]" placeholder="e.g. White" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs opacity-50 mb-1 pl-1">Body Type</label>
+                    <select name="body_type[]" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition appearance-none">
+                        <option value="" disabled selected>Select body type</option>
+                        <option value="hatchback">Hatchback</option>
+                        <option value="sedan">Sedan</option>
+                        <option value="suv">SUV</option>
+                        <option value="minivan">Minivan</option>
+                        <option value="bakkie">Bakkie / Pickup</option>
+                        <option value="coupe">Coupe</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs opacity-50 mb-1 pl-1">Number of Seats</label>
+                    <input type="number" name="seats[]" placeholder="4" min="1" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs opacity-50 mb-1 pl-1">Year (Optional)</label>
+                    <input type="number" name="year[]" placeholder="e.g. 2020" class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                </div>
+            </div>
+        `;
+        carsContainer.appendChild(carEntry);
+        
+        carEntry.querySelector('.remove-car-btn').addEventListener('click', () => {
+            carEntry.remove();
+        });
+    });
+
+    // Destination Management
+    const destContainer = document.getElementById('destinations-container');
+    const addDestBtn = document.getElementById('add-dest-btn');
+
+    function createDestEntry() {
+        const destEntry = document.createElement('div');
+        destEntry.className = 'destination-entry flex gap-2 items-end animate-fadeIn';
+        destEntry.innerHTML = `
+            <div class="flex-grow">
+                <label class="block text-xs opacity-50 mb-1 pl-1">Destination Name</label>
+                <input type="text" name="dest_name[]" placeholder="e.g. Mall of Africa" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+            </div>
+            <div class="w-32">
+                <label class="block text-xs opacity-50 mb-1 pl-1">Price (R)</label>
+                <input type="number" name="dest_price[]" placeholder="0.00" step="0.01" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+            </div>
+            <button type="button" class="remove-dest-btn p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        `;
+        destContainer.appendChild(destEntry);
+        
+        destEntry.querySelector('.remove-dest-btn').addEventListener('click', () => {
+            destEntry.remove();
+        });
+    }
+
+    addDestBtn.addEventListener('click', createDestEntry);
+
+    // Initial event listener for the first destination entry's remove button
+    const firstRemoveBtn = document.querySelector('.remove-dest-btn');
+    if (firstRemoveBtn) {
+        firstRemoveBtn.addEventListener('click', (e) => {
+            e.currentTarget.closest('.destination-entry').remove();
+        });
+    }
+
+    // Theme Support
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+
+    // Form Submission
+    document.getElementById('driver-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Driver profile details captured! Integration with database would happen here.');
+        console.log('Form submitted');
+    });
+</script>
+
+</body>
+</html>
