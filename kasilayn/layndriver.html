@@ -19,7 +19,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     <script src="../scripts/firebase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
@@ -34,78 +36,26 @@
         <h2 class="text-2xl font-bold mb-6">Details</h2>
         
         <form id="driver-form" class="space-y-8" novalidate>
+            <!-- Fleet Section -->
+            <section id="fleet-section" class="mb-8 hidden">
+                <h3 class="text-xl font-semibold mb-4">Your Fleet</h3>
+                <div id="fleet-container" class="grid grid-cols-1 gap-4">
+                    <!-- Existing cars will be loaded here -->
+                </div>
+            </section>
+
             <!-- Cars Section -->
-            <section>
+            <section id="add-car-section">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-semibold">Your Cars</h3>
+                    <h3 class="text-xl font-semibold">Add a Car</h3>
                     <button type="button" id="add-car-btn" class="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-full transition shadow-sm flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Add Car
+                        Add New Car
                     </button>
                 </div>
                 
                 <div id="cars-container" class="space-y-4">
-                    <!-- Car Entry Template -->
-                    <div class="car-entry p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 relative animate-fadeIn">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Registration</label>
-                                <label>
-                                    <input type="text" name="reg[]" placeholder="ABC 123 GP" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                                </label>
-                                <p class="reg-error text-red-500 text-[10px] font-bold mt-1 hidden">Registration is required</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Make</label>
-                                <label>
-                                    <input type="text" name="make[]" placeholder="e.g. Toyota" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                                </label>
-                                <p class="make-error text-red-500 text-[10px] font-bold mt-1 hidden">Make is required</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Model</label>
-                                <label>
-                                    <input type="text" name="model[]" placeholder="e.g. Corolla" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                                </label>
-                                <p class="model-error text-red-500 text-[10px] font-bold mt-1 hidden">Model is required</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Color</label>
-                                <label>
-                                    <input type="text" name="color[]" placeholder="e.g. White" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                                </label>
-                                <p class="color-error text-red-500 text-[10px] font-bold mt-1 hidden">Color is required</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Body Type</label>
-                                <label>
-                                    <select name="body_type[]" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition appearance-none">
-                                        <option value="" disabled selected>Select body type</option>
-                                        <option value="hatchback">Hatchback</option>
-                                        <option value="sedan">Sedan</option>
-                                        <option value="suv">SUV</option>
-                                        <option value="minivan">Minivan</option>
-                                        <option value="bakkie">Bakkie / Pickup</option>
-                                        <option value="coupe">Coupe</option>
-                                    </select>
-                                </label>
-                                <p class="body_type-error text-red-500 text-[10px] font-bold mt-1 hidden">Body Type is required</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Number of Seats</label>
-                                <label>
-                                    <input type="number" name="seats[]" placeholder="4" min="1" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                                </label>
-                                <p class="seats-error text-red-500 text-[10px] font-bold mt-1 hidden">Number of Seats is required</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Year (Optional)</label>
-                                <label>
-                                    <input type="number" name="year[]" placeholder="e.g. 2020" class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Car Entry Template (Initially hidden) -->
                 </div>
             </section>
 
@@ -140,23 +90,6 @@
                 
                 <div id="destinations-container" class="space-y-3">
                     <!-- Destination Template -->
-                    <div class="destination-entry flex gap-2 items-end animate-fadeIn">
-                        <div class="flex-grow">
-                            <label class="block text-xs opacity-50 mb-1 pl-1">Destination Name</label>
-                            <label>
-                                <input type="text" name="dest_name[]" placeholder="e.g. Mall of Africa" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                            </label>
-                        </div>
-                        <div class="w-32">
-                            <label class="block text-xs opacity-50 mb-1 pl-1">Price (R)</label>
-                            <label>
-                                <input type="number" name="dest_price[]" placeholder="0.00" step="0.01" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
-                            </label>
-                        </div>
-                        <button type="button" class="remove-dest-btn p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>
                 </div>
                 
                 <button type="button" id="add-dest-btn" class="mt-4 text-sm text-green-600 font-medium hover:underline flex items-center gap-1">
@@ -178,15 +111,271 @@
     const addCarBtn = document.getElementById('add-car-btn');
     const driverForm = document.getElementById('driver-form');
 
+    // Photo Management for Cars
+    function renderCarPhotos(carEntry) {
+        const grid = carEntry.querySelector('.car-photos-grid');
+        const hiddenInput = carEntry.querySelector('.car-photo-urls');
+        let urls = [];
+        try {
+            urls = JSON.parse(hiddenInput.value || '[]');
+        } catch (e) {
+            urls = [];
+        }
+
+        grid.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+            const url = urls[i];
+            const slot = document.createElement('div');
+            slot.className = 'relative aspect-square rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700 overflow-hidden group flex items-center justify-center bg-white dark:bg-slate-800';
+            
+            if (url) {
+                slot.innerHTML = `
+                    <img src="${url}" class="w-full h-full object-cover" alt="">
+                    <button type="button" class="remove-photo absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </button>
+                `;
+                slot.querySelector('button').onclick = () => {
+                    urls.splice(i, 1);
+                    hiddenInput.value = JSON.stringify(urls);
+                    renderCarPhotos(carEntry);
+                };
+            } else {
+                slot.innerHTML = `
+                    <label class="cursor-pointer flex flex-col items-center justify-center w-full h-full hover:bg-gray-50 dark:hover:bg-slate-700/50 transition">
+                        <i class="fa-solid fa-plus text-gray-400"></i>
+                        <input type="file" class="hidden photo-upload-input" accept="image/*">
+                    </label>
+                `;
+                const fileInput = slot.querySelector('input');
+                fileInput.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    slot.innerHTML = `
+                        <div class="flex flex-col items-center gap-1">
+                            <div class="animate-spin h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full"></div>
+                            <span class="text-[8px] font-bold opacity-50 uppercase">Wait...</span>
+                        </div>
+                    `;
+
+                    try {
+                        const user = auth.currentUser;
+                        if (!user) throw new Error("Not logged in");
+
+                        const processedBlob = await processImage(file);
+                        const fileName = `${Date.now()}_${i}.jpg`;
+                        const storageRef = firebase.storage().ref(`fleet-photos/${user.uid}/${fileName}`);
+                        const snapshot = await storageRef.put(processedBlob);
+                        const downloadUrl = await snapshot.ref.getDownloadURL();
+                        
+                        urls.push(downloadUrl);
+                        hiddenInput.value = JSON.stringify(urls);
+                        renderCarPhotos(carEntry);
+                    } catch (err) {
+                        console.error(err);
+                        alert('Upload failed: ' + err.message);
+                        renderCarPhotos(carEntry);
+                    }
+                };
+            }
+            grid.appendChild(slot);
+        }
+    }
+
+    function processImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let size = Math.min(img.width, img.height);
+                    let xOffset = (img.width - size) / 2;
+                    let yOffset = (img.height - size) / 2;
+                    
+                    const MAX_DIM = 1200;
+                    let targetSize = Math.min(size, MAX_DIM);
+                    
+                    canvas.width = targetSize;
+                    canvas.height = targetSize;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, xOffset, yOffset, size, size, 0, 0, targetSize, targetSize);
+                    
+                    let quality = 0.8;
+                    let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    
+                    while (dataUrl.length * 0.75 > 1024 * 1024 && quality > 0.1) {
+                        quality -= 0.1;
+                        dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    }
+                    
+                    fetch(dataUrl)
+                        .then(res => res.blob())
+                        .then(resolve)
+                        .catch(reject);
+                };
+                img.onerror = reject;
+                img.src = event.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Initialize first car entry removed as we want user to click "Add New Car"
+    // or load fleet first.
+
     // Auth Protection
     auth.onAuthStateChanged(user => {
         if (!user) {
             sessionStorage.setItem('redirectUrl', window.location.href);
             window.top.location.replace('../authentication/login.html');
+        } else {
+            loadUserFleet(user.uid);
         }
     });
+
+    async function loadUserFleet(uid) {
+        const fleetSection = document.getElementById('fleet-section');
+        const fleetContainer = document.getElementById('fleet-container');
+        
+        try {
+            // Simplified query to avoid index issues and ensure older cars (without 'suspended' field) are loaded
+            const snapshot = await db.collection('kasilayn').doc('fleet').collection('cars')
+                .where('addedByUid', '==', uid)
+                .get();
+            
+            if (!snapshot.empty) {
+                // Filter and sort on client side
+                const cars = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.suspended !== true) {
+                        cars.push(data);
+                    }
+                });
+
+                // Sort by createdAt descending
+                cars.sort((a, b) => {
+                    const timeA = a.createdAt?.seconds || 0;
+                    const timeB = b.createdAt?.seconds || 0;
+                    return timeB - timeA;
+                });
+
+                if (cars.length > 0) {
+                    fleetSection.classList.remove('hidden');
+                    fleetContainer.innerHTML = '';
+                    cars.forEach(car => {
+                        const carCard = document.createElement('div');
+                        carCard.className = 'p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 flex gap-4 items-center group relative';
+                        
+                        const photoUrl = (car.photoUrls && car.photoUrls.length > 0) ? car.photoUrls[0] : 'https://placehold.co/100?text=No+Photo';
+                        
+                        carCard.innerHTML = `
+                            <img src="${photoUrl}" class="w-16 h-16 rounded-lg object-cover border border-gray-200 dark:border-slate-700" alt="">
+                            <div class="flex-grow">
+                                <h4 class="font-bold text-sm uppercase tracking-wider">${car.make} ${car.model}</h4>
+                                <p class="text-xs opacity-60">${car.registration} • ${car.color} • ${car.bodyType}</p>
+                                <p class="text-[10px] mt-1 font-bold text-green-600">R${car.pricing?.baseFee} Base + R${car.pricing?.ratePerKm}/km</p>
+                            </div>
+                            <button type="button" onclick="suspendCar('${car.registration}')" class="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="Remove Car">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        `;
+                        fleetContainer.appendChild(carCard);
+                    });
+                } else {
+                    fleetSection.classList.add('hidden');
+                }
+            } else {
+                fleetSection.classList.add('hidden');
+            }
+        } catch (err) {
+            console.error("Error loading fleet:", err);
+        }
+    }
+
+    async function suspendCar(registration) {
+        if (!confirm(`Are you sure you want to remove car ${registration} from your fleet?`)) return;
+
+        try {
+            await db.collection('kasilayn').doc('fleet').collection('cars').doc(registration).update({
+                suspended: true,
+                suspendedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Reload fleet to reflect changes
+            const user = auth.currentUser;
+            if (user) loadUserFleet(user.uid);
+            
+            alert('Car has been removed from your active fleet.');
+        } catch (err) {
+            console.error("Error suspending car:", err);
+            alert('Failed to remove car: ' + err.message);
+        }
+    }
+
+    async function checkRegistration(reg, entryElement) {
+        const normalizedReg = reg.toUpperCase().replace(/\s+/g, '');
+        const regError = entryElement.querySelector('.reg-error');
+        const inputs = entryElement.querySelectorAll('.car-input:not([name="reg[]"])');
+        const photoGrid = entryElement.querySelector('.car-photos-grid');
+        
+        if (!normalizedReg) return;
+
+        try {
+            const doc = await db.collection('kasilayn').doc('fleet').collection('cars').doc(normalizedReg).get();
+            if (doc.exists) {
+                const carData = doc.data();
+                
+                // If it exists but is suspended, we might allow them to "reactivate" it 
+                // OR just block it because "add new car" usually means something not there.
+                // Given the instructions, if it exists, stop them.
+                
+                regError.textContent = "Car registration already exists";
+                if (carData.suspended) {
+                    regError.textContent = "Car registration exists but is currently suspended.";
+                }
+                
+                regError.classList.remove('hidden');
+                entryElement.querySelector('input[name="reg[]"]').classList.add('border-red-500');
+                
+                // Disable other fields
+                inputs.forEach(input => {
+                    input.disabled = true;
+                    input.classList.add('opacity-50', 'cursor-not-allowed');
+                });
+                photoGrid.classList.add('opacity-50', 'pointer-events-none');
+                return false;
+            } else {
+                // Clear error if it was there
+                if (regError.textContent.includes("Car registration already exists") || regError.textContent.includes("suspended")) {
+                    regError.classList.add('hidden');
+                    entryElement.querySelector('input[name="reg[]"]').classList.remove('border-red-500');
+                }
+                
+                // Enable fields
+                inputs.forEach(input => {
+                    input.disabled = false;
+                    input.classList.remove('opacity-50', 'cursor-not-allowed');
+                });
+                photoGrid.classList.remove('opacity-50', 'pointer-events-none');
+                return true;
+            }
+        } catch (err) {
+            console.error("Error checking registration:", err);
+            return true;
+        }
+    }
     
     addCarBtn.addEventListener('click', () => {
+        // Enforce one car per form
+        if (document.querySelector('.car-entry')) {
+            alert("Please complete the current car entry first.");
+            return;
+        }
+
         const carEntry = document.createElement('div');
         carEntry.className = 'car-entry p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 relative animate-fadeIn';
         carEntry.innerHTML = `
@@ -218,12 +407,12 @@
                     <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Body Type</label>
                     <select name="body_type[]" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition appearance-none">
                         <option value="" disabled selected>Select body type</option>
-                        <option value="hatchback">Hatchback</option>
-                        <option value="sedan">Sedan</option>
+                        <option value="hatchback">HATCHBACK</option>
+                        <option value="sedan">SEDAN</option>
                         <option value="suv">SUV</option>
-                        <option value="minivan">Minivan</option>
-                        <option value="bakkie">Bakkie / Pickup</option>
-                        <option value="coupe">Coupe</option>
+                        <option value="minivan">MINIVAN</option>
+                        <option value="bakkie">BAKKIE</option>
+                        <option value="coupe">COUPE</option>
                     </select>
                     <p class="body_type-error text-red-500 text-[10px] font-bold mt-1 hidden">Body Type is required</p>
                 </div>
@@ -237,11 +426,32 @@
                     <input type="number" name="year[]" placeholder="e.g. 2020" class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
                 </div>
             </div>
+
+            <!-- Car Photos Section -->
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs opacity-50 pl-1 uppercase font-bold tracking-wider">Photos (Max 3)</label>
+                    <span class="text-[10px] opacity-50 italic">Max 1MB each</span>
+                </div>
+                <div class="grid grid-cols-3 gap-3 car-photos-grid">
+                    <!-- Photo slots will be rendered here via JS -->
+                </div>
+                <input type="hidden" name="photo_urls[]" class="car-photo-urls">
+            </div>
         `;
         carsContainer.appendChild(carEntry);
         
+        // Initialize photos for this new car entry
+        renderCarPhotos(carEntry);
+        
         carEntry.querySelector('.remove-car-btn').addEventListener('click', () => {
             carEntry.remove();
+        });
+
+        // Add registration check
+        const regInput = carEntry.querySelector('input[name="reg[]"]');
+        regInput.addEventListener('blur', () => {
+            checkRegistration(regInput.value, carEntry);
         });
     });
 
@@ -274,13 +484,8 @@
 
     addDestBtn.addEventListener('click', createDestEntry);
 
-    // Initial event listener for the first destination entry's remove button
-    const firstRemoveBtn = document.querySelector('.remove-dest-btn');
-    if (firstRemoveBtn) {
-        firstRemoveBtn.addEventListener('click', (e) => {
-            e.currentTarget.closest('.destination-entry').remove();
-        });
-    }
+    // Remove initial destination entry removed, let's add one by default
+    createDestEntry();
 
     // Theme Support
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -360,7 +565,7 @@
     });
 
     // Form Submission
-    driverForm.addEventListener('submit', (e) => {
+    driverForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         if (!validateForm(true)) {
@@ -370,9 +575,87 @@
             }
             return;
         }
-        
-        alert('Driver profile details captured! Integration with database would happen here.');
-        console.log('Form submitted');
+
+        const user = auth.currentUser;
+        if (!user) {
+            alert('You must be logged in to save car details.');
+            return;
+        }
+
+        const submitBtn = driverForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+
+        try {
+            const carEntries = document.querySelectorAll('.car-entry');
+            const baseFee = parseFloat(document.getElementById('base_fee').value);
+            const ratePerKm = parseFloat(document.getElementById('rate_per_km').value);
+
+            if (carEntries.length === 0) {
+                alert('Please add at least one car.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+                return;
+            }
+            
+            const savePromises = Array.from(carEntries).map(async (entry) => {
+                const regInput = entry.querySelector('input[name="reg[]"]');
+                const registration = regInput.value.trim().toUpperCase().replace(/\s+/g, '');
+                
+                // Final check for registration existence before saving
+                const isAvailable = await checkRegistration(regInput.value, entry);
+                if (!isAvailable) {
+                    throw new Error(`Car registration ${registration} already exists.`);
+                }
+
+                const make = entry.querySelector('input[name="make[]"]').value.trim();
+                const model = entry.querySelector('input[name="model[]"]').value.trim();
+                const color = entry.querySelector('input[name="color[]"]').value.trim();
+                const bodyType = entry.querySelector('select[name="body_type[]"]').value.toUpperCase();
+                const seats = parseInt(entry.querySelector('input[name="seats[]"]').value);
+                const year = entry.querySelector('input[name="year[]"]').value.trim();
+                
+                let photoUrls = [];
+                try {
+                    photoUrls = JSON.parse(entry.querySelector('.car-photo-urls').value || '[]');
+                } catch (e) {
+                    photoUrls = [];
+                }
+
+                const carData = {
+                    addedByUid: user.uid,
+                    bodyType: bodyType,
+                    color: color,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    make: make,
+                    model: model,
+                    photoUrls: photoUrls,
+                    pricing: {
+                        baseFee: baseFee,
+                        ratePerKm: ratePerKm
+                    },
+                    registration: registration,
+                    seats: seats,
+                    userRef: db.doc(`/users/${user.uid}`),
+                    year: year || null,
+                    suspended: false
+                };
+
+                return db.collection('kasilayn').doc('fleet').collection('cars').doc(registration).set(carData, { merge: true });
+            });
+
+            await Promise.all(savePromises);
+            
+            alert('Your car(s) have been successfully registered to the fleet!');
+            window.top.location.replace('../home.html');
+        } catch (error) {
+            console.error('Error saving car details:', error);
+            alert('Failed to save details: ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+        }
     });
 </script>
 
