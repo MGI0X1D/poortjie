@@ -848,7 +848,6 @@
                     addedByUid: user.uid,
                     bodyType: bodyType,
                     color: color,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     make: make,
                     model: model,
                     photoUrls: photoUrls,
@@ -864,14 +863,25 @@
                     suspended: false
                 };
 
+                // Add createdAt only if new car
+                if (!currentEditingReg) {
+                    carData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                } else {
+                    carData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+                }
+
                 await db.collection('kasilayn').doc('fleet').collection('cars').doc(registration).set(carData, { merge: true });
 
-                // Link driver to car (1 driver per car, 1 car per driver)
-                return db.collection('kasilayn').doc('fleet').collection('drivers').doc(user.uid).set({
-                    assignedCarReg: registration,
-                    userRef: db.doc(`/users/${user.uid}`),
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                // Link driver to car ONLY if not editing (New car registration)
+                // If editing, we don't change assignment as per user request
+                if (!currentEditingReg) {
+                    return db.collection('kasilayn').doc('fleet').collection('drivers').doc(user.uid).set({
+                        assignedCarReg: registration,
+                        userRef: db.doc(`/users/${user.uid}`),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+                return Promise.resolve();
             });
 
             await Promise.all(savePromises);
