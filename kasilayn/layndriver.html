@@ -15,6 +15,11 @@
     <link rel="icon" type="image/png" sizes="96x96" href="../favicon/favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../scripts/firebase.js"></script>
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
@@ -26,9 +31,9 @@
 
 <main class="max-w-2xl mx-auto px-6 pb-24">
     <div class="card p-8 rounded-2xl border-l-4 border-l-green-500">
-        <h2 class="text-2xl font-bold mb-6">Driver Details</h2>
+        <h2 class="text-2xl font-bold mb-6">Details</h2>
         
-        <form id="driver-form" class="space-y-8">
+        <form id="driver-form" class="space-y-8" novalidate>
             <!-- Cars Section -->
             <section>
                 <div class="flex items-center justify-between mb-4">
@@ -44,62 +49,83 @@
                     <div class="car-entry p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 relative animate-fadeIn">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1">Registration</label>
-                                <input type="text" name="reg[]" placeholder="ABC 123 GP" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Registration</label>
+                                <label>
+                                    <input type="text" name="reg[]" placeholder="ABC 123 GP" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                </label>
+                                <p class="reg-error text-red-500 text-[10px] font-bold mt-1 hidden">Registration is required</p>
                             </div>
                             <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1">Make</label>
-                                <input type="text" name="make[]" placeholder="e.g. Toyota" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Make</label>
+                                <label>
+                                    <input type="text" name="make[]" placeholder="e.g. Toyota" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                </label>
+                                <p class="make-error text-red-500 text-[10px] font-bold mt-1 hidden">Make is required</p>
                             </div>
                             <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1">Model</label>
-                                <input type="text" name="model[]" placeholder="e.g. Corolla" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Model</label>
+                                <label>
+                                    <input type="text" name="model[]" placeholder="e.g. Corolla" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                </label>
+                                <p class="model-error text-red-500 text-[10px] font-bold mt-1 hidden">Model is required</p>
                             </div>
                             <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1">Color</label>
-                                <input type="text" name="color[]" placeholder="e.g. White" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Color</label>
+                                <label>
+                                    <input type="text" name="color[]" placeholder="e.g. White" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                </label>
+                                <p class="color-error text-red-500 text-[10px] font-bold mt-1 hidden">Color is required</p>
                             </div>
                             <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1">Body Type</label>
-                                <select name="body_type[]" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition appearance-none">
-                                    <option value="" disabled selected>Select body type</option>
-                                    <option value="hatchback">Hatchback</option>
-                                    <option value="sedan">Sedan</option>
-                                    <option value="suv">SUV</option>
-                                    <option value="minivan">Minivan</option>
-                                    <option value="bakkie">Bakkie / Pickup</option>
-                                    <option value="coupe">Coupe</option>
-                                </select>
+                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Body Type</label>
+                                <label>
+                                    <select name="body_type[]" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition appearance-none">
+                                        <option value="" disabled selected>Select body type</option>
+                                        <option value="hatchback">Hatchback</option>
+                                        <option value="sedan">Sedan</option>
+                                        <option value="suv">SUV</option>
+                                        <option value="minivan">Minivan</option>
+                                        <option value="bakkie">Bakkie / Pickup</option>
+                                        <option value="coupe">Coupe</option>
+                                    </select>
+                                </label>
+                                <p class="body_type-error text-red-500 text-[10px] font-bold mt-1 hidden">Body Type is required</p>
                             </div>
                             <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1">Number of Seats</label>
-                                <input type="number" name="seats[]" placeholder="4" min="1" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Number of Seats</label>
+                                <label>
+                                    <input type="number" name="seats[]" placeholder="4" min="1" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                </label>
+                                <p class="seats-error text-red-500 text-[10px] font-bold mt-1 hidden">Number of Seats is required</p>
                             </div>
                             <div>
-                                <label class="block text-xs opacity-50 mb-1 pl-1">Year (Optional)</label>
-                                <input type="number" name="year[]" placeholder="e.g. 2020" class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Year (Optional)</label>
+                                <label>
+                                    <input type="number" name="year[]" placeholder="e.g. 2020" class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Pricing Section -->
             <section class="border-t border-gray-200 dark:border-slate-700 pt-8">
                 <h3 class="text-xl font-semibold mb-4">Pricing</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <div class="flex items-center gap-1 mb-1 pl-1">
-                            <label class="block text-xs opacity-50">Base Fee (R)</label>
+                            <label class="block text-xs opacity-50 uppercase font-bold tracking-wider">Base Fee (R)</label>
                             <button type="button" onclick="alert('The base fee is the minimum amount charged for any trip before distance is added.')" class="text-blue-500 hover:text-blue-600 transition">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </button>
                         </div>
-                        <input type="number" name="base_fee" placeholder="0.00" step="0.01" required class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                        <label for="base_fee"></label><input type="number" name="base_fee" id="base_fee" placeholder="0.00" step="0.01" required class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                        <p id="base_fee-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Base Fee is required</p>
                     </div>
                     <div>
-                        <label class="block text-xs opacity-50 mb-1 pl-1">Rate per KM (R)</label>
-                        <input type="number" name="rate_per_km" placeholder="0.00" step="0.01" required class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                        <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Rate per KM (R)</label>
+                        <label for="rate_per_km"></label><input type="number" name="rate_per_km" id="rate_per_km" placeholder="0.00" step="0.01" required class="w-full p-3 rounded-lg bg-gray-100 dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                        <p id="rate_per_km-error" class="text-red-500 text-[10px] font-bold mt-1 hidden">Rate per KM is required</p>
                     </div>
                 </div>
             </section>
@@ -117,11 +143,15 @@
                     <div class="destination-entry flex gap-2 items-end animate-fadeIn">
                         <div class="flex-grow">
                             <label class="block text-xs opacity-50 mb-1 pl-1">Destination Name</label>
-                            <input type="text" name="dest_name[]" placeholder="e.g. Mall of Africa" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            <label>
+                                <input type="text" name="dest_name[]" placeholder="e.g. Mall of Africa" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            </label>
                         </div>
                         <div class="w-32">
                             <label class="block text-xs opacity-50 mb-1 pl-1">Price (R)</label>
-                            <input type="number" name="dest_price[]" placeholder="0.00" step="0.01" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            <label>
+                                <input type="number" name="dest_price[]" placeholder="0.00" step="0.01" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                            </label>
                         </div>
                         <button type="button" class="remove-dest-btn p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -146,6 +176,15 @@
     // Car Management
     const carsContainer = document.getElementById('cars-container');
     const addCarBtn = document.getElementById('add-car-btn');
+    const driverForm = document.getElementById('driver-form');
+
+    // Auth Protection
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            sessionStorage.setItem('redirectUrl', window.location.href);
+            window.top.location.replace('../authentication/login.html');
+        }
+    });
     
     addCarBtn.addEventListener('click', () => {
         const carEntry = document.createElement('div');
@@ -156,23 +195,27 @@
             </button>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs opacity-50 mb-1 pl-1">Registration</label>
+                    <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Registration</label>
                     <input type="text" name="reg[]" placeholder="ABC 123 GP" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                    <p class="reg-error text-red-500 text-[10px] font-bold mt-1 hidden">Registration is required</p>
                 </div>
                 <div>
-                    <label class="block text-xs opacity-50 mb-1 pl-1">Make</label>
+                    <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Make</label>
                     <input type="text" name="make[]" placeholder="e.g. Toyota" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                    <p class="make-error text-red-500 text-[10px] font-bold mt-1 hidden">Make is required</p>
                 </div>
                 <div>
-                    <label class="block text-xs opacity-50 mb-1 pl-1">Model</label>
+                    <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Model</label>
                     <input type="text" name="model[]" placeholder="e.g. Corolla" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                    <p class="model-error text-red-500 text-[10px] font-bold mt-1 hidden">Model is required</p>
                 </div>
                 <div>
-                    <label class="block text-xs opacity-50 mb-1 pl-1">Color</label>
+                    <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Color</label>
                     <input type="text" name="color[]" placeholder="e.g. White" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                    <p class="color-error text-red-500 text-[10px] font-bold mt-1 hidden">Color is required</p>
                 </div>
                 <div>
-                    <label class="block text-xs opacity-50 mb-1 pl-1">Body Type</label>
+                    <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Body Type</label>
                     <select name="body_type[]" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition appearance-none">
                         <option value="" disabled selected>Select body type</option>
                         <option value="hatchback">Hatchback</option>
@@ -182,13 +225,15 @@
                         <option value="bakkie">Bakkie / Pickup</option>
                         <option value="coupe">Coupe</option>
                     </select>
+                    <p class="body_type-error text-red-500 text-[10px] font-bold mt-1 hidden">Body Type is required</p>
                 </div>
                 <div>
-                    <label class="block text-xs opacity-50 mb-1 pl-1">Number of Seats</label>
+                    <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Number of Seats</label>
                     <input type="number" name="seats[]" placeholder="4" min="1" required class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                    <p class="seats-error text-red-500 text-[10px] font-bold mt-1 hidden">Number of Seats is required</p>
                 </div>
                 <div>
-                    <label class="block text-xs opacity-50 mb-1 pl-1">Year (Optional)</label>
+                    <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Year (Optional)</label>
                     <input type="number" name="year[]" placeholder="e.g. 2020" class="car-input w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
                 </div>
             </div>
@@ -244,9 +289,88 @@
         document.documentElement.classList.remove('dark');
     }
 
+    function validateForm(showErrors = false) {
+        let isValid = true;
+        
+        // Validate Pricing
+        const baseFee = document.getElementById('base_fee');
+        const ratePerKm = document.getElementById('rate_per_km');
+        
+        const isBaseFeeValid = baseFee.value.trim().length > 0;
+        const isRatePerKmValid = ratePerKm.value.trim().length > 0;
+
+        if (showErrors) {
+            const baseFeeError = document.getElementById('base_fee-error');
+            const ratePerKmError = document.getElementById('rate_per_km-error');
+            
+            if (baseFeeError) baseFeeError.classList.toggle('hidden', isBaseFeeValid);
+            if (ratePerKmError) ratePerKmError.classList.toggle('hidden', isRatePerKmValid);
+        } else {
+            if (isBaseFeeValid) document.getElementById('base_fee-error').classList.add('hidden');
+            if (isRatePerKmValid) document.getElementById('rate_per_km-error').classList.add('hidden');
+        }
+
+        if (!isBaseFeeValid || !isRatePerKmValid) isValid = false;
+        
+        // Validate Cars
+        const carEntries = document.querySelectorAll('.car-entry');
+        carEntries.forEach(entry => {
+            const inputs = entry.querySelectorAll('input[required], select[required]');
+            inputs.forEach(input => {
+                const isInputValid = input.value.trim().length > 0;
+                const errorName = input.name.replace('[]', '') + '-error';
+                const errorElement = entry.querySelector('.' + errorName);
+                
+                if (showErrors) {
+                    if (errorElement) {
+                        errorElement.classList.toggle('hidden', isInputValid);
+                        // Also style the input
+                        input.classList.toggle('border-red-500', !isInputValid);
+                        input.classList.toggle('border-transparent', isInputValid);
+                    }
+                } else {
+                    if (isInputValid && errorElement) {
+                        errorElement.classList.add('hidden');
+                        input.classList.remove('border-red-500');
+                        input.classList.add('border-transparent');
+                    }
+                }
+
+                if (!isInputValid) isValid = false;
+            });
+        });
+
+        // Pricing input styling for real-time validation
+        if (!showErrors) {
+            if (isBaseFeeValid) baseFee.classList.remove('border-red-500');
+            if (isRatePerKmValid) ratePerKm.classList.remove('border-red-500');
+        } else {
+            baseFee.classList.toggle('border-red-500', !isBaseFeeValid);
+            ratePerKm.classList.toggle('border-red-500', !isRatePerKmValid);
+        }
+        
+        return isValid;
+    }
+
+    // Real-time validation
+    driverForm.addEventListener('input', (e) => {
+        if (e.target.classList.contains('car-input') || e.target.id === 'base_fee' || e.target.id === 'rate_per_km') {
+            validateForm(false);
+        }
+    });
+
     // Form Submission
-    document.getElementById('driver-form').addEventListener('submit', (e) => {
+    driverForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        
+        if (!validateForm(true)) {
+            const firstError = document.querySelector('p[class*="-error"]:not(.hidden), p[id*="-error"]:not(.hidden)');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+        
         alert('Driver profile details captured! Integration with database would happen here.');
         console.log('Form submitted');
     });
