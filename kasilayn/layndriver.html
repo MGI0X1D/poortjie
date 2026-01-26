@@ -25,6 +25,11 @@
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
+<div id="loader-overlay" class="fixed inset-0 bg-white/80 dark:bg-slate-900/80 z-[100] flex flex-col items-center justify-center transition-opacity duration-300 hidden">
+    <div class="animate-spin h-10 w-10 border-4 border-green-500 border-t-transparent rounded-full mb-4"></div>
+    <p class="text-sm font-bold uppercase tracking-widest animate-pulse">Processing...</p>
+</div>
+
 <header class="max-w-6xl mx-auto pt-16 pb-12 px-6 text-center text-gray-900 dark:text-gray-100">
     <a href="../index.html"
        onclick="if(history.length > 1) { history.back(); return false; } else { window.top.location.replace('../index.html'); return false; }"
@@ -110,6 +115,15 @@
     const carsContainer = document.getElementById('cars-container');
     const addCarBtn = document.getElementById('add-car-btn');
     const driverForm = document.getElementById('driver-form');
+    const loaderOverlay = document.getElementById('loader-overlay');
+
+    function showLoader() {
+        if (loaderOverlay) loaderOverlay.classList.remove('hidden');
+    }
+
+    function hideLoader() {
+        if (loaderOverlay) loaderOverlay.classList.add('hidden');
+    }
 
     // Photo Management for Cars
     function renderCarPhotos(carEntry) {
@@ -237,6 +251,7 @@
     });
 
     async function loadUserFleet(uid) {
+        showLoader();
         const fleetSection = document.getElementById('fleet-section');
         const fleetContainer = document.getElementById('fleet-container');
         const addCarBtn = document.getElementById('add-car-btn');
@@ -341,6 +356,8 @@
             }
         } catch (err) {
             console.error("Error loading fleet:", err);
+        } finally {
+            hideLoader();
         }
     }
 
@@ -669,12 +686,17 @@
     const addDestBtn = document.getElementById('add-dest-btn');
 
     function createDestEntry(name = '', price = '') {
+        // If name is an Event object (from click listener), reset to empty string
+        if (name && typeof name === 'object' && name.constructor.name.includes('Event')) {
+            name = '';
+        }
+
         const destEntry = document.createElement('div');
         destEntry.className = 'destination-entry flex gap-2 items-end animate-fadeIn';
         destEntry.innerHTML = `
             <div class="flex-grow">
-                <label class="block text-xs opacity-50 mb-1 pl-1">Destination Name</label>
-                <input type="text" name="dest_name[]" value="${name}" placeholder="e.g. Mall of Africa" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                <label class="block text-xs opacity-50 mb-1 pl-1 uppercase font-bold tracking-wider">Destination Name</label>
+                <input type="text" name="dest_name[]" value="${name}" placeholder="e.g. Westonaria" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
             </div>
             <div class="w-32">
                 <label class="block text-xs opacity-50 mb-1 pl-1">Price (R)</label>
