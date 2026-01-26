@@ -296,6 +296,9 @@
                             <p class="text-[10px] mt-1 font-bold text-green-600">R${car.pricing?.baseFee} Base + R${car.pricing?.ratePerKm}/km</p>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button type="button" onclick="editCar('${car.registration}')" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg" title="Edit Car">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
                             ${!isAssigned ? `
                             <button type="button" onclick="switchCar('${car.registration}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition shadow-sm uppercase tracking-wider" title="Switch to this car">
                                 Drive
@@ -367,6 +370,97 @@
         } catch (err) {
             console.error("Error suspending car:", err);
             alert('Failed to remove car: ' + err.message);
+        }
+    }
+
+    let currentEditingReg = null;
+
+    async function editCar(registration) {
+        try {
+            const doc = await db.collection('kasilayn').doc('fleet').collection('cars').doc(registration).get();
+            if (!doc.exists) return;
+            const car = doc.data();
+            
+            // Clear existing form entries
+            carsContainer.innerHTML = '';
+            destContainer.innerHTML = '';
+            currentEditingReg = registration;
+            
+            // Show the form
+            addCarBtn.click();
+            const carEntry = document.querySelector('.car-entry');
+            
+            // Change title
+            document.querySelector('#add-car-section h3').textContent = 'Edit Car';
+            addCarBtn.classList.add('hidden');
+            
+            // Populate fields
+            const regInput = carEntry.querySelector('input[name="reg[]"]');
+            regInput.value = car.registration;
+            regInput.disabled = true;
+            regInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+            
+            carEntry.querySelector('input[name="make[]"]').value = car.make || '';
+            carEntry.querySelector('input[name="model[]"]').value = car.model || '';
+            carEntry.querySelector('input[name="color[]"]').value = car.color || '';
+            carEntry.querySelector('select[name="body_type[]"]').value = (car.bodyType || '').toLowerCase();
+            carEntry.querySelector('input[name="seats[]"]').value = car.seats || '';
+            carEntry.querySelector('input[name="year[]"]').value = car.year || '';
+            
+            // Populate photos
+            const photoUrlsInput = carEntry.querySelector('.car-photo-urls');
+            photoUrlsInput.value = JSON.stringify(car.photoUrls || []);
+            renderCarPhotos(carEntry);
+            
+            // Populate pricing
+            if (car.pricing) {
+                document.getElementById('base_fee').value = car.pricing.baseFee || '';
+                document.getElementById('rate_per_km').value = car.pricing.ratePerKm || '';
+                
+                // Populate destinations if they exist
+                if (car.pricing.destinations && Array.isArray(car.pricing.destinations)) {
+                    car.pricing.destinations.forEach(dest => {
+                        createDestEntry(dest.name, dest.price);
+                    });
+                }
+            }
+            
+            // If no destinations were added, add one empty entry
+            if (destContainer.children.length === 0) {
+                createDestEntry();
+            }
+            
+            // Change submit button text
+            driverForm.querySelector('button[type="submit"]').textContent = 'Update Car Details';
+            
+            // Add a cancel button
+            if (!document.getElementById('cancel-edit-btn')) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.id = 'cancel-edit-btn';
+                cancelBtn.type = 'button';
+                cancelBtn.className = 'w-full mt-4 px-8 py-3 border-2 border-gray-300 dark:border-slate-700 font-bold rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition';
+                cancelBtn.textContent = 'Cancel Editing';
+                cancelBtn.onclick = () => {
+                    currentEditingReg = null;
+                    carsContainer.innerHTML = '';
+                    destContainer.innerHTML = '';
+                    createDestEntry(); // Initial empty entry
+                    document.querySelector('#add-car-section h3').textContent = 'Add a Car';
+                    driverForm.querySelector('button[type="submit"]').textContent = 'Save Driver Profile';
+                    addCarBtn.classList.remove('hidden');
+                    cancelBtn.remove();
+                    // Reload fleet to reset buttons correctly
+                    const user = auth.currentUser;
+                    if (user) loadUserFleet(user.uid);
+                };
+                driverForm.appendChild(cancelBtn);
+            }
+
+            carEntry.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+        } catch (err) {
+            console.error("Error loading car for edit:", err);
+            alert("Failed to load car details for editing.");
         }
     }
 
@@ -481,7 +575,7 @@
     
     addCarBtn.addEventListener('click', () => {
         // Enforce one car per form
-        if (document.querySelector('.car-entry')) {
+        if (!currentEditingReg && document.querySelector('.car-entry')) {
             alert("Please complete the current car entry first.");
             return;
         }
@@ -556,6 +650,11 @@
         
         carEntry.querySelector('.remove-car-btn').addEventListener('click', () => {
             carEntry.remove();
+            if (currentEditingReg) {
+                // If we were editing, clicking remove effectively cancels the edit
+                const cancelBtn = document.getElementById('cancel-edit-btn');
+                if (cancelBtn) cancelBtn.click();
+            }
         });
 
         // Add registration check
@@ -569,17 +668,17 @@
     const destContainer = document.getElementById('destinations-container');
     const addDestBtn = document.getElementById('add-dest-btn');
 
-    function createDestEntry() {
+    function createDestEntry(name = '', price = '') {
         const destEntry = document.createElement('div');
         destEntry.className = 'destination-entry flex gap-2 items-end animate-fadeIn';
         destEntry.innerHTML = `
             <div class="flex-grow">
                 <label class="block text-xs opacity-50 mb-1 pl-1">Destination Name</label>
-                <input type="text" name="dest_name[]" placeholder="e.g. Mall of Africa" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                <input type="text" name="dest_name[]" value="${name}" placeholder="e.g. Mall of Africa" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
             </div>
             <div class="w-32">
                 <label class="block text-xs opacity-50 mb-1 pl-1">Price (R)</label>
-                <input type="number" name="dest_price[]" placeholder="0.00" step="0.01" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
+                <input type="number" name="dest_price[]" value="${price}" placeholder="0.00" step="0.01" class="w-full p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-green-500 focus:outline-none transition">
             </div>
             <button type="button" class="remove-dest-btn p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -713,10 +812,12 @@
                 const regInput = entry.querySelector('input[name="reg[]"]');
                 const registration = regInput.value.trim().toUpperCase().replace(/\s+/g, '');
                 
-                // Final check for registration existence before saving
-                const isAvailable = await checkRegistration(regInput.value, entry);
-                if (!isAvailable) {
-                    throw new Error(`Car registration ${registration} already exists.`);
+                // Final check for registration existence before saving (skip if editing same car)
+                if (!currentEditingReg || registration !== currentEditingReg) {
+                    const isAvailable = await checkRegistration(regInput.value, entry);
+                    if (!isAvailable) {
+                        throw new Error(`Car registration ${registration} already exists.`);
+                    }
                 }
 
                 const make = entry.querySelector('input[name="make[]"]').value.trim();
@@ -726,6 +827,16 @@
                 const seats = parseInt(entry.querySelector('input[name="seats[]"]').value);
                 const year = entry.querySelector('input[name="year[]"]').value.trim();
                 
+                // Collect destination pricing
+                const destinations = Array.from(document.querySelectorAll('.destination-entry')).map(dest => {
+                    const name = dest.querySelector('input[name="dest_name[]"]').value.trim();
+                    const price = parseFloat(dest.querySelector('input[name="dest_price[]"]').value);
+                    if (name && !isNaN(price)) {
+                        return { name, price };
+                    }
+                    return null;
+                }).filter(dest => dest !== null);
+
                 let photoUrls = [];
                 try {
                     photoUrls = JSON.parse(entry.querySelector('.car-photo-urls').value || '[]');
@@ -743,7 +854,8 @@
                     photoUrls: photoUrls,
                     pricing: {
                         baseFee: baseFee,
-                        ratePerKm: ratePerKm
+                        ratePerKm: ratePerKm,
+                        destinations: destinations
                     },
                     registration: registration,
                     seats: seats,
@@ -764,8 +876,24 @@
 
             await Promise.all(savePromises);
             
-            alert('Your car(s) have been successfully registered to the fleet!');
-            window.top.location.replace('../home.html');
+            if (currentEditingReg) {
+                alert('Car details have been successfully updated!');
+                // Reset edit mode
+                currentEditingReg = null;
+                carsContainer.innerHTML = '';
+                destContainer.innerHTML = '';
+                createDestEntry(); // Initial empty entry
+                document.querySelector('#add-car-section h3').textContent = 'Add a Car';
+                driverForm.querySelector('button[type="submit"]').textContent = 'Save Driver Profile';
+                addCarBtn.classList.remove('hidden');
+                const cancelBtn = document.getElementById('cancel-edit-btn');
+                if (cancelBtn) cancelBtn.remove();
+                
+                loadUserFleet(user.uid);
+            } else {
+                alert('Your car(s) have been successfully registered to the fleet!');
+                window.top.location.replace('../home.html');
+            }
         } catch (error) {
             console.error('Error saving car details:', error);
             alert('Failed to save details: ' + error.message);
