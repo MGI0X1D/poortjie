@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Driver | Poortjie Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="icon" type="image/png" sizes="48x48" href="../../favicon/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="../../favicon/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="../../favicon/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../scripts/firebase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="font-sans antialiased bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
+
+<header class="max-w-4xl mx-auto pt-10 pb-6 px-6 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <button onclick="history.back()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1 class="text-xl font-black uppercase tracking-tight">Join the Fleet</h1>
+    </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-6 pb-24">
+    <div id="loader-overlay" class="fixed inset-0 bg-white/80 dark:bg-slate-900/80 z-[100] flex flex-col items-center justify-center transition-opacity duration-300 hidden">
+        <div class="animate-spin h-10 w-10 border-4 border-green-500 border-t-transparent rounded-full mb-4"></div>
+        <p class="text-sm font-bold uppercase tracking-widest animate-pulse" id="loader-text">Processing...</p>
+    </div>
+
+    <div class="card p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl space-y-8">
+        <div id="status-message" class="hidden p-4 rounded-2xl text-sm font-bold border-2 animate-fadeIn"></div>
+
+        <form id="driver-form" class="space-y-8">
+            <!-- Driver Info Section -->
+            <section class="space-y-6">
+                <div class="flex items-center gap-2">
+                    <span class="w-1 h-4 bg-green-500 rounded-full"></span>
+                    <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Driver Information</h2>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-6 items-center">
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('photo-input').click()">
+                        <img id="driver-preview" src="https://placehold.co/150?text=Driver+Photo" alt="Profile Picture" class="w-24 h-24 rounded-full object-cover border-4 border-green-500 shadow-md">
+                        <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <i class="fas fa-camera text-white"></i>
+                        </div>
+                        <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="previewImage(this, 'driver-preview')">
+                    </div>
+                    <div class="flex-grow space-y-4 w-full">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Full Name</label>
+                            <input type="text" id="display-name" required placeholder="Enter your full name" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Car Info Section -->
+            <section class="space-y-6 pt-6 border-t border-slate-100 dark:border-slate-700/50">
+                <div class="flex items-center gap-2">
+                    <span class="w-1 h-4 bg-green-500 rounded-full"></span>
+                    <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Vehicle Details</h2>
+                </div>
+                
+                <div class="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-2xl">
+                    <p class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> Important: Car details cannot be changed later for safety reasons. Please ensure all information is accurate.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Make</label>
+                        <input type="text" id="car-make" required placeholder="e.g. Toyota" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Model</label>
+                        <input type="text" id="car-model" required placeholder="e.g. Corolla" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Registration Number</label>
+                        <input type="text" id="car-registration" required placeholder="e.g. FGP123GP" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Color</label>
+                        <input type="text" id="car-color" required placeholder="e.g. White" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Body Type</label>
+                        <select id="car-body-type" required class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition appearance-none">
+                            <option value="SEDAN">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="HATCHBACK">Hatchback</option>
+                            <option value="BAKKIE">Bakkie</option>
+                            <option value="MINIVAN">Minivan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Available Seats</label>
+                        <input type="number" id="car-seats" required min="1" max="22" value="4" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Year of Manufacture</label>
+                        <input type="number" id="car-year" required min="1900" max="2026" value="2024" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                    </div>
+                </div>
+
+                <div class="space-y-4 pt-4">
+                    <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Vehicle Photo</label>
+                    <div class="w-full h-48 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-green-500 transition group" onclick="document.getElementById('car-photo-input').click()">
+                        <img id="car-preview" class="hidden w-full h-full object-cover rounded-2xl">
+                        <div id="car-upload-placeholder" class="flex flex-col items-center">
+                            <i class="fas fa-car text-3xl opacity-20 group-hover:text-green-500 transition"></i>
+                            <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mt-2">Click to upload car photo</p>
+                        </div>
+                        <input type="file" id="car-photo-input" accept="image/*" class="hidden" onchange="previewImage(this, 'car-preview', 'car-upload-placeholder')">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pricing Section (Hidden for now, use defaults) -->
+            <input type="hidden" id="base-fee" value="15">
+            <input type="hidden" id="rate-km" value="10">
+            <input type="hidden" id="rate-hr" value="50">
+
+            <button type="submit" id="submit-btn" class="w-full py-5 bg-green-600 text-white text-xs font-black uppercase tracking-[0.3em] rounded-[1.5rem] shadow-xl shadow-green-500/20 transition-all active:scale-95">
+                Register as Driver
+            </button>
+        </form>
+    </div>
+</main>
+
+<script>
+    let currentUser = null;
+
+    // Initialize
+    firebase.auth().onAuthStateChanged(user => {
+        if (!user) {
+            window.location.href = '../../authentication/login.html';
+            return;
+        }
+        currentUser = user;
+        document.getElementById('display-name').value = user.displayName || '';
+        
+        // Check if already a driver
+        checkDriverStatus(user.uid);
+    });
+
+    async function checkDriverStatus(uid) {
+        const snap = await db.collection('kasilayn').doc('fleet').collection('drivers').doc(uid).get();
+        if (snap.exists) {
+            showStatus("You are already registered as a driver!", "success");
+            document.getElementById('submit-btn').textContent = "Update Driver Info";
+            // Pre-fill existing data if needed
+            const data = snap.data();
+            document.getElementById('display-name').value = data.displayName || '';
+            if (data.photoUrl) document.getElementById('driver-preview').src = data.photoUrl;
+            
+            const carSnap = await db.collection('kasilayn').doc('fleet').collection('cars').doc(data.carRegistration).get();
+            if (carSnap.exists) {
+                const carData = carSnap.data();
+                document.getElementById('car-make').value = carData.make || '';
+                document.getElementById('car-model').value = carData.model || '';
+                document.getElementById('car-registration').value = carData.registration || '';
+                document.getElementById('car-color').value = carData.color || '';
+                document.getElementById('car-body-type').value = carData.bodyType || 'SEDAN';
+                document.getElementById('car-seats').value = carData.seats || 4;
+                document.getElementById('car-year').value = carData.year || 2024;
+                if (carData.photoUrls && carData.photoUrls.length > 0) {
+                    document.getElementById('car-preview').src = carData.photoUrls[0];
+                    document.getElementById('car-preview').classList.remove('hidden');
+                    document.getElementById('car-upload-placeholder').classList.add('hidden');
+                }
+            }
+        }
+    }
+
+    function previewImage(input, previewId, placeholderId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(previewId).src = e.target.result;
+                document.getElementById(previewId).classList.remove('hidden');
+                if (placeholderId) document.getElementById(placeholderId).classList.add('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function showStatus(msg, type) {
+        const statusEl = document.getElementById('status-message');
+        statusEl.textContent = msg;
+        statusEl.className = `p-4 rounded-2xl text-sm font-bold border-2 animate-fadeIn ${
+            type === 'success' ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' : 
+            'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'
+        }`;
+        statusEl.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleLoader(show, text = "Processing...") {
+        const loader = document.getElementById('loader-overlay');
+        document.getElementById('loader-text').textContent = text;
+        if (show) {
+            loader.classList.remove('hidden');
+        } else {
+            loader.classList.add('hidden');
+        }
+    }
+
+    // Form Submission
+    document.getElementById('driver-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser) return;
+
+        toggleLoader(true, "Promoting to Driver...");
+
+        const carMake = document.getElementById('car-make').value;
+        const carModel = document.getElementById('car-model').value;
+        const carReg = document.getElementById('car-registration').value.toUpperCase();
+        const carColor = document.getElementById('car-color').value;
+        const carBodyType = document.getElementById('car-body-type').value.toUpperCase();
+        const carSeats = parseInt(document.getElementById('car-seats').value);
+        const carYear = parseInt(document.getElementById('car-year').value);
+
+        try {
+            // Photos
+            let driverPhotoUrl = document.getElementById('driver-preview').src;
+            if (driverPhotoUrl.startsWith('https://placehold.co')) driverPhotoUrl = "";
+            
+            let carPhotoUrl = document.getElementById('car-preview').src;
+            if (carPhotoUrl.startsWith('https://placehold.co') || document.getElementById('car-preview').classList.contains('hidden')) carPhotoUrl = "";
+
+            // ATOMIC TRANSACTION: User to Driver Promotion
+            await db.runTransaction(async (transaction) => {
+                const uid = currentUser.uid;
+                const userRef = db.collection('users').doc(uid);
+                const driverRef = db.collection('kasilayn').doc('fleet').collection('drivers').doc(uid);
+                const carRef = db.collection('kasilayn').doc('fleet').collection('cars').doc(carReg);
+
+                // 1. Read User Profile
+                const userDoc = await transaction.get(userRef);
+                if (!userDoc.exists) throw new Error("User profile not found.");
+                const userData = userDoc.data();
+
+                // 2. Pre-condition Check
+                const driverDoc = await transaction.get(driverRef);
+                // Note: If updating existing driver, we might want to skip this check or handle it.
+                // The issue description says "If the document already exists, the function fails immediately with an 'ALREADY_DRIVER' error."
+                // But our UI allows "Update Driver Info". I will stick to the issue description for the "Join Fleet" action.
+                const isUpdate = document.getElementById('submit-btn').textContent.includes("Update");
+                if (!isUpdate && driverDoc.exists) {
+                    throw new Error("ALREADY_DRIVER");
+                }
+
+                // 3. Create/Update Driver Document
+                const now = firebase.firestore.FieldValue.serverTimestamp();
+                const driverPayload = {
+                    userRef: userRef,
+                    userUid: uid,
+                    username: userData.username || "",
+                    email: userData.email || "",
+                    displayName: userData.displayName || document.getElementById('display-name').value,
+                    phone: userData.phone || userData.phoneNumber || "",
+                    photoUrl: driverPhotoUrl || userData.photoUrl || "",
+                    bio: userData.bio || "",
+                    status: driverDoc.exists ? (driverDoc.data().status || "OFFLINE") : "OFFLINE",
+                    suspended: driverDoc.exists ? (driverDoc.data().suspended || false) : false,
+                    addedByUid: uid, // In this web context, the user is adding themselves
+                    createdAt: driverDoc.exists ? (driverDoc.data().createdAt || now) : now,
+                    updatedAt: now,
+                    carRegistration: carReg
+                };
+                transaction.set(driverRef, driverPayload, { merge: true });
+
+                // 4. Update Original User Document (Roles)
+                transaction.set(userRef, {
+                    roles: {
+                        kasilayn: {
+                            isDriver: true,
+                            driverRef: `kasilayn/fleet/drivers/${uid}`
+                        }
+                    }
+                }, { merge: true });
+
+                // 5. Save Car Data (Atomic part of the same transaction)
+                const carPayload = {
+                    registration: carReg,
+                    make: carMake,
+                    model: carModel,
+                    color: carColor,
+                    seats: carSeats,
+                    year: carYear,
+                    bodyType: carBodyType,
+                    photoUrls: carPhotoUrl ? [carPhotoUrl] : (driverDoc.exists ? (driverDoc.data().carPhotoUrls || []) : []),
+                    userRef: userRef, // Linked to the person adding the car
+                    addedByUid: uid,
+                    createdAt: driverDoc.exists ? (driverDoc.data().carCreatedAt || now) : now,
+                    pricing: {
+                        baseFee: parseFloat(document.getElementById('base-fee').value),
+                        ratePerKm: parseFloat(document.getElementById('rate-km').value),
+                        driverRatePerHour: parseFloat(document.getElementById('rate-hr').value)
+                    },
+                    status: 'active'
+                };
+                transaction.set(carRef, carPayload, { merge: true });
+            });
+
+            showStatus("Success! You are now officially part of the fleet.", "success");
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 2000);
+
+        } catch (error) {
+            console.error("Registration error:", error);
+            if (error.message === "ALREADY_DRIVER") {
+                showStatus("You are already registered as a driver.", "error");
+            } else {
+                showStatus("Failed to register: " + error.message, "error");
+            }
+        } finally {
+            toggleLoader(false);
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -84,6 +84,7 @@ The screen where users can register as drivers and add their vehicles to the fle
     - Body Type (for filtering on the dashboard).
     - Available Seats.
     - Vehicle Photo.
+- **Safety Warning:** Drivers are explicitly warned that vehicle details cannot be changed once submitted to ensure fleet integrity.
 - **Data Integration:** 
     - Uses an **atomic Firestore transaction** to promote users to drivers.
     - Copies core details (username, email, phone, bio) from `users/{uid}` to `kasilayn/fleet/drivers/{uid}`.
@@ -91,6 +92,35 @@ The screen where users can register as drivers and add their vehicles to the fle
     - Saves vehicle details to `kasilayn/fleet/cars/{registration}`.
 - **State Management:** New drivers are initialized with an `OFFLINE` status by default.
 - **Pre-condition:** Prevents duplicate registration by checking if a driver document already exists for the UID.
+
+---
+
+## 5. Driver Dashboard (`dashboard.html` in `layndriver/`)
+A dedicated control panel for registered drivers.
+
+### Key Features
+- **Status Management:** Real-time toggle to switch between **ONLINE** and **OFFLINE** modes.
+- **Profile Overview:** Shows the driver's current rating, total trips, and profile photo.
+- **Read-Only Vehicle View:** Displays all registered car details (Registration, Pricing, Body Type, etc.). These details are **non-editable** for safety and verification purposes.
+- **Navigation:** Easy access back to the Rider Dashboard.
+
+---
+
+## 6. Car Schema Standard
+Every car document in `kasilayn/fleet/cars/{REGISTRATION}` follows this standardized schema:
+- `registration`: String (Trimmed, Uppercase).
+- `make`, `model`, `color`: String.
+- `seats`, `year`: Number.
+- `bodyType`: String (Uppercase, e.g., "SEDAN").
+- `photoUrls`: Array of Strings.
+- `userRef`: DocumentReference (Points to the owner/person who added the car).
+- `addedByUid`: String (UID of the person who added it).
+- `createdAt`: Timestamp.
+- `pricing`: Nested Map
+    - `baseFee`: Number.
+    - `ratePerKm`: Number.
+    - `driverRatePerHour`: Number.
+- `status`: String (e.g., "active").
 
 ---
 

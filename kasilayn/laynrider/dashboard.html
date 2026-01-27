@@ -37,8 +37,11 @@
     </div>
     <!-- User Location Display (Updated by Geolocation API) -->
     <div class="flex items-center gap-3">
-        <button id="become-driver-btn" onclick="window.location.href='register-driver.html'" class="hidden px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-widest rounded-full transition shadow-lg shadow-green-500/20">
+        <button id="become-driver-btn" onclick="window.location.href='../layndriver/register-driver.html'" class="hidden px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-widest rounded-full transition shadow-lg shadow-green-500/20">
             Join Fleet
+        </button>
+        <button id="driver-dashboard-btn" onclick="window.location.href='../layndriver/dashboard.html'" class="hidden px-4 py-2 border-2 border-green-600 text-green-600 dark:text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full transition hover:bg-green-600 hover:text-white">
+            Driver Dash
         </button>
         <button onclick="window.location.href='history.html'" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-green-100 dark:hover:bg-green-900/30 text-slate-400 hover:text-green-600 transition" title="My Bookings">
             <i class="fas fa-history"></i>
@@ -386,12 +389,17 @@
         firebase.auth().onAuthStateChanged(user => {
             if (user) {
                 db.collection('kasilayn').doc('fleet').collection('drivers').doc(user.uid).get().then(doc => {
-                    if (!doc.exists) {
+                    if (doc.exists) {
+                        document.getElementById('driver-dashboard-btn').classList.remove('hidden');
+                        document.getElementById('become-driver-btn').classList.add('hidden');
+                    } else {
                         document.getElementById('become-driver-btn').classList.remove('hidden');
+                        document.getElementById('driver-dashboard-btn').classList.add('hidden');
                     }
                 });
             } else {
                 document.getElementById('become-driver-btn').classList.remove('hidden');
+                document.getElementById('driver-dashboard-btn').classList.add('hidden');
             }
         });
         
