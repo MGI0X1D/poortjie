@@ -1514,6 +1514,39 @@
                             ownerNameInput.value = user.displayName || '';
                         }
                         emailInput.value = user.email || '';
+                        
+                        // Check for saved form data
+                        const savedData = sessionStorage.getItem('businessFormDraft');
+                        if (savedData) {
+                            try {
+                                const data = JSON.parse(savedData);
+                                businessNameInput.value = data.businessName || '';
+                                subHeadingInput.value = data.subHeading || '';
+                                businessTypeInput.value = data.businessType || '';
+                                phoneInput.value = data.phone || phoneInput.value;
+                                addressInput.value = data.address || '';
+                                latitudeInput.value = data.latitude || '';
+                                longitudeInput.value = data.longitude || '';
+                                websiteInput.value = data.website || '';
+                                whatsappInput.value = data.whatsapp || '';
+                                facebookInput.value = data.facebook || '';
+                                hoursInput.value = data.hours || '';
+                                descInput.value = data.description || '';
+                                
+                                if (data.services) {
+                                    // Clear existing and add saved services
+                                    servicesContainer.innerHTML = '';
+                                    data.services.forEach(s => addService(s.name, s.description));
+                                }
+                                
+                                sessionStorage.removeItem('businessFormDraft');
+                                validateForm();
+                                updatePreview();
+                            } catch (e) {
+                                console.error("Error restoring draft:", e);
+                            }
+                        }
+                        
                     }).finally(() => {
                         hideLoader();
                         formContainer.classList.remove('hidden');
@@ -1534,8 +1567,33 @@
                 formContainer.classList.add('block', 'lg:grid');
             });
         } else {
-            sessionStorage.setItem('redirectUrl', window.location.href);
-            window.top.location.replace('../authentication/login.html');
+            // User not logged in - allow form but with limited data
+            fetchCategories();
+            hideLoader();
+            formContainer.classList.remove('hidden');
+            formContainer.classList.add('block', 'lg:grid');
+            
+            // Clear owner/email since we don't know who this is
+            ownerNameInput.value = '';
+            emailInput.value = '';
+            
+            // Allow editing these for guest (though they are readonly by default)
+            ownerNameInput.readOnly = false;
+            ownerNameInput.removeAttribute('readonly');
+            ownerNameInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            ownerNameInput.classList.add('bg-gray-200');
+            
+            emailInput.readOnly = false;
+            emailInput.removeAttribute('readonly');
+            emailInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            emailInput.classList.add('bg-gray-200');
+
+            // Initial character count for description
+            const count = descInput.value.length;
+            descCounter.textContent = `${count}/200`;
+            
+            validateForm();
+            updateHoursDisplay();
         }
     });
 
@@ -1555,6 +1613,39 @@
             return;
         }
 
+        const user = auth.currentUser;
+        if (!user) {
+            // Show login required modal
+            const loginModal = document.getElementById('login-modal');
+            const closeBtn = document.getElementById('close-login-modal');
+            const loginBtn = document.getElementById('login-modal-btn');
+
+            loginModal.classList.remove('hidden');
+
+            closeBtn.onclick = () => loginModal.classList.add('hidden');
+            loginBtn.onclick = () => {
+                const businessData = {
+                    businessName: businessNameInput.value,
+                    subHeading: subHeadingInput.value,
+                    businessType: businessTypeInput.value,
+                    phone: phoneInput.value,
+                    address: addressInput.value.trim() || null,
+                    latitude: latitudeInput.value ? parseFloat(latitudeInput.value) : null,
+                    longitude: longitudeInput.value ? parseFloat(longitudeInput.value) : null,
+                    website: websiteInput.value,
+                    whatsapp: whatsappInput.value,
+                    facebook: facebookInput.value,
+                    services: getServicesData(),
+                    hours: hoursInput.value,
+                    description: descInput.value
+                };
+                sessionStorage.setItem('businessFormDraft', JSON.stringify(businessData));
+                sessionStorage.setItem('redirectUrl', window.location.href);
+                window.top.location.replace('../authentication/login.html');
+            };
+            return;
+        }
+
         const originalBtnText = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<span class="flex items-center justify-center gap-2">
@@ -1564,13 +1655,6 @@
             </svg>
             Submitting...
         </span>`;
-
-        const user = auth.currentUser;
-        if (!user) {
-            sessionStorage.setItem('redirectUrl', window.location.href);
-            window.top.location.replace('../authentication/login.html');
-            return;
-        }
 
         const businessData = {
             userId: user.uid,
@@ -1763,5 +1847,20 @@
 </script>
 <script async
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXnSxBam3mjlfEx3F4XL_7ZIwLEbov0n8&loading=async&libraries=places,geometry&callback=initAutocomplete"></script>
+    <!-- Login Required Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-6">
+            <h3 class="text-xl font-bold mb-4">Account Required</h3>
+            <p class="opacity-70 mb-6">In order to list your business you need an account.</p>
+            <div class="flex gap-4">
+                <button id="close-login-modal" class="flex-1 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-lg font-bold hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+                    Cancel
+                </button>
+                <button id="login-modal-btn" class="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
