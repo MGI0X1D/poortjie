@@ -557,15 +557,28 @@
         const pricing = carData.pricing || {};
         const base = parseFloat(pricing.baseFee) || parseFloat(carData.baseFee) || 15;
         const distRate = parseFloat(pricing.ratePerKm) || parseFloat(carData.ratePerKm) || 10;
-        const total = base + (distRate * routeInfo.distKm);
+        
+        let total = base + (distRate * routeInfo.distKm);
+
+        // Check for Fixed Pricing
+        const pickupValue = document.getElementById('pickup-input').value.toLowerCase();
+        const destValue = document.getElementById('destination-input').value.toLowerCase();
+
+        if (pickupValue.includes('poortjie') && pricing.fixed && pricing.fixed.length > 0) {
+            const fixedMatch = pricing.fixed.find(f => destValue.includes(f.destination.toLowerCase()));
+            if (fixedMatch) {
+                total = fixedMatch.amount;
+                console.log("Fixed price applied:", total);
+            }
+        }
 
         // Store fare for modal
         const fareValue = `R ${total.toFixed(2)}`;
-        const hiddenFare = document.createElement('input');
+        const hiddenFare = document.getElementById('confirm-fare-value') || document.createElement('input');
         hiddenFare.type = 'hidden';
         hiddenFare.id = 'confirm-fare-value';
         hiddenFare.value = fareValue;
-        document.body.appendChild(hiddenFare);
+        if (!document.getElementById('confirm-fare-value')) document.body.appendChild(hiddenFare);
     }
 
     // 5. SUBMIT HANDLER

@@ -145,16 +145,25 @@
                 </div>
             </div>
 
-            <div class="pt-6 border-t border-slate-100 dark:border-slate-700/50">
-                <p class="text-[9px] font-black uppercase opacity-40 mb-3">Pricing Structure</p>
+            <div class="pt-6 border-t border-slate-100 dark:border-slate-700/50 space-y-4">
+                <p class="text-[9px] font-black uppercase opacity-40">Pricing Structure</p>
+                
                 <div class="flex flex-wrap gap-4">
-                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl flex-grow text-center">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl flex-grow text-center border border-slate-100 dark:border-slate-800">
                         <p class="text-[8px] font-black uppercase opacity-40">Base Fee</p>
                         <p id="price-base" class="text-xs font-black">--</p>
                     </div>
-                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl flex-grow text-center">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl flex-grow text-center border border-slate-100 dark:border-slate-800">
                         <p class="text-[8px] font-black uppercase opacity-40">Rate / KM</p>
                         <p id="price-km" class="text-xs font-black">--</p>
+                    </div>
+                </div>
+
+                <!-- Fixed Pricing Display -->
+                <div id="fixed-pricing-display" class="hidden space-y-2">
+                    <p class="text-[8px] font-black uppercase opacity-40 ml-1">Fixed Rates (from Poortjie)</p>
+                    <div id="fixed-pricing-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <!-- Items injected by renderCarUI -->
                     </div>
                 </div>
             </div>
@@ -286,6 +295,23 @@
         if (carData.pricing) {
             document.getElementById('price-base').textContent = `R ${carData.pricing.baseFee}`;
             document.getElementById('price-km').textContent = `R ${carData.pricing.ratePerKm}`;
+            
+            // Render Fixed Pricing
+            const fixedDisplay = document.getElementById('fixed-pricing-display');
+            const fixedList = document.getElementById('fixed-pricing-list');
+            if (fixedDisplay && fixedList) {
+                if (carData.pricing.fixed && carData.pricing.fixed.length > 0) {
+                    fixedDisplay.classList.remove('hidden');
+                    fixedList.innerHTML = carData.pricing.fixed.map(item => `
+                        <div class="flex justify-between items-center px-4 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                            <span class="text-[10px] font-bold uppercase opacity-60">${item.destination}</span>
+                            <span class="text-xs font-black text-green-600">R ${item.amount}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    fixedDisplay.classList.add('hidden');
+                }
+            }
         }
 
         if (carData.photoUrls && carData.photoUrls.length > 0) {
