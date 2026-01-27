@@ -124,7 +124,7 @@
                 window.top.location.replace('../index.html');
             });
         } else {
-            sessionStorage.setItem('redirectUrl', window.top.location.href);
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.top.location.replace('../authentication/login.html');
         }
     });

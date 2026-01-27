@@ -129,6 +129,7 @@
 
     firebase.auth().onAuthStateChanged(async (user) => {
         if (!user) {
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.location.replace('authentication/login.html');
             return;
         }

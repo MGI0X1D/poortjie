@@ -285,10 +285,11 @@
             .then(async (userCredential) => {
                 await logUserTrace(userCredential.user.uid);
                 const redirectUrl = sessionStorage.getItem('redirectUrl');
-                if (redirectUrl) {
+                if (redirectUrl && !redirectUrl.includes('login.html') && !redirectUrl.includes('register.html')) {
                     sessionStorage.removeItem('redirectUrl');
                     window.top.location.replace(redirectUrl);
                 } else {
+                    sessionStorage.removeItem('redirectUrl');
                     window.top.location.replace('../index.html');
                 }
             })

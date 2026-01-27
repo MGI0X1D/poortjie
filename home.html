@@ -98,6 +98,7 @@
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Profile</a>
             <div id="auth-divider" class="hidden border-t border-gray-100 dark:border-slate-700 my-1"></div>
             <a id="login-link" href="authentication/login.html"
+               onclick="sessionStorage.setItem('redirectUrl', window.location.href); window.location.href = 'authentication/login.html'; return false;"
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Login</a>
             <button id="logout-btn"
                     class="hidden w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
@@ -359,7 +360,7 @@
                 if (!user) {
                     const currentSearch = document.getElementById('search-bar').value;
                     sessionStorage.setItem('pendingSearch', currentSearch);
-                    sessionStorage.setItem('redirectUrl', '../home.html');
+                    sessionStorage.setItem('redirectUrl', window.location.href);
                     window.location.href = 'authentication/login.html';
                     return;
                 }

@@ -117,6 +117,7 @@
         if (user) {
             observeBookings(user.uid);
         } else {
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.location.href = '../../authentication/login.html';
         }
     });

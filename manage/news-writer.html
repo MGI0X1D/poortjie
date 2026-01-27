@@ -179,6 +179,7 @@
                 }
             });
         } else {
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.top.location.replace('../authentication/login.html');
         }
     });

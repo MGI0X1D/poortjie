@@ -617,7 +617,7 @@
 
     async function finalizeBooking() {
         if (!currentUser) {
-            alert("Please log in to confirm your booking.");
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.location.href = '../../authentication/login.html';
             return;
         }

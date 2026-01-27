@@ -455,6 +455,7 @@
     async function joinFleet() {
         const user = firebase.auth().currentUser;
         if (!user) {
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.location.href = '../../authentication/login.html';
             return;
         }

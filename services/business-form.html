@@ -1534,7 +1534,7 @@
                 formContainer.classList.add('block', 'lg:grid');
             });
         } else {
-            sessionStorage.setItem('redirectUrl', window.top.location.href);
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.top.location.replace('../authentication/login.html');
         }
     });
@@ -1567,7 +1567,7 @@
 
         const user = auth.currentUser;
         if (!user) {
-            sessionStorage.setItem('redirectUrl', window.top.location.href);
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.top.location.replace('../authentication/login.html');
             return;
         }
