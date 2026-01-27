@@ -87,6 +87,46 @@
             Book a Ride
         </button>
     </div>
+
+    <!-- Rating Modal -->
+    <div id="rating-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-fadeIn">
+            <div class="p-8 space-y-6">
+                <div class="text-center space-y-2">
+                    <h3 class="text-xl font-black uppercase tracking-tight">Rate Your Trip</h3>
+                    <p class="text-xs font-bold opacity-40 uppercase tracking-widest">How was your experience?</p>
+                </div>
+
+                <!-- Star Rating -->
+                <div id="rating-stars" class="flex justify-center gap-3 py-4">
+                    <i class="far fa-star text-2xl cursor-pointer text-slate-300 dark:text-slate-600 transition-colors" onclick="setRating(1)"></i>
+                    <i class="far fa-star text-2xl cursor-pointer text-slate-300 dark:text-slate-600 transition-colors" onclick="setRating(2)"></i>
+                    <i class="far fa-star text-2xl cursor-pointer text-slate-300 dark:text-slate-600 transition-colors" onclick="setRating(3)"></i>
+                    <i class="far fa-star text-2xl cursor-pointer text-slate-300 dark:text-slate-600 transition-colors" onclick="setRating(4)"></i>
+                    <i class="far fa-star text-2xl cursor-pointer text-slate-300 dark:text-slate-600 transition-colors" onclick="setRating(5)"></i>
+                </div>
+
+                <!-- Comment area -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase opacity-40 tracking-widest px-1">Optional Comment</label>
+                    <label for="rating-comment"></label><textarea id="rating-comment" rows="4" placeholder="Tell us about your experience (optional)"
+                                                                  class="w-full p-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-green-500 outline-none rounded-2xl text-sm font-medium transition resize-none"></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3 pt-4">
+                    <button onclick="closeRatingModal()" 
+                        class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                        Cancel
+                    </button>
+                    <button id="submit-rating-btn" onclick="submitRating()" disabled
+                        class="flex-[2] py-4 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-green-700 transition shadow-xl shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Submit Rating
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <script>
@@ -167,14 +207,39 @@
 
     function createBookingCard(id, booking) {
         const div = document.createElement('div');
-        div.className = 'card p-5 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 space-y-4 animate-fadeIn cursor-pointer hover:scale-[1.01] transition-transform';
+        div.className = 'card p-5 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 space-y-4 animate-fadeIn cursor-pointer hover:scale-[1.01] transition-transform relative overflow-hidden';
 
         const status = (booking.status || 'PENDING').toUpperCase();
         let statusColorClass = 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
         
         if (status === 'PENDING') statusColorClass = 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400';
-        if (status === 'ACCEPTED' || status === 'COMPLETED') statusColorClass = 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+        if (status === 'ACCEPTED' || status === 'ON_TRIP' || status === 'COMPLETED') statusColorClass = 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-amber-400';
         if (status === 'CANCELLED') statusColorClass = 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
+
+        // Add COMPLETED green border if completed
+        if (status === 'COMPLETED') {
+            div.classList.add('border-l-4', 'border-l-green-500');
+        }
+
+        let ratingHtml = '';
+        if (status === 'COMPLETED') {
+            if (booking.rating) {
+                ratingHtml = `
+                    <div class="flex gap-0.5 text-amber-400 text-[10px]" id="rating-display-${id}">
+                        ${Array(5).fill(0).map((_, i) => `<i class="${i < booking.rating ? 'fas' : 'far'} fa-star"></i>`).join('')}
+                    </div>
+                `;
+            } else {
+                ratingHtml = `
+                    <div id="rating-container-${id}">
+                        <button onclick="event.stopPropagation(); openRatingModal('${id}', '${booking.driverUid}')" 
+                            class="px-4 py-1.5 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-green-700 transition shadow-lg shadow-green-500/20">
+                            Rate Driver
+                        </button>
+                    </div>
+                `;
+            }
+        }
 
         div.innerHTML = `
             <div class="flex justify-between items-start">
@@ -182,9 +247,12 @@
                     <p class="text-[10px] font-black uppercase opacity-40 tracking-widest">${booking.whenText || 'Date Unknown'}</p>
                     <h3 class="font-black text-sm uppercase">${booking.driverDisplayName || 'Unknown Driver'}</h3>
                 </div>
-                <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${statusColorClass}">
-                    ${status}
-                </span>
+                <div class="flex flex-col items-end gap-2">
+                    <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${statusColorClass}">
+                        ${status}
+                    </span>
+                    ${ratingHtml}
+                </div>
             </div>
 
             <div class="flex gap-4 items-center">
@@ -211,6 +279,131 @@
             </div>
         `;
         return div;
+    }
+
+    let activeBookingId = null;
+    let activeDriverUid = null;
+    let selectedRating = 0;
+
+    function openRatingModal(bookingId, driverUid) {
+        activeBookingId = bookingId;
+        activeDriverUid = driverUid;
+        selectedRating = 0;
+        
+        // Reset Modal UI
+        document.querySelectorAll('#rating-stars i').forEach(star => {
+            star.className = 'far fa-star text-2xl cursor-pointer text-slate-300 dark:text-slate-600 transition-colors';
+        });
+        document.getElementById('rating-comment').value = '';
+        document.getElementById('submit-rating-btn').disabled = true;
+        document.getElementById('submit-rating-btn').innerHTML = 'Submit Rating';
+        
+        document.getElementById('rating-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeRatingModal() {
+        document.getElementById('rating-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function setRating(rating) {
+        selectedRating = rating;
+        const stars = document.querySelectorAll('#rating-stars i');
+        stars.forEach((star, i) => {
+            if (i < rating) {
+                star.className = 'fas fa-star text-2xl cursor-pointer text-amber-400 transition-colors';
+            } else {
+                star.className = 'far fa-star text-2xl cursor-pointer text-slate-300 dark:text-slate-600 transition-colors';
+            }
+        });
+        document.getElementById('submit-rating-btn').disabled = rating === 0;
+    }
+
+    async function submitRating() {
+        if (!selectedRating || !activeBookingId || !activeDriverUid) return;
+
+        const btn = document.getElementById('submit-rating-btn');
+        const comment = document.getElementById('rating-comment').value.trim();
+        
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner animate-spin mr-2"></i> Submitting...`;
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                // 1. Read Booking
+                const bookingRef = db.collection('kasilayn').doc('fleet').collection('bookings').doc(activeBookingId);
+                const bookingDoc = await transaction.get(bookingRef);
+                if (!bookingDoc.exists) throw new Error("Booking not found");
+                
+                // 2. Read Driver
+                const driverRef = db.collection('kasilayn').doc('fleet').collection('drivers').doc(activeDriverUid);
+                const driverDoc = await transaction.get(driverRef);
+                if (!driverDoc.exists) throw new Error("Driver not found");
+                
+                const driverData = driverDoc.data();
+                const stats = driverData.stats || {};
+                const currentAvg = stats.rating || 0;
+                const totalRatings = stats.totalRatings || 0;
+                
+                // 3. Calculate New Average
+                const newTotal = totalRatings + 1;
+                const newAverage = ((currentAvg * totalRatings) + selectedRating) / newTotal;
+                
+                // 4. Update Booking
+                transaction.update(bookingRef, {
+                    rating: selectedRating,
+                    ratingComment: comment,
+                    ratedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // 5. Update Driver
+                transaction.update(driverRef, {
+                    'stats.rating': newAverage,
+                    'stats.totalRatings': newTotal
+                });
+            });
+
+            // Success
+            closeRatingModal();
+            showToast("Thank you for your feedback!", "success");
+
+            // UI Update: Replace button with stars immediately
+            const container = document.getElementById(`rating-container-${activeBookingId}`);
+            if (container) {
+                container.innerHTML = `
+                    <div class="flex gap-0.5 text-amber-400 text-[10px]">
+                        ${Array(5).fill(0).map((_, i) => `<i class="${i < selectedRating ? 'fas' : 'far'} fa-star"></i>`).join('')}
+                    </div>
+                `;
+            }
+            
+        } catch (error) {
+            console.error("Rating submission error:", error);
+            btn.disabled = false;
+            btn.innerHTML = 'Submit Rating';
+            showToast("Could not submit rating. Please try again.", "error");
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-white text-xs font-black uppercase tracking-widest shadow-2xl z-[100] transition-all transform translate-y-20 opacity-0`;
+        toast.style.backgroundColor = type === 'success' ? '#10b981' : '#ef4444';
+        toast.textContent = message;
+        
+        document.body.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => {
+            toast.classList.remove('translate-y-20', 'opacity-0');
+        }, 100);
+        
+        // Remove after 3s
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
     }
 </script>
 
