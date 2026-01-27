@@ -21,6 +21,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="../../scripts/firebase.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="../../scripts/theme.js" defer></script>
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
 
@@ -30,6 +31,25 @@
             <i class="fas fa-arrow-left"></i>
         </button>
         <h1 class="text-xl font-black uppercase tracking-tight">Join the Fleet</h1>
+    </div>
+    <div id="hamburger-menu" class="relative z-50">
+        <button id="hamburger-btn" class="p-3 rounded-full bg-green-600 text-white shadow-lg hover:bg-green-700 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        <div id="menu-items" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl py-2 ring-1 ring-black ring-opacity-5 border border-slate-100 dark:border-slate-700">
+            <button id="menu-theme-toggle" class="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3">
+                <span id="menu-theme-icon">🌓</span> Mode
+            </button>
+            <div class="border-t border-gray-100 dark:border-slate-700 my-1"></div>
+            <a href="../../index.html" class="block w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3">
+                <i class="fas fa-home w-4 text-center"></i> Home
+            </a>
+            <button id="logout-btn" class="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
+                <i class="fas fa-sign-out-alt w-4 text-center"></i> Logout
+            </button>
+        </div>
     </div>
 </header>
 
@@ -146,16 +166,47 @@
     let currentUser = null;
 
     // Initialize
-    firebase.auth().onAuthStateChanged(user => {
-        if (!user) {
-            window.location.href = '../../authentication/login.html';
-            return;
+    document.addEventListener('DOMContentLoaded', () => {
+        // Hamburger Menu Logic
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const menuItems = document.getElementById('menu-items');
+
+        if (hamburgerBtn && menuItems) {
+            hamburgerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuItems.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', () => {
+                menuItems.classList.add('hidden');
+            });
+
+            menuItems.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
         }
-        currentUser = user;
-        document.getElementById('display-name').value = user.displayName || '';
-        
-        // Check if already a driver
-        checkDriverStatus(user.uid);
+
+        // Logout Logic
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                firebase.auth().signOut().then(() => {
+                    window.location.href = '../../authentication/login.html';
+                });
+            });
+        }
+
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = '../../authentication/login.html';
+                return;
+            }
+            currentUser = user;
+            document.getElementById('display-name').value = user.displayName || '';
+            
+            // Check if already a driver
+            checkDriverStatus(user.uid);
+        });
     });
 
     async function checkDriverStatus(uid) {
