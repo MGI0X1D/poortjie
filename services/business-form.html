@@ -20,9 +20,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
           integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
-    <!-- Cropper.js -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="../scripts/loader.js"></script>
     <script src="../scripts/time-schedule.js"></script>
 </head>
@@ -404,16 +401,6 @@
     const saveGalleryBtn = document.getElementById('save-gallery');
     const galleryGrid = document.getElementById('gallery-grid');
     let uploadedPhotos = []; // Array of URLs
-    let cropper = null;
-    let currentSlotIndex = null;
-    let currentSlotElement = null;
-
-    const cropModal = document.getElementById('crop-modal');
-    const cropImage = document.getElementById('crop-image');
-    const applyCropBtn = document.getElementById('apply-crop');
-    const cancelCropBtn = document.getElementById('cancel-crop');
-    const rotateLeftBtn = document.getElementById('rotate-left');
-    const rotateRightBtn = document.getElementById('rotate-right');
     let userCategories = [];
 
     newListingBtn.addEventListener('click', () => {
@@ -435,12 +422,12 @@
             if (currentEditingAppId) {
                 const app = applications.find(a => a.id === currentEditingAppId);
                 const appRef = db.collection('poortjie').doc('applications').collection('listings').doc(currentEditingAppId);
-                
+
                 // Only touch the DB if it's currently in a 'pending' state (meaning it's a submitted update/listing)
                 if (app && app.status === 'pending') {
                     try {
                         if (app.businessRef) {
-                            // If it has a businessRef and is pending, it's a submitted edit. 
+                            // If it has a businessRef and is pending, it's a submitted edit.
                             // Revert to approved and strip draft data.
                             const updateData = {
                                 ownerName: firebase.firestore.FieldValue.delete(),
@@ -656,123 +643,109 @@
                     </label>
                 `;
                 const fileInput = slot.querySelector('.photo-upload-input');
-                fileInput.onchange = (e) => {
+                fileInput.onchange = async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
 
-                    currentSlotIndex = i;
-                    currentSlotElement = slot;
+                    // Show local loader
+                    slot.innerHTML = `
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
+                            <span class="text-[8px] font-bold opacity-50 uppercase">Processing...</span>
+                        </div>
+                    `;
 
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        cropImage.src = event.target.result;
-                        cropModal.classList.remove('hidden');
+                    try {
+                        const user = auth.currentUser;
+                        if (!user) throw new Error("User not authenticated.");
 
-                        if (cropper) {
-                            cropper.destroy();
+                        // Resize and Crop Image to 1:1 and ensure < 1MB
+                        const processImage = (file) => {
+                            return new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        const canvas = document.createElement('canvas');
+                                        let width = img.width;
+                                        let height = img.height;
+
+                                        // 1:1 Crop logic
+                                        let size = Math.min(width, height);
+                                        let xOffset = (width - size) / 2;
+                                        let yOffset = (height - size) / 2;
+
+                                        const MAX_DIM = 1200;
+                                        let targetSize = Math.min(size, MAX_DIM);
+
+                                        canvas.width = targetSize;
+                                        canvas.height = targetSize;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, xOffset, yOffset, size, size, 0, 0, targetSize, targetSize);
+
+                                        let quality = 0.9;
+                                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+                                        while (dataUrl.length * 0.75 > 1024 * 1024 && quality > 0.1) {
+                                            quality -= 0.1;
+                                            dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                        }
+
+                                        // Convert dataUrl back to Blob for Firebase Upload
+                                        fetch(dataUrl)
+                                            .then(res => res.blob())
+                                            .then(blob => resolve(blob))
+                                            .catch(reject);
+                                    };
+                                    img.onerror = reject;
+                                    img.src = event.target.result;
+                                };
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                            });
+                        };
+
+                        const processedBlob = await processImage(file);
+
+                        // Update loader text
+                        slot.querySelector('span').textContent = 'Uploading...';
+
+                        const fileName = `${Date.now()}_${i}`;
+                        const storageRef = firebase.storage().ref(`business-photos/${user.uid}/${fileName}`);
+                        const snapshot = await storageRef.put(processedBlob);
+                        const url = await snapshot.ref.getDownloadURL();
+
+                        uploadedPhotos.push(url);
+                        renderGallery();
+                        updatePhotosSummary();
+                    } catch (error) {
+                        console.error("Upload failed:", error);
+                        let friendlyMsg = 'Upload failed: ' + error.message;
+
+                        // Check for CORS or Network errors
+                        const isCorsError = error.message && (
+                            error.message.includes('CORS') ||
+                            error.message.includes('preflight') ||
+                            error.message.includes('access control check')
+                        );
+
+                        if (location.protocol === 'file:') {
+                            friendlyMsg = 'Photo upload is not supported when opening the file directly (file://). Please host the website or use a local server.';
+                        } else if (isCorsError) {
+                            friendlyMsg = 'Upload blocked by CORS policy. Please ensure your Firebase Storage bucket is configured to allow requests from ' + window.location.origin + '.';
+                        } else if (error.code === 'storage/unauthorized') {
+                            friendlyMsg = 'You do not have permission to upload photos. Please try logging out and back in.';
+                        } else if (error.code === 'storage/retry-limit-exceeded') {
+                            friendlyMsg = 'Upload took too long. Please check your internet connection.';
                         }
-
-                        cropper = new Cropper(cropImage, {
-                            aspectRatio: 1,
-                            viewMode: 1,
-                            guides: true,
-                            background: false,
-                            autoCropArea: 1,
-                            responsive: true
-                        });
-                    };
-                    reader.readAsDataURL(file);
+                        alert(friendlyMsg);
+                        renderGallery();
+                    }
                 };
             }
             galleryGrid.appendChild(slot);
         }
     };
-
-    applyCropBtn.addEventListener('click', async () => {
-        if (!cropper) return;
-
-        const slot = currentSlotElement;
-        const i = currentSlotIndex;
-
-        // Show local loader
-        slot.innerHTML = `
-            <div class="flex flex-col items-center gap-2">
-                <div class="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
-                <span class="text-[8px] font-bold opacity-50 uppercase">Processing...</span>
-            </div>
-        `;
-
-        const canvas = cropper.getCroppedCanvas({
-            width: 1200,
-            height: 1200
-        });
-
-        let quality = 0.9;
-        let dataUrl = canvas.toDataURL('image/jpeg', quality);
-
-        while (dataUrl.length * 0.75 > 1024 * 1024 && quality > 0.1) {
-            quality -= 0.1;
-            dataUrl = canvas.toDataURL('image/jpeg', quality);
-        }
-
-        cropModal.classList.add('hidden');
-        cropper.destroy();
-        cropper = null;
-
-        try {
-            const user = auth.currentUser;
-            if (!user) throw new Error("User not authenticated.");
-
-            const response = await fetch(dataUrl);
-            const processedBlob = await response.blob();
-
-            // Update loader text
-            slot.querySelector('span').textContent = 'Uploading...';
-
-            const fileName = `${Date.now()}_${i}`;
-            const storageRef = firebase.storage().ref(`business-photos/${user.uid}/${fileName}`);
-            const snapshot = await storageRef.put(processedBlob);
-            const url = await snapshot.ref.getDownloadURL();
-
-            uploadedPhotos.push(url);
-            renderGallery();
-            updatePhotosSummary();
-        } catch (error) {
-            console.error("Upload failed:", error);
-            let friendlyMsg = 'Upload failed: ' + error.message;
-
-            // Check for CORS or Network errors
-            const isCorsError = error.message && (
-                error.message.includes('CORS') ||
-                error.message.includes('preflight') ||
-                error.message.includes('access control check')
-            );
-
-            if (location.protocol === 'file:') {
-                friendlyMsg = 'Photo upload is not supported when opening the file directly (file://). Please host the website or use a local server.';
-            } else if (isCorsError) {
-                friendlyMsg = 'Upload blocked by CORS policy. Please ensure your Firebase Storage bucket is configured to allow requests from ' + window.location.origin + '.';
-            } else if (error.code === 'storage/unauthorized') {
-                friendlyMsg = 'You do not have permission to upload photos. Please try logging out and back in.';
-            } else if (error.code === 'storage/retry-limit-exceeded') {
-                friendlyMsg = 'Upload took too long. Please check your internet connection.';
-            }
-
-            alert(friendlyMsg);
-            renderGallery();
-        }
-    });
-
-    cancelCropBtn.addEventListener('click', () => {
-        cropModal.classList.add('hidden');
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
-    });
-
-    rotateLeftBtn.addEventListener('click', () => cropper && cropper.rotate(-90));
-    rotateRightBtn.addEventListener('click', () => cropper && cropper.rotate(90));
 
     const updatePhotosSummary = () => {
         photosInput.value = JSON.stringify(uploadedPhotos);
@@ -1790,33 +1763,5 @@
 </script>
 <script async
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXnSxBam3mjlfEx3F4XL_7ZIwLEbov0n8&loading=async&libraries=places,geometry&callback=initAutocomplete"></script>
-<!-- Crop Modal -->
-<div id="crop-modal" class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-black/90 p-4">
-    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
-        <div class="p-6 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
-            <h3 class="font-bold text-lg">Crop Business Photo</h3>
-            <button id="cancel-crop" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-        </div>
-        <div class="p-4 max-h-[50vh] flex items-center justify-center bg-gray-50 dark:bg-slate-900">
-            <img id="crop-image" src="" class="max-w-full">
-        </div>
-        <div class="p-6 flex gap-3">
-            <button id="rotate-left" class="flex-1 py-3 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition font-bold text-xs uppercase tracking-widest">
-                <i class="fa-solid fa-undo mr-1"></i> Left
-            </button>
-            <button id="rotate-right" class="flex-1 py-3 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition font-bold text-xs uppercase tracking-widest">
-                <i class="fa-solid fa-redo mr-1"></i> Right
-            </button>
-        </div>
-        <div class="p-6 bg-gray-50 dark:bg-slate-900 flex gap-3">
-            <button id="apply-crop" class="flex-[2] py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition font-bold uppercase tracking-widest shadow-lg shadow-green-500/20">
-                Apply Crop
-            </button>
-        </div>
-    </div>
-</div>
-
 </body>
 </html>
