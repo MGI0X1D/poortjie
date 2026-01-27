@@ -110,7 +110,8 @@
                     <div class="flex-grow space-y-4 w-full">
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Full Name</label>
-                            <input type="text" id="display-name" required placeholder="Enter your full name" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                            <input type="text" id="display-name" placeholder="Enter your full name" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                            <p id="error-display-name" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
                         </div>
                     </div>
                 </div>
@@ -130,25 +131,29 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Registration Number</label>
+                        <input type="text" id="car-registration" placeholder="e.g. FGP123GP" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase" pattern="^[A-Z0-9]{1,10}$" title="Only uppercase letters and numbers, max 10 characters, no spaces allowed.">
+                        <p id="error-car-registration" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
+                    </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Make</label>
-                        <input type="text" id="car-make" required placeholder="e.g. Toyota" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                        <input type="text" id="car-make" placeholder="e.g. Toyota" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                        <p id="error-car-make" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Model</label>
-                        <input type="text" id="car-model" required placeholder="e.g. Corolla" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Registration Number</label>
-                        <input type="text" id="car-registration" required placeholder="e.g. FGP123GP" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase" pattern="^[A-Z0-9]{1,10}$" title="Only uppercase letters and numbers, max 10 characters, no spaces allowed.">
+                        <input type="text" id="car-model" placeholder="e.g. Corolla" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                        <p id="error-car-model" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Color</label>
-                        <input type="text" id="car-color" required placeholder="e.g. White" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                        <input type="text" id="car-color" placeholder="e.g. White" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                        <p id="error-car-color" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Body Type</label>
-                        <select id="car-body-type" required class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition appearance-none">
+                        <select id="car-body-type" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition appearance-none">
                             <option value="AMBULANCE">Ambulance</option>
                             <option value="BAKKIE">Bakkie</option>
                             <option value="BIKE">Bike</option>
@@ -174,11 +179,11 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Available Seats</label>
-                        <input type="number" id="car-seats" required min="1" max="60" value="4" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        <input type="number" id="car-seats" min="1" max="60" value="4" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Year of Manufacture</label>
-                        <input type="number" id="car-year" required min="1990" max="2026" value="2024" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        <input type="number" id="car-year" min="1990" max="2026" value="2024" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
                     </div>
                 </div>
 
@@ -321,7 +326,7 @@
             });
         }
 
-        // Real-time uppercase for car registration and others
+        // Real-time uppercase and validation for car registration and others
         const uppercaseInputs = ['car-registration', 'car-make', 'car-model', 'car-color', 'display-name'];
         uppercaseInputs.forEach(id => {
             const el = document.getElementById(id);
@@ -329,11 +334,60 @@
                 el.addEventListener('input', (e) => {
                     const start = e.target.selectionStart;
                     const end = e.target.selectionEnd;
-                    e.target.value = e.target.value.toUpperCase();
+                    
+                    // Specific logic for registration: no spaces
+                    if (id === 'car-registration') {
+                        e.target.value = e.target.value.replace(/\s/g, '').toUpperCase();
+                    } else {
+                        e.target.value = e.target.value.toUpperCase();
+                    }
+                    
                     e.target.setSelectionRange(start, end);
+                    
+                    // Clear error when user starts typing
+                    hideError(id);
                 });
             }
         });
+
+        // Car registration specific check
+        const regInput = document.getElementById('car-registration');
+        if (regInput) {
+            regInput.addEventListener('blur', async () => {
+                const reg = regInput.value.trim().toUpperCase();
+                if (reg.length >= 3) {
+                    const isUpdate = document.getElementById('submit-btn').textContent.includes("Update");
+                    if (!isUpdate) {
+                        const carSnap = await db.collection('kasilayn').doc('fleet').collection('cars').doc(reg).get();
+                        if (carSnap.exists) {
+                            const carData = carSnap.data();
+                            // Even if it exists, check if it belongs to the CURRENT user
+                            if (carData.addedByUid && carData.addedByUid === currentUser.uid) {
+                                // It's their own car, they can continue
+                                hideError('car-registration');
+                                setVehicleFieldsDisabled(false);
+                            } else {
+                                showFieldError('car-registration', "This vehicle is already registered by someone else.");
+                                // Disable other fields to prevent user from continuing
+                                setVehicleFieldsDisabled(true);
+                            }
+                        } else {
+                            hideError('car-registration');
+                            setVehicleFieldsDisabled(false);
+                        }
+                    }
+                }
+            });
+        }
+
+        function setVehicleFieldsDisabled(disabled) {
+            const fields = ['car-make', 'car-model', 'car-color', 'car-body-type', 'car-seats', 'car-year'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = disabled;
+            });
+            // Also handle photos if needed, but the user specifically mentioned filling in the form
+        }
 
         if (cancelCropBtn) {
             cancelCropBtn.addEventListener('click', () => {
@@ -412,9 +466,13 @@
                     
                     const lockFieldIfPresent = (id, value) => {
                         const el = document.getElementById(id);
-                        if (value && value.toString().trim() !== "") {
-                            el.value = value;
-                            el.disabled = true;
+                        if (el) {
+                            if (value !== undefined && value !== null && value.toString().trim() !== "") {
+                                el.value = value;
+                                el.disabled = true;
+                            } else {
+                                el.disabled = false;
+                            }
                         }
                     };
 
@@ -426,6 +484,8 @@
                     if (carData.bodyType) {
                         document.getElementById('car-body-type').value = carData.bodyType;
                         document.getElementById('car-body-type').disabled = true;
+                    } else {
+                        document.getElementById('car-body-type').disabled = false;
                     }
                     
                     lockFieldIfPresent('car-seats', carData.seats);
@@ -518,11 +578,11 @@
         row.innerHTML = `
             <div class="flex-grow">
                 <label class="block text-[8px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Destination</label>
-                <input type="text" name="fixed-dest" required value="${destination}" placeholder="e.g. Lenasia" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-2 text-xs font-bold outline-none transition uppercase">
+                <input type="text" name="fixed-dest" value="${destination}" placeholder="e.g. Lenasia" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-2 text-xs font-bold outline-none transition uppercase">
             </div>
             <div class="w-24">
                 <label class="block text-[8px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Price (R)</label>
-                <input type="number" name="fixed-price" required min="1" step="0.01" value="${amount}" placeholder="500" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-2 text-xs font-bold outline-none transition text-right">
+                <input type="number" name="fixed-price" min="1" step="0.01" value="${amount}" placeholder="500" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-2 text-xs font-bold outline-none transition text-right">
             </div>
             <button type="button" onclick="document.getElementById('${rowId}').remove()" class="p-2.5 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl hover:bg-red-100 transition">
                 <i class="fas fa-trash-alt"></i>
@@ -551,6 +611,40 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function showFieldError(fieldId, msg) {
+        const errorEl = document.getElementById(`error-${fieldId}`);
+        const inputEl = document.getElementById(fieldId);
+        if (errorEl) {
+            errorEl.textContent = msg;
+            errorEl.classList.remove('hidden');
+        }
+        if (inputEl) {
+            inputEl.classList.add('border-red-500');
+            inputEl.classList.remove('focus:border-green-500');
+        }
+    }
+
+    function hideError(fieldId) {
+        const errorEl = document.getElementById(`error-${fieldId}`);
+        const inputEl = document.getElementById(fieldId);
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+        }
+        if (inputEl) {
+            inputEl.classList.remove('border-red-500');
+            // If car registration is taken and we are typing to fix it, 
+            // the fields might still be disabled. 
+            // But usually hideError is called on 'input' event.
+            if (fieldId === 'car-registration') {
+                const isUpdate = document.getElementById('submit-btn').textContent.includes("Update");
+                if (!isUpdate) {
+                    setVehicleFieldsDisabled(false);
+                }
+            }
+            inputEl.classList.add('focus:border-green-500');
+        }
+    }
+
     function toggleLoader(show, text = "Processing...") {
         const loader = document.getElementById('loader-overlay');
         document.getElementById('loader-text').textContent = text;
@@ -566,8 +660,10 @@
         e.preventDefault();
         if (!currentUser) return;
 
-        toggleLoader(true, "Promoting to Driver...");
+        // Reset errors
+        ['car-registration', 'car-make', 'car-model', 'car-color', 'display-name'].forEach(id => hideError(id));
 
+        const displayName = document.getElementById('display-name').value.trim();
         const carMake = document.getElementById('car-make').value.trim();
         const carModel = document.getElementById('car-model').value.trim();
         const carReg = document.getElementById('car-registration').value.toUpperCase().trim();
@@ -576,18 +672,41 @@
         const carSeats = parseInt(document.getElementById('car-seats').value);
         const carYear = parseInt(document.getElementById('car-year').value);
         
+        let hasError = false;
+
+        if (!displayName) {
+            showFieldError('display-name', "Full name is required.");
+            hasError = true;
+        }
+
         // Basic validation
         if (!carReg || carReg.length < 3) {
-            showStatus("Please enter a valid registration number.", "error");
-            toggleLoader(false);
+            showFieldError('car-registration', "Please enter a valid registration number (min 3 chars).");
+            hasError = true;
+        }
+
+        if (!carMake) {
+            showFieldError('car-make', "Vehicle make is required.");
+            hasError = true;
+        }
+
+        if (!carModel) {
+            showFieldError('car-model', "Vehicle model is required.");
+            hasError = true;
+        }
+
+        if (!carColor) {
+            showFieldError('car-color', "Vehicle color is required.");
+            hasError = true;
+        }
+
+        if (hasError) {
+            const firstError = document.querySelector('[id^="error-"]:not(.hidden)');
+            if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
-        if (!carMake || !carModel || !carColor) {
-            showStatus("Please fill in all vehicle details.", "error");
-            toggleLoader(false);
-            return;
-        }
+        toggleLoader(true, "Promoting to Driver...");
 
         // Check if car details were disabled (meaning we are only updating pricing)
         const isCarLocked = document.getElementById('car-make').disabled;
@@ -635,9 +754,22 @@
 
                 // 2. Pre-condition Check
                 const driverDoc = await transaction.get(driverRef);
+                const carSnap = await transaction.get(carRef);
                 const isUpdate = document.getElementById('submit-btn').textContent.includes("Update");
+                
+                // 2. Pre-condition Checks
                 if (!isUpdate && driverDoc.exists) {
                     throw new Error("ALREADY_DRIVER");
+                }
+
+                // IMPORTANT: Check if car is already registered to someone else
+                if (carSnap.exists) {
+                    const carData = carSnap.data();
+                    // If we are NOT in update mode, and the car exists, it's an error
+                    // If we ARE in update mode, but the car's owner is NOT the current user, it's an error
+                    if (!isUpdate || (carData.addedByUid && carData.addedByUid !== uid)) {
+                        throw new Error("CAR_ALREADY_REGISTERED");
+                    }
                 }
 
                 // 3. Create/Update Driver Document
@@ -712,6 +844,10 @@
             console.error("Registration error:", error);
             if (error.message === "ALREADY_DRIVER") {
                 showStatus("You are already registered as a driver.", "error");
+            } else if (error.message === "CAR_ALREADY_REGISTERED") {
+                showFieldError('car-registration', "This vehicle is already registered by someone else.");
+                showStatus("This vehicle is already registered by someone else. Please use a different registration number.", "error");
+                setVehicleFieldsDisabled(true);
             } else {
                 showStatus("Failed to register: " + error.message, "error");
             }
