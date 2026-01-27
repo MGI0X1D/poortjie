@@ -103,7 +103,7 @@
                     <i class="fas fa-star mr-1"></i> 5.0
                 </span>
                 <span id="driver-trips" class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                    0 Trips
+                    -- Trips
                 </span>
             </div>
         </div>
@@ -212,14 +212,18 @@
     let currentTripFilter = 'ACTIVE';
     let tripsUnsubscribe = null;
 
+    let driverUnsubscribe = null;
+
     firebase.auth().onAuthStateChanged(user => {
         if (!user) {
+            if (driverUnsubscribe) driverUnsubscribe();
+            if (tripsUnsubscribe) tripsUnsubscribe();
             sessionStorage.setItem('redirectUrl', window.location.href);
             window.location.href = '../../authentication/login.html';
             return;
         }
         currentUser = user;
-        loadDriverProfile();
+        observeDriverProfile();
     });
 
     // Initialize Hamburger Menu and Logout
@@ -252,67 +256,102 @@
         }
     });
 
-    async function loadDriverProfile() {
-        try {
-            const driverSnap = await db.collection('kasilayn').doc('fleet').collection('drivers').doc(currentUser.uid).get();
-            if (!driverSnap.exists) {
-                // Not a driver, send to registration
-                window.location.href = 'register-driver.html';
-                return;
-            }
-            driverData = driverSnap.data();
-            
-            // Render Driver Info
-            document.getElementById('driver-name').textContent = driverData.displayName || 'Unknown';
-            document.getElementById('driver-email').textContent = driverData.email || '--';
-            if (driverData.photoUrl) document.getElementById('driver-photo').src = driverData.photoUrl;
+    function observeDriverProfile() {
+        if (driverUnsubscribe) driverUnsubscribe();
 
-            // Render Stats
-            const stats = driverData.stats || {};
-            const rating = stats.rating || 0;
-            const totalRatings = stats.totalRatings || 0;
-            const totalTrips = stats.totalTrips || 0;
+        driverUnsubscribe = db.collection('kasilayn').doc('fleet').collection('drivers').doc(currentUser.uid)
+            .onSnapshot(doc => {
+                if (!doc.exists) {
+                    // Not a driver, send to registration
+                    window.location.href = 'register-driver.html';
+                    return;
+                }
+                driverData = doc.data();
+                
+                // Render Driver Info
+                document.getElementById('driver-name').textContent = driverData.displayName || 'Unknown';
+                document.getElementById('driver-email').textContent = driverData.email || '--';
+                if (driverData.photoUrl) document.getElementById('driver-photo').src = driverData.photoUrl;
 
-            document.getElementById('driver-rating').innerHTML = `<i class="fas fa-star mr-1"></i> ${rating.toFixed(1)} (${totalRatings})`;
-            document.getElementById('driver-trips').textContent = `${totalTrips} Trips`;
-            
-            // Update Status Toggle
-            const status = (driverData.status || 'OFFLINE').toUpperCase();
-            document.getElementById('status-toggle').checked = (status === 'ONLINE' || status === 'AVAILABLE');
-            updateStatusBadge(status);
+                // Render Stats
+                const stats = driverData.stats || {};
+                const rating = stats.rating || 5.0;
+                const totalRatings = stats.totalRatings || 0;
+                
+                // Fallback: If stats.totalTrips is 0 or missing, let's also count completed trips in history
+                // to be sure we are showing the "actual" number of trips
+                let totalTrips = stats.totalTrips || 0;
 
-            // Start listening for bookings
-            observeBookings();
+                document.getElementById('driver-rating').innerHTML = `<i class="fas fa-star mr-1"></i> ${rating.toFixed(1)} (${totalRatings})`;
+                document.getElementById('driver-trips').textContent = `${totalTrips} ${totalTrips === 1 ? 'Trip' : 'Trips'}`;
 
-            // Load Car Data
-            let carReg = driverData.carRegistration;
-            if (!carReg && driverData.carRef) {
-                carReg = driverData.carRef.id;
-            }
+                // If it shows 0, double check with the collection count for this driver
+                if (totalTrips === 0) {
+                    db.collection('kasilayn').doc('fleet').collection('bookings')
+                        .where('driverUid', '==', currentUser.uid)
+                        .where('status', '==', 'COMPLETED')
+                        .get()
+                        .then(snap => {
+                            if (!snap.empty && snap.size > 0) {
+                                totalTrips = snap.size;
+                                document.getElementById('driver-trips').textContent = `${totalTrips} ${totalTrips === 1 ? 'Trip' : 'Trips'}`;
+                                
+                                // Sync back to driver doc if it was out of sync (optional but good for performance next time)
+                                db.collection('kasilayn').doc('fleet').collection('drivers').doc(currentUser.uid).update({
+                                    'stats.totalTrips': totalTrips
+                                }).catch(e => console.error("Sync error:", e));
+                            }
+                        });
+                }
+                
+                // Update Status Toggle
+                const status = (driverData.status || 'OFFLINE').toUpperCase();
+                document.getElementById('status-toggle').checked = (status === 'ONLINE' || status === 'AVAILABLE');
+                updateStatusBadge(status);
 
-            if (carReg) {
-                const carSnap = await db.collection('kasilayn').doc('fleet').collection('cars').doc(carReg).get();
-                if (carSnap.exists) {
-                    carData = carSnap.data();
-                    renderCarUI();
-                    document.getElementById('edit-car-btn').classList.remove('hidden');
+                // Start listening for bookings (only once or if filter changes)
+                if (!tripsUnsubscribe) {
+                    observeBookings();
+                }
 
-                    // Render Car Photo
-                    const carPhotoImg = document.getElementById('car-photo-display');
-                    if (carPhotoImg && carData.photoUrls && carData.photoUrls.length > 0) {
-                        carPhotoImg.src = carData.photoUrls[0];
-                    }
-                } else {
+                // Load Car Data (one-time or also on change? Let's do one-time for car unless reg changes)
+                let carReg = driverData.carRegistration;
+                if (!carReg && driverData.carRef) {
+                    carReg = driverData.carRef.id;
+                }
+
+                if (carReg && (!carData || carData.registration !== carReg)) {
+                    loadCarData(carReg);
+                } else if (!carReg) {
                     document.getElementById('add-car-btn').classList.remove('hidden');
+                }
+
+                document.getElementById('loader-overlay').classList.add('hidden');
+            }, error => {
+                console.error("Driver profile listener error:", error);
+            });
+    }
+
+    async function loadCarData(carReg) {
+        try {
+            const carSnap = await db.collection('kasilayn').doc('fleet').collection('cars').doc(carReg).get();
+            if (carSnap.exists) {
+                carData = carSnap.data();
+                renderCarUI();
+                document.getElementById('edit-car-btn').classList.remove('hidden');
+                document.getElementById('add-car-btn').classList.add('hidden');
+
+                // Render Car Photo
+                const carPhotoImg = document.getElementById('car-photo-display');
+                if (carPhotoImg && carData.photoUrls && carData.photoUrls.length > 0) {
+                    carPhotoImg.src = carData.photoUrls[0];
                 }
             } else {
                 document.getElementById('add-car-btn').classList.remove('hidden');
+                document.getElementById('edit-car-btn').classList.add('hidden');
             }
-
         } catch (e) {
-            console.error("Error loading profile:", e);
-        } finally {
-            document.getElementById('loader-overlay').classList.add('hidden');
+            console.error("Error loading car data:", e);
         }
     }
 
@@ -534,12 +573,14 @@
                     const tripRef = db.collection('kasilayn').doc('fleet').collection('bookings').doc(tripId);
                     const driverRef = db.collection('kasilayn').doc('fleet').collection('drivers').doc(currentUser.uid);
 
-                    const tripDoc = await transaction.get(tripRef);
-                    if (!tripDoc.exists) throw new Error("Trip not found");
+                    const driverSnap = await transaction.get(driverRef);
+                    const driverData = driverSnap.data() || {};
+                    const stats = driverData.stats || {};
+                    const currentTotal = stats.totalTrips || 0;
 
                     transaction.update(tripRef, updatePayload);
                     transaction.update(driverRef, {
-                        'stats.totalTrips': firebase.firestore.FieldValue.increment(1),
+                        'stats.totalTrips': currentTotal + 1,
                         status: 'ONLINE', // Automatically back to online after completion
                         updatedAt: now
                     });
