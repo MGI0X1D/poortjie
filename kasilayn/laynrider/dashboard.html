@@ -268,6 +268,8 @@
      * Requests permission to access the user's location.
      */
     function requestLocation() {
+        // Mark as handled whenever requested
+        localStorage.setItem('locationPromptHandled', 'true');
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -563,7 +565,14 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         observeFleet();
-        requestLocation();
+        
+        // Check if we should request location automatically
+        // We only do this once per session or if the user hasn't seen the prompt yet
+        const locationHandled = localStorage.getItem('locationPromptHandled');
+        if (!locationHandled) {
+            requestLocation();
+            localStorage.setItem('locationPromptHandled', 'true');
+        }
 
         // Hamburger Menu Logic
         const hamburgerBtn = document.getElementById('hamburger-btn');

@@ -315,7 +315,14 @@
         });
 
         setupAutocomplete(Autocomplete);
-        requestUserLocation(Geocoder);
+        
+        // Check if we should request location automatically
+        // We only do this once per session or if the user hasn't seen the prompt yet
+        const locationHandled = localStorage.getItem('locationPromptHandled');
+        if (!locationHandled) {
+            requestUserLocation(Geocoder);
+            localStorage.setItem('locationPromptHandled', 'true');
+        }
 
         // Initialize Hamburger Menu and Logout
         const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -449,6 +456,7 @@
 
     // NEW: Request user location to pre-fill pickup
     function requestUserLocation(GeocoderClass) {
+        localStorage.setItem('locationPromptHandled', 'true');
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
