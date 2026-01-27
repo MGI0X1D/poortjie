@@ -11,7 +11,7 @@
         if (window.console && window.console.log) {
             const originalLog = window.console.log;
             window.console.log = function() {
-                if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
                 originalLog.apply(window.console, arguments);
             };
         }
@@ -29,6 +29,7 @@
     <!-- Cropper.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <link rel="manifest" href="../favicon/site.webmanifest">
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
@@ -124,7 +125,7 @@
             </button>
         </div>
         <div class="p-4 max-h-[60vh] flex items-center justify-center bg-gray-50 dark:bg-slate-900">
-            <img id="crop-image" src="" class="max-w-full">
+            <img id="crop-image" src="" class="max-w-full" alt="">
         </div>
         <div class="p-4 flex gap-3">
             <button id="rotate-left" class="flex-1 py-2 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-bold text-xs uppercase tracking-widest">

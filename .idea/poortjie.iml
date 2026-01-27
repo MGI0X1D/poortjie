@@ -18,5 +18,6 @@
     <orderEntry type="library" name="firebase-auth-compat" level="application" />
     <orderEntry type="library" name="font-awesome" level="application" />
     <orderEntry type="library" name="cropperjs" level="application" />
+    <orderEntry type="library" name="firebase-storage-compat" level="application" />
   </component>
 </module>

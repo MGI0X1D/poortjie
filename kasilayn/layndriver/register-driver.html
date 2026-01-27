@@ -6,6 +6,15 @@
     <title>Become a Driver | Poortjie Services</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        if (window.console && window.console.log) {
+            const originalLog = window.console.log;
+            window.console.log = function() {
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
+                originalLog.apply(window.console, arguments);
+            };
+        }
+    </script>
+    <script>
         tailwind.config = {
             darkMode: 'class'
         }
@@ -18,6 +27,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="../../scripts/firebase.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -28,6 +38,7 @@
         #image-modal { background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); transition: all 0.3s ease; }
     </style>
     <script src="../../scripts/theme.js" defer></script>
+    <link rel="manifest" href="../../favicon/site.webmanifest">
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
 
@@ -110,7 +121,7 @@
                     <div class="flex-grow space-y-4 w-full">
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Full Name</label>
-                            <input type="text" id="display-name" placeholder="Enter your full name" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                            <label for="display-name"></label><input type="text" id="display-name" placeholder="Enter your full name" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
                             <p id="error-display-name" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
                         </div>
                     </div>
@@ -138,22 +149,22 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Make</label>
-                        <input type="text" id="car-make" placeholder="e.g. Toyota" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                        <label for="car-make"></label><input type="text" id="car-make" placeholder="e.g. Toyota" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
                         <p id="error-car-make" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Model</label>
-                        <input type="text" id="car-model" placeholder="e.g. Corolla" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                        <label for="car-model"></label><input type="text" id="car-model" placeholder="e.g. Corolla" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
                         <p id="error-car-model" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Color</label>
-                        <input type="text" id="car-color" placeholder="e.g. White" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
+                        <label for="car-color"></label><input type="text" id="car-color" placeholder="e.g. White" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
                         <p id="error-car-color" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 ml-2 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Body Type</label>
-                        <select id="car-body-type" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition appearance-none">
+                        <label for="car-body-type"></label><select id="car-body-type" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition appearance-none">
                             <option value="AMBULANCE">Ambulance</option>
                             <option value="BAKKIE">Bakkie</option>
                             <option value="BIKE">Bike</option>
@@ -179,11 +190,11 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Available Seats</label>
-                        <input type="number" id="car-seats" min="1" max="60" value="4" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        <label for="car-seats"></label><input type="number" id="car-seats" min="1" max="60" value="4" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Year of Manufacture</label>
-                        <input type="number" id="car-year" min="1990" max="2026" value="2024" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        <label for="car-year"></label><input type="number" id="car-year" min="1990" max="2026" value="2024" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
                     </div>
                 </div>
 
@@ -192,7 +203,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <!-- Photo 1 -->
                         <div id="car-photo-1-container" class="w-full h-32 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-green-500 transition group relative overflow-hidden" onclick="document.getElementById('car-photo-1-input').click()">
-                            <img id="car-preview-1" class="hidden w-full h-full object-cover rounded-2xl">
+                            <img id="car-preview-1" class="hidden w-full h-full object-cover rounded-2xl" alt="" src="">
                             <div id="car-upload-placeholder-1" class="flex flex-col items-center">
                                 <i class="fas fa-car text-xl opacity-20 group-hover:text-green-500 transition"></i>
                                 <p class="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Photo 1</p>
@@ -201,7 +212,7 @@
                         </div>
                         <!-- Photo 2 -->
                         <div id="car-photo-2-container" class="w-full h-32 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-green-500 transition group relative overflow-hidden" onclick="document.getElementById('car-photo-2-input').click()">
-                            <img id="car-preview-2" class="hidden w-full h-full object-cover rounded-2xl">
+                            <img id="car-preview-2" class="hidden w-full h-full object-cover rounded-2xl" alt="" src="">
                             <div id="car-upload-placeholder-2" class="flex flex-col items-center">
                                 <i class="fas fa-car text-xl opacity-20 group-hover:text-green-500 transition"></i>
                                 <p class="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Photo 2</p>
@@ -210,7 +221,7 @@
                         </div>
                         <!-- Photo 3 -->
                         <div id="car-photo-3-container" class="w-full h-32 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-green-500 transition group relative overflow-hidden" onclick="document.getElementById('car-photo-3-input').click()">
-                            <img id="car-preview-3" class="hidden w-full h-full object-cover rounded-2xl">
+                            <img id="car-preview-3" class="hidden w-full h-full object-cover rounded-2xl" alt="" src="">
                             <div id="car-upload-placeholder-3" class="flex flex-col items-center">
                                 <i class="fas fa-car text-xl opacity-20 group-hover:text-green-500 transition"></i>
                                 <p class="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Photo 3</p>
@@ -231,11 +242,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Base Fee (R)</label>
-                        <input type="number" id="base-fee" required min="0" value="15" step="0.01" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        <label for="base-fee"></label><input type="number" id="base-fee" required min="0" value="15" step="0.01" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Rate per KM (R)</label>
-                        <input type="number" id="rate-km" required min="0" value="10" step="0.01" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        <label for="rate-km"></label><input type="number" id="rate-km" required min="0" value="10" step="0.01" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
                     </div>
                 </div>
             </section>
@@ -868,7 +879,7 @@
             </button>
         </div>
         <div class="p-4 max-h-[50vh] flex items-center justify-center bg-gray-50 dark:bg-slate-900">
-            <img id="crop-image" src="" class="max-w-full">
+            <img id="crop-image" src="" class="max-w-full" alt="">
         </div>
         <div class="p-6 flex gap-3">
             <button id="rotate-left" class="flex-1 py-3 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition font-black text-[10px] uppercase tracking-widest">

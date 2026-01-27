@@ -6,6 +6,15 @@
     <title>Driver Dashboard | Poortjie Services</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        if (window.console && window.console.log) {
+            const originalLog = window.console.log;
+            window.console.log = function() {
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
+                originalLog.apply(window.console, arguments);
+            };
+        }
+    </script>
+    <script>
         tailwind.config = { darkMode: 'class' }
     </script>
     <link rel="stylesheet" href="../../styles/main.css">
@@ -13,6 +22,7 @@
     <link rel="icon" type="image/png" sizes="96x96" href="../../favicon/favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="../../favicon/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <link rel="manifest" href="../../favicon/site.webmanifest">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -83,7 +93,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Profile Card -->
         <div class="card p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl flex flex-col items-center text-center space-y-4">
-            <img id="driver-photo" src="https://placehold.co/150?text=Driver" class="w-24 h-24 rounded-full object-cover border-4 border-green-500 shadow-md">
+            <img id="driver-photo" src="https://placehold.co/150?text=Driver" class="w-24 h-24 rounded-full object-cover border-4 border-green-500 shadow-md" alt="">
             <div>
                 <h3 id="driver-name" class="font-black text-lg uppercase tracking-tight">--</h3>
                 <p id="driver-email" class="text-xs opacity-50 font-bold">--</p>
@@ -115,7 +125,7 @@
 
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
                 <div class="col-span-2 sm:col-span-1">
-                    <img id="car-photo-display" src="https://placehold.co/200x120?text=Vehicle" class="w-full h-24 object-cover rounded-2xl border border-slate-100 dark:border-slate-700 mb-4 sm:mb-0">
+                    <img id="car-photo-display" src="https://placehold.co/200x120?text=Vehicle" class="w-full h-24 object-cover rounded-2xl border border-slate-100 dark:border-slate-700 mb-4 sm:mb-0" alt="">
                 </div>
                 <div class="grid grid-cols-2 col-span-2 gap-6">
                     <div>

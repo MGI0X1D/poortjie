@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
+        if (window.console && window.console.log) { const originalLog = window.console.log; window.console.log = function() { if (arguments[0] && typeof arguments[0] === "string" && (arguments[0].includes("cdn.tailwindcss.com should not be used in production") || arguments[0].includes("Tailwind CSS: You should not use the CDN"))) return; originalLog.apply(window.console, arguments); }; } tailwind.config = {
             darkMode: 'class'
         }
     </script>
@@ -65,6 +65,7 @@
             }
         }
     </style>
+    <link rel="manifest" href="../favicon/site.webmanifest">
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 

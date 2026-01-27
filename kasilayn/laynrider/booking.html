@@ -6,6 +6,15 @@
     <title>Booking Confirmation | Poortjie Services</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        if (window.console && window.console.log) {
+            const originalLog = window.console.log;
+            window.console.log = function() {
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
+                originalLog.apply(window.console, arguments);
+            };
+        }
+    </script>
+    <script>
         tailwind.config = { darkMode: 'class' }
     </script>
     <link rel="stylesheet" href="../../styles/main.css">
@@ -17,7 +26,6 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
-        .pac-container { z-index: 10000 !important; border-radius: 0.75rem; border: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         .chip { transition: all 0.2s; cursor: pointer; }
         .chip.active { background-color: #16a34a; color: white; border-color: #16a34a; }
         .linear-progress { height: 2px; width: 100%; background-color: #f1f5f9; position: relative; overflow: hidden; }
@@ -81,7 +89,7 @@
         <!-- Driver Summary Card -->
         <div id="driver-summary" class="hidden card p-4 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 flex items-center gap-4">
             <div id="driver-avatar-container">
-                <img id="driver-photo" src="https://placehold.co/100x100" class="w-12 h-12 rounded-full object-cover">
+                <img id="driver-photo" src="https://placehold.co/100x100" class="w-12 h-12 rounded-full object-cover" alt="">
             </div>
             <div>
                 <h3 id="driver-name" class="font-black text-sm uppercase">--</h3>
@@ -100,10 +108,10 @@
                 </div>
                 <div class="space-y-3">
                     <div class="relative">
-                        <input type="text" id="pickup-input" placeholder="Pickup Location" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-4 text-sm font-bold outline-none transition">
+                        <label for="pickup-input"></label><input type="text" id="pickup-input" placeholder="Pickup Location" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-4 text-sm font-bold outline-none transition">
                     </div>
                     <div class="relative">
-                        <input type="text" id="destination-input" placeholder="Destination Location" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-4 text-sm font-bold outline-none transition">
+                        <label for="destination-input"></label><input type="text" id="destination-input" placeholder="Destination Location" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-4 text-sm font-bold outline-none transition">
                     </div>
                     <button onclick="toggleMap()" class="w-full py-3 text-[10px] font-black uppercase tracking-widest text-green-600 flex items-center justify-center gap-2 hover:bg-green-50 dark:hover:bg-green-900/10 rounded-xl transition">
                         <i class="fas fa-map-marked-alt"></i> View on Map
@@ -151,21 +159,21 @@
                 <div id="schedule-options" class="hidden grid grid-cols-2 gap-3 pt-2">
                     <div class="space-y-1">
                         <label class="text-[9px] font-black uppercase opacity-40 ml-2">Pickup Date</label>
-                        <input type="date" id="pickup-date" class="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 text-xs font-bold outline-none border border-transparent focus:border-green-500 transition">
+                        <label for="pickup-date"></label><input type="date" id="pickup-date" class="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 text-xs font-bold outline-none border border-transparent focus:border-green-500 transition">
                     </div>
                     <div class="space-y-1">
                         <label class="text-[9px] font-black uppercase opacity-40 ml-2">Pickup Time</label>
-                        <input type="time" id="pickup-time" class="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 text-xs font-bold outline-none border border-transparent focus:border-green-500 transition">
+                        <label for="pickup-time"></label><input type="time" id="pickup-time" class="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 text-xs font-bold outline-none border border-transparent focus:border-green-500 transition">
                     </div>
                     
                     <div id="return-schedule-options" class="hidden col-span-2 grid grid-cols-2 gap-3 pt-2">
                         <div class="space-y-1">
                             <label class="text-[9px] font-black uppercase opacity-40 ml-2">Return Date</label>
-                            <input type="date" id="return-date" class="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 text-xs font-bold outline-none border border-transparent focus:border-green-500 transition">
+                            <label for="return-date"></label><input type="date" id="return-date" class="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 text-xs font-bold outline-none border border-transparent focus:border-green-500 transition">
                         </div>
                         <div class="space-y-1">
                             <label class="text-[9px] font-black uppercase opacity-40 ml-2">Return Time</label>
-                            <input type="time" id="return-time" class="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 text-xs font-bold outline-none border border-transparent focus:border-green-500 transition">
+                            <label for="return-time"></label><input type="time" id="return-time" class="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 text-xs font-bold outline-none border border-transparent focus:border-green-500 transition">
                         </div>
                     </div>
                 </div>
@@ -194,7 +202,7 @@
                     <span class="w-1 h-4 bg-green-500 rounded-full"></span>
                     <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Purpose</h2>
                 </div>
-                <textarea id="purpose-input" placeholder="Purpose of booking (Optional)" rows="2" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-4 text-sm font-bold outline-none transition resize-none"></textarea>
+                <label for="purpose-input"></label><textarea id="purpose-input" placeholder="Purpose of booking (Optional)" rows="2" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-4 text-sm font-bold outline-none transition resize-none"></textarea>
             </section>
         </div>
 
@@ -276,7 +284,7 @@
     async function initMap() {
         showLoading(true);
         console.log("Map script loaded.");
-        
+
         // Initialize offline detection
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
@@ -345,7 +353,7 @@
         isOffline = !navigator.onLine;
         const banner = document.getElementById('offline-banner');
         const submitBtn = document.getElementById('submit-request-btn');
-        
+
         if (isOffline) {
             banner.classList.remove('hidden');
             submitBtn.textContent = 'Waiting for connection';
@@ -404,9 +412,8 @@
         document.getElementById('confirm-pickup').textContent = document.getElementById('pickup-input').value;
         document.getElementById('confirm-dest').textContent = document.getElementById('destination-input').value;
         document.getElementById('confirm-type').textContent = tripType.charAt(0).toUpperCase() + tripType.slice(1);
-        
-        let whenText = scheduling === 'asap' ? 'ASAP' : `${document.getElementById('pickup-date').value} ${document.getElementById('pickup-time').value}`;
-        document.getElementById('confirm-when').textContent = whenText;
+
+        document.getElementById('confirm-when').textContent = scheduling === 'asap' ? 'ASAP' : `${document.getElementById('pickup-date').value} ${document.getElementById('pickup-time').value}`;
         
         if (routeInfo) {
             document.getElementById('confirm-dist').textContent = `${routeInfo.distKm.toFixed(1)} km`;
@@ -442,7 +449,7 @@
                         lng: position.coords.longitude
                     };
                     map.setCenter(pos);
-                    
+
                     // Reverse geocode to get address string
                     const geocoder = new GeocoderClass();
                     geocoder.geocode({ location: pos }, (results, status) => {
@@ -469,13 +476,13 @@
         const pAuto = new AutocompleteClass(pInput, options);
         const dAuto = new AutocompleteClass(dInput, options);
 
-        pAuto.addListener("place_changed", () => { 
-            console.log("Pickup selected"); 
+        pAuto.addListener("place_changed", () => {
+            console.log("Pickup selected");
             validateForm();
             autoUpdateRoute();
         });
-        dAuto.addListener("place_changed", () => { 
-            console.log("Dest selected"); 
+        dAuto.addListener("place_changed", () => {
+            console.log("Dest selected");
             validateForm();
             autoUpdateRoute();
         });
@@ -507,7 +514,7 @@
             }
 
             renderDriverUI();
-            
+
             if (driverData.lastLocation) {
                 new google.maps.Marker({
                     position: { lat: driverData.lastLocation.latitude, lng: driverData.lastLocation.longitude },
@@ -570,7 +577,7 @@
         const pricing = carData.pricing || {};
         const base = parseFloat(pricing.baseFee) || parseFloat(carData.baseFee) || 15;
         const distRate = parseFloat(pricing.ratePerKm) || parseFloat(carData.ratePerKm) || 10;
-        
+
         let total = base + (distRate * routeInfo.distKm);
 
         // Check for Fixed Pricing
@@ -591,7 +598,7 @@
         const statDistance = document.getElementById('stat-distance');
         const statPrice = document.getElementById('stat-price');
         const mapContainer = document.getElementById('map-container');
-        
+
         if (routeStats && routeInfo) {
             // Only show if map is also visible
             if (mapContainer && !mapContainer.classList.contains('hidden')) {
@@ -635,7 +642,7 @@
             const now = firebase.firestore.FieldValue.serverTimestamp();
             
             // Format whenText
-            let whenText = "";
+            let whenText;
             const pickupDate = document.getElementById('pickup-date').value;
             const pickupTime = document.getElementById('pickup-time').value;
             

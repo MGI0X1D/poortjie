@@ -6,6 +6,15 @@
     <title>Rider Dashboard | Poortjie Services</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        if (window.console && window.console.log) {
+            const originalLog = window.console.log;
+            window.console.log = function() {
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
+                originalLog.apply(window.console, arguments);
+            };
+        }
+    </script>
+    <script>
         tailwind.config = {
             darkMode: 'class'
         }
@@ -15,6 +24,7 @@
     <link rel="icon" type="image/png" sizes="96x96" href="../../favicon/favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="../../favicon/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <link rel="manifest" href="../../favicon/site.webmanifest">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
