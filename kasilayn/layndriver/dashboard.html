@@ -185,14 +185,16 @@
         </div>
     </div>
 
-    <!-- Active Bookings Placeholder -->
+    <!-- Active Bookings -->
     <div class="card p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl space-y-6">
         <div class="flex items-center gap-2">
             <span class="w-1 h-4 bg-green-500 rounded-full"></span>
             <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Active Trip Requests</h2>
         </div>
-        <div class="text-center py-12 opacity-30 italic text-sm">
-            No active requests at the moment. Go online to start receiving trips.
+        <div id="active-trips-list" class="space-y-4">
+            <div class="text-center py-12 opacity-30 italic text-sm">
+                No active requests at the moment. Go online to start receiving trips.
+            </div>
         </div>
     </div>
 </main>
@@ -261,6 +263,9 @@
             const status = (driverData.status || 'OFFLINE').toUpperCase();
             document.getElementById('status-toggle').checked = (status === 'ONLINE' || status === 'AVAILABLE');
             updateStatusBadge(status);
+
+            // Start listening for bookings
+            observeBookings();
 
             // Load Car Data
             let carReg = driverData.carRegistration;
@@ -362,6 +367,111 @@
             // Revert toggle
             document.getElementById('status-toggle').checked = !isOnline;
             updateStatusBadge(isOnline ? 'OFFLINE' : 'ONLINE');
+        }
+    }
+
+    /**
+     * TRIP MANAGEMENT
+     */
+    function observeBookings() {
+        if (!currentUser) return;
+
+        // Path should match booking.html: db.collection('kasilayn').doc('fleet').collection('bookings')
+        db.collection('kasilayn').doc('fleet').collection('bookings')
+            .where('driverUid', '==', currentUser.uid)
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(snapshot => {
+                const tripsList = document.getElementById('active-trips-list');
+                if (!tripsList) return;
+
+                if (snapshot.empty) {
+                    tripsList.innerHTML = `
+                        <div class="text-center py-12 opacity-30 italic text-sm">
+                            No active requests at the moment. Go online to start receiving trips.
+                        </div>
+                    `;
+                    return;
+                }
+
+                tripsList.innerHTML = snapshot.docs.map(doc => {
+                    const trip = doc.data();
+                    const tripId = doc.id;
+                    const status = trip.status || 'PENDING';
+                    
+                    let statusColor = 'bg-yellow-500';
+                    if (status === 'ACCEPTED') statusColor = 'bg-blue-500';
+                    if (status === 'ON_TRIP') statusColor = 'bg-emerald-500';
+                    if (status === 'COMPLETED') statusColor = 'bg-gray-500';
+                    if (status === 'CANCELLED') statusColor = 'bg-red-500';
+
+                    return `
+                        <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-black uppercase tracking-tight">${trip.requesterDisplayName || 'Rider'}</h3>
+                                        <p class="text-[10px] font-bold opacity-50">${trip.whenText || 'ASAP'}</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white ${statusColor}">
+                                    ${status}
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-3 pl-2 border-l-2 border-dashed border-slate-200 dark:border-slate-700 ml-5">
+                                <div class="relative">
+                                    <p class="text-[9px] font-black uppercase opacity-40 tracking-widest">Pickup</p>
+                                    <p class="text-xs font-bold truncate">${trip.pickupShort || trip.pickup}</p>
+                                </div>
+                                <div class="relative">
+                                    <p class="text-[9px] font-black uppercase opacity-40 tracking-widest">Destination</p>
+                                    <p class="text-xs font-bold truncate">${trip.destinationShort || trip.destination}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center pt-2">
+                                <div>
+                                    <p class="text-[9px] font-black uppercase opacity-40 tracking-widest">Est. Fare</p>
+                                    <p class="text-lg font-black text-green-600">R ${trip.estimatedFare}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    ${status === 'PENDING' ? `
+                                        <button onclick="updateTripStatus('${tripId}', 'ACCEPTED')" class="px-4 py-2 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-500/20">Accept</button>
+                                        <button onclick="updateTripStatus('${tripId}', 'CANCELLED')" class="px-4 py-2 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-100 transition">Decline</button>
+                                    ` : ''}
+                                    ${status === 'ACCEPTED' ? `
+                                        <button onclick="updateTripStatus('${tripId}', 'ON_TRIP')" class="px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20">Start Trip</button>
+                                    ` : ''}
+                                    ${status === 'ON_TRIP' ? `
+                                        <button onclick="updateTripStatus('${tripId}', 'COMPLETED')" class="px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/20">Complete</button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }, error => {
+                console.error("Bookings listener error:", error);
+                const tripsList = document.getElementById('active-trips-list');
+                if (tripsList) {
+                    tripsList.innerHTML = `<p class="text-center py-6 text-red-500 text-xs font-bold">Failed to load trips: ${error.message}</p>`;
+                }
+            });
+    }
+
+    async function updateTripStatus(tripId, newStatus) {
+        try {
+            await db.collection('kasilayn').doc('fleet').collection('bookings').doc(tripId).update({
+                status: newStatus,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log(`Trip ${tripId} updated to ${newStatus}`);
+        } catch (e) {
+            console.error("Failed to update trip:", e);
+            alert("Error updating trip status.");
         }
     }
 
