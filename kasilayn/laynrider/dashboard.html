@@ -150,6 +150,12 @@
             <div id="empty-offline" class="hidden text-center py-10 opacity-30 italic text-sm">Everyone is online!</div>
         </section>
     </div>
+
+    <!-- Image Modal for expanded view -->
+    <div id="image-modal" class="fixed inset-0 z-[110] hidden bg-black/90 flex items-center justify-center p-4" onclick="closeImageModal()">
+        <button class="absolute top-6 right-6 text-white text-3xl hover:scale-110 transition">&times;</button>
+        <img id="modal-img" src="" class="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain" alt="Expanded view">
+    </div>
 </main>
 
 <script>
@@ -183,6 +189,27 @@
 
     function deg2rad(deg) {
         return deg * (Math.PI / 180);
+    }
+
+    /**
+     * IMAGE MODAL
+     */
+    function openImageModal(url) {
+        const modal = document.getElementById('image-modal');
+        const img = document.getElementById('modal-img');
+        if (modal && img) {
+            img.src = url;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('image-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
     }
 
     /**
@@ -313,8 +340,14 @@
 
         // 4. Categorize by status and Render
         processedList.forEach(driver => {
-            const card = createDriverCard(driver);
-            const status = (driver.status || 'OFFLINE').toUpperCase();
+            let status = (driver.status || 'OFFLINE').toUpperCase();
+            
+            // Force OFFLINE if no car is assigned
+            if (!driver.car) {
+                status = 'OFFLINE';
+            }
+
+            const card = createDriverCard({ ...driver, status });
 
             if (status === 'ONLINE' || status === 'AVAILABLE') {
                 gridAvailable.appendChild(card);
@@ -349,16 +382,26 @@
         
         const car = driver.car;
         const status = (driver.status || 'OFFLINE').toUpperCase();
-        const statusColor = status === 'AVAILABLE' ? 'bg-green-500' : (status === 'BUSY' ? 'bg-amber-500' : 'bg-slate-400');
+        
+        // Status Colors: Green (Online/Available), Orange (Busy/On Trip), Grey (Offline)
+        let statusColor = 'bg-slate-400';
+        if (status === 'ONLINE' || status === 'AVAILABLE') {
+            statusColor = 'bg-green-500';
+        } else if (status === 'BUSY' || status === 'ON_TRIP') {
+            statusColor = 'bg-amber-500';
+        }
         
         const photoUrl = driver.photoUrl || 'https://placehold.co/100x100?text=Driver';
         const carPhotoUrl = (car?.photoUrls && car.photoUrls.length > 0) ? car.photoUrls[0] : null;
 
         div.innerHTML = `
             <div class="flex items-center gap-4">
-                <div class="relative">
-                    <img src="${photoUrl}" class="w-14 h-14 rounded-full object-cover border-2 border-slate-100 dark:border-slate-800" alt="">
+                <div class="relative cursor-pointer group" onclick="openImageModal('${photoUrl}')">
+                    <img src="${photoUrl}" class="w-14 h-14 rounded-full object-cover border-2 border-slate-100 dark:border-slate-800 transition group-hover:scale-105" alt="">
                     <span class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${statusColor}"></span>
+                    <div class="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                        <i class="fas fa-expand text-white text-[10px]"></i>
+                    </div>
                 </div>
                 <div class="flex-grow">
                     <h3 class="font-extrabold text-sm uppercase tracking-tight">${driver.displayName || 'Unknown Driver'}</h3>
@@ -370,7 +413,7 @@
                     ` : ''}
                 </div>
                 ${carPhotoUrl ? `
-                    <div class="w-16 h-10 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-800">
+                    <div class="w-16 h-10 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer hover:opacity-80 transition" onclick="openImageModal('${carPhotoUrl}')">
                         <img src="${carPhotoUrl}" class="w-full h-full object-cover" alt="">
                     </div>
                 ` : ''}
