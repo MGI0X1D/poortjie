@@ -7,6 +7,15 @@
     <meta name="author" content="Musa Mgijima">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        if (window.console && window.console.log) {
+            const originalLog = window.console.log;
+            window.console.log = function() {
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
+                originalLog.apply(window.console, arguments);
+            };
+        }
+    </script>
+    <script>
         tailwind.config = {
             darkMode: 'class'
         }
@@ -16,6 +25,7 @@
     <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
 
@@ -35,7 +45,9 @@
         
         <div id="auth-warning" class="hidden mb-6 p-4 rounded-lg bg-amber-100 text-amber-800 border border-amber-200">
             <p class="font-medium">Please login to leave a suggestion.</p>
-            <a href="authentication/login.html" class="text-amber-900 font-bold underline">Login here</a>
+            <a href="authentication/login.html" 
+               onclick="sessionStorage.setItem('redirectUrl', window.location.href); window.location.href = 'authentication/login.html'; return false;"
+               class="text-amber-900 font-bold underline">Login here</a>
         </div>
 
         <div id="suggestion-success" class="hidden mb-6 p-4 rounded-lg bg-green-100 text-green-800 border border-green-200">

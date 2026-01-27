@@ -11,7 +11,7 @@
         if (window.console && window.console.log) {
             const originalLog = window.console.log;
             window.console.log = function() {
-                if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
                 originalLog.apply(window.console, arguments);
             };
         }
@@ -26,6 +26,10 @@
     <link rel="icon" type="image/png" sizes="96x96" href="../favicon/favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">
+    <!-- Cropper.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <link rel="manifest" href="../favicon/site.webmanifest">
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
@@ -111,6 +115,34 @@
     <img id="modal-image" src="" alt="Expanded Profile Picture" class="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl transform transition-transform duration-300">
 </div>
 
+<!-- Crop Modal -->
+<div id="crop-modal" class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-black bg-opacity-90 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+        <div class="p-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
+            <h3 class="font-bold text-lg">Crop Profile Picture</h3>
+            <button id="cancel-crop" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-4 max-h-[60vh] flex items-center justify-center bg-gray-50 dark:bg-slate-900">
+            <img id="crop-image" src="" class="max-w-full" alt="">
+        </div>
+        <div class="p-4 flex gap-3">
+            <button id="rotate-left" class="flex-1 py-2 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-bold text-xs uppercase tracking-widest">
+                <i class="fas fa-undo mr-1"></i> Left
+            </button>
+            <button id="rotate-right" class="flex-1 py-2 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-bold text-xs uppercase tracking-widest">
+                <i class="fas fa-redo mr-1"></i> Right
+            </button>
+        </div>
+        <div class="p-4 bg-gray-50 dark:bg-slate-900 flex gap-3">
+            <button id="apply-crop" class="flex-[2] py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition font-bold uppercase tracking-widest shadow-lg shadow-green-500/20">
+                Apply Crop
+            </button>
+        </div>
+    </div>
+</div>
+
 <footer class="text-center py-12 border-t border-gray-100 dark:border-slate-800 opacity-50 text-xs">
     &copy; 2026 Poortjie Services. Empowering poortjie economies.<br><a href="../support.html" class="hover:underline">Data Policy</a>
 </footer>
@@ -141,6 +173,14 @@
     const bioCounter = document.getElementById('bio-counter');
     const adminToggleSection = document.getElementById('admin-toggle-section');
     const listForSupportToggle = document.getElementById('list-for-support');
+
+    const cropModal = document.getElementById('crop-modal');
+    const cropImage = document.getElementById('crop-image');
+    const applyCropBtn = document.getElementById('apply-crop');
+    const cancelCropBtn = document.getElementById('cancel-crop');
+    const rotateLeftBtn = document.getElementById('rotate-left');
+    const rotateRightBtn = document.getElementById('rotate-right');
+    let cropper = null;
 
     const DEFAULT_AVATAR = "https://placehold.co/150";
     let initialData = {};
@@ -275,47 +315,61 @@
 
         const reader = new FileReader();
         reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                
-                // 1:1 Crop logic
-                let size = Math.min(width, height);
-                let xOffset = (width - size) / 2;
-                let yOffset = (height - size) / 2;
-                
-                // Maximum dimension to keep it reasonable
-                const MAX_DIM = 800; // Profile pictures don't need to be huge
-                let targetSize = Math.min(size, MAX_DIM);
-                
-                canvas.width = targetSize;
-                canvas.height = targetSize;
-                const ctx = canvas.getContext('2d');
-                
-                // Draw cropped and resized image
-                ctx.drawImage(img, xOffset, yOffset, size, size, 0, 0, targetSize, targetSize);
-                
-                // Start with high quality and reduce if needed
-                let quality = 0.9;
-                let dataUrl = canvas.toDataURL('image/jpeg', quality);
-                
-                // Ensure size is under 1MB (1024 * 1024 bytes)
-                // Approximate size in bytes (base64 size is ~4/3 of actual size)
-                while (dataUrl.length * 0.75 > 1024 * 1024 && quality > 0.1) {
-                    quality -= 0.1;
-                    dataUrl = canvas.toDataURL('image/jpeg', quality);
-                }
-                
-                profilePicture.src = dataUrl;
-                photoUrlInput.value = dataUrl;
-                checkChanges();
-            };
-            img.src = event.target.result;
+            cropImage.src = event.target.result;
+            cropModal.classList.remove('hidden');
+            
+            if (cropper) {
+                cropper.destroy();
+            }
+            
+            cropper = new Cropper(cropImage, {
+                aspectRatio: 1,
+                viewMode: 1,
+                guides: true,
+                background: false,
+                autoCropArea: 1,
+                responsive: true
+            });
         };
         reader.readAsDataURL(file);
     });
+
+    applyCropBtn.addEventListener('click', () => {
+        if (!cropper) return;
+        
+        const canvas = cropper.getCroppedCanvas({
+            width: 800,
+            height: 800
+        });
+        
+        let quality = 0.9;
+        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+        
+        while (dataUrl.length * 0.75 > 1024 * 1024 && quality > 0.1) {
+            quality -= 0.1;
+            dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        
+        profilePicture.src = dataUrl;
+        photoUrlInput.value = dataUrl;
+        
+        cropModal.classList.add('hidden');
+        cropper.destroy();
+        cropper = null;
+        checkChanges();
+    });
+
+    cancelCropBtn.addEventListener('click', () => {
+        cropModal.classList.add('hidden');
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        photoInput.value = '';
+    });
+
+    rotateLeftBtn.addEventListener('click', () => cropper && cropper.rotate(-90));
+    rotateRightBtn.addEventListener('click', () => cropper && cropper.rotate(90));
 
     profileForm.addEventListener('submit', (e) => {
         e.preventDefault();

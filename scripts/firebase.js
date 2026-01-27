@@ -22,32 +22,30 @@ try {
 }
 
 // Connect to Firebase Emulators if running locally
-// if (location.hostname === "localhost" ||
-//     location.hostname === "127.0.0.1" ||
-//     location.hostname.startsWith("192.168.") ||
-//     location.hostname.startsWith("10.") ||
-//     location.hostname.endsWith(".local")) {
-//   const host = location.hostname;
-//   console.log(`Connecting to Firebase Emulators at ${host}...`);
-//   db.useEmulator(host, 8080);
-//   auth.useEmulator(`http://${host}:9099`);
-//   // If you use Storage, add: firebase.storage().useEmulator(host, 9199);
-// }
+if (location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1" ||
+    location.hostname.startsWith("192.168.") ||
+    location.hostname.startsWith("10.") ||
+    location.hostname.endsWith(".local")) {
+  const host = location.hostname;
+  console.log(`Connecting to Firebase Emulators at ${host}...`);
+  db.useEmulator(host, 8080);
+  auth.useEmulator(`http://${host}:9099`);
+  if (typeof firebase.storage === 'function') {
+    firebase.storage().useEmulator(host, 9199);
+  }
+}
 
 // Enable offline persistence with multi-tab support
 if (location.protocol !== 'file:') {
-  const settings = {
-    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
-  };
-  
-  // For Firebase JS SDK v9 compat, multi-tab persistence is enabled by default if available.
+// For Firebase JS SDK v9 compat, multi-tab persistence is enabled by default if available.
   // Using the newer settings object to avoid deprecation warnings.
   db.enablePersistence({synchronizeTabs: true})
     .catch((err) => {
-      if (err.code == 'failed-precondition') {
+      if (err.code === 'failed-precondition') {
         // This can still happen if multiple tabs are open with different persistence settings.
         console.warn('Firebase persistence failed: multiple tabs open with different settings.');
-      } else if (err.code == 'unimplemented') {
+      } else if (err.code === 'unimplemented') {
         // The current browser does not support all of the features required to enable persistence.
         console.warn('Firebase persistence failed: browser does not support it.');
       }

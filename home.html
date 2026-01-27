@@ -25,7 +25,7 @@
         if (window.console && window.console.log) {
             const originalLog = window.console.log;
             window.console.log = function() {
-                if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
                 originalLog.apply(window.console, arguments);
             };
         }
@@ -46,13 +46,12 @@
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
-<div class="fixed top-5 left-5 z-50" id="chat-control">
-    <a href="chats.html" id="chat-icon-btn"
+<div class="fixed top-5 left-5 z-50" id="business-form-control">
+    <a href="services/business-form.html" id="add-business-btn"
        class="p-3 rounded-full bg-green-600 text-white shadow-lg hover:bg-green-700 transition flex items-center justify-center"
-       title="Chats">
+       title="Add Your Business">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
     </a>
 </div>
@@ -90,14 +89,11 @@
             <a href="support.html"
                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Support</a>
 
-            <a id="add-business-link" href="services/business-form.html"
-               class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Add
-                Your Business</a>
-
             <a id="profile-link" href="authentication/profile.html"
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Profile</a>
             <div id="auth-divider" class="hidden border-t border-gray-100 dark:border-slate-700 my-1"></div>
             <a id="login-link" href="authentication/login.html"
+               onclick="sessionStorage.setItem('redirectUrl', window.location.href); window.location.href = 'authentication/login.html'; return false;"
                class="hidden block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">Login</a>
             <button id="logout-btn"
                     class="hidden w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
@@ -228,6 +224,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" defer></script>
 <script src="scripts/firebase.js" defer></script>
 
@@ -252,6 +249,7 @@
                     </div>
                     <div class="mt-6 flex flex-col gap-2">
                         <a href="${service.url}" class="block text-center py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition">${service.btnText}</a>
+                        ${service.category.toLowerCase() === 'transport' ? `<a href="kasilayn/laynrider/dashboard.html" class="block text-center py-2 border-2 border-green-600 text-green-600 dark:text-green-400 rounded-lg font-bold hover:bg-green-600 hover:text-white transition mt-2">Book a Ride</a>` : ''}
                         ${service.extraBtn ? `<a href="${service.extraBtn.url}" onclick="window.top.location.replace('${service.extraBtn.url}'); return false;" class="block text-center py-2 border-2 border-green-600 text-green-600 dark:text-green-400 rounded-lg font-bold hover:bg-green-600 hover:text-white transition">${service.extraBtn.text}</a>` : ''}
                     </div>
                 </div>
@@ -358,7 +356,7 @@
                 if (!user) {
                     const currentSearch = document.getElementById('search-bar').value;
                     sessionStorage.setItem('pendingSearch', currentSearch);
-                    sessionStorage.setItem('redirectUrl', '../home.html');
+                    sessionStorage.setItem('redirectUrl', window.location.href);
                     window.location.href = 'authentication/login.html';
                     return;
                 }
@@ -705,19 +703,19 @@
         });
 
         firebase.auth().onAuthStateChanged(user => {
-            authDivider.classList.remove('hidden');
+            if (authDivider) authDivider.classList.remove('hidden');
             if (user) {
-                addBusinessLink.classList.remove('hidden');
-                profileLink.classList.remove('hidden');
-                loginLink.classList.add('hidden');
-                logoutBtn.classList.add('hidden'); // Replaced by profile
+                if (addBusinessLink) addBusinessLink.classList.remove('hidden');
+                if (profileLink) profileLink.classList.remove('hidden');
+                if (loginLink) loginLink.classList.add('hidden');
+                if (logoutBtn) logoutBtn.classList.add('hidden'); // Replaced by profile
                 firebase.firestore().collection('users').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
-                        if (userData.displayName) {
+                        if (userData.displayName && profileLink) {
                             profileLink.textContent = userData.displayName;
                         }
-                        if (userData.photoUrl) {
+                        if (userData.photoUrl && profileLink) {
                             // Optionally show user avatar in the menu
                             const existingImg = profileLink.querySelector('img');
                             if (existingImg) {
@@ -731,27 +729,29 @@
                         const isTaxiRankAdmin = userData.roles?.poortjie?.isTaxiRankAdmin === true;
 
                         if (isSuperUser || isPoortjieAdmin) {
-                            adminLink.classList.remove('hidden');
-                            newsAdminLink.classList.remove('hidden');
+                            if (adminLink) adminLink.classList.remove('hidden');
+                            if (newsAdminLink) newsAdminLink.classList.remove('hidden');
                         }
                         if (isSuperUser) {
-                            homeAdminLink.classList.remove('hidden');
+                            if (homeAdminLink) homeAdminLink.classList.remove('hidden');
                         }
                         if (isSuperUser || isTaxiRankAdmin) {
-                            taxiAdminLink.classList.remove('hidden');
+                            if (taxiAdminLink) taxiAdminLink.classList.remove('hidden');
                         }
                     }
                 });
             } else {
-                profileLink.classList.add('hidden'); // Logout replaced by Profile, so Profile is only for logged in
-                profileLink.innerHTML = 'Profile'; // Reset content
-                loginLink.classList.remove('hidden');
-                adminLink.classList.add('hidden');
-                homeAdminLink.classList.add('hidden');
-                taxiAdminLink.classList.add('hidden');
-                addBusinessLink.classList.add('hidden');
-                newsAdminLink.classList.add('hidden');
-                logoutBtn.classList.add('hidden');
+                if (profileLink) {
+                    profileLink.classList.add('hidden'); // Logout replaced by Profile, so Profile is only for logged in
+                    profileLink.innerHTML = 'Profile'; // Reset content
+                }
+                if (loginLink) loginLink.classList.remove('hidden');
+                if (adminLink) adminLink.classList.add('hidden');
+                if (homeAdminLink) homeAdminLink.classList.add('hidden');
+                if (taxiAdminLink) taxiAdminLink.classList.add('hidden');
+                if (addBusinessLink) addBusinessLink.classList.add('hidden');
+                if (newsAdminLink) newsAdminLink.classList.add('hidden');
+                if (logoutBtn) logoutBtn.classList.add('hidden');
             }
         });
 

@@ -14,11 +14,21 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        if (window.console && window.console.log) {
+            const originalLog = window.console.log;
+            window.console.log = function() {
+                if (arguments[0] && typeof arguments[0] === 'string' && (arguments[0].includes('cdn.tailwindcss.com should not be used in production') || arguments[0].includes('Tailwind CSS: You should not use the CDN'))) return;
+                originalLog.apply(window.console, arguments);
+            };
+        }
+    </script>
+    <script>
         tailwind.config = {
             darkMode: 'class'
         }
     </script>
     <link rel="stylesheet" href="../styles/main.css">
+    <link rel="manifest" href="../favicon/site.webmanifest">
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
 
@@ -179,6 +189,7 @@
                 }
             });
         } else {
+            sessionStorage.setItem('redirectUrl', window.location.href);
             window.top.location.replace('../authentication/login.html');
         }
     });
