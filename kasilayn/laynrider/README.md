@@ -74,6 +74,26 @@ The following fields are mandatory for every booking record:
 
 ---
 
+## 4. Driver Registration (`register-driver.html`)
+The screen where users can register as drivers and add their vehicles to the fleet.
+
+### Key Features
+- **Profile Setup:** Drivers can set their display name and upload a profile photo.
+- **Vehicle Registration:** Captures detailed car information:
+    - Make, Model, Color, Registration.
+    - Body Type (for filtering on the dashboard).
+    - Available Seats.
+    - Vehicle Photo.
+- **Data Integration:** 
+    - Uses an **atomic Firestore transaction** to promote users to drivers.
+    - Copies core details (username, email, phone, bio) from `users/{uid}` to `kasilayn/fleet/drivers/{uid}`.
+    - Updates `users/{uid}` with the `isDriver: true` role and a `driverRef`.
+    - Saves vehicle details to `kasilayn/fleet/cars/{registration}`.
+- **State Management:** New drivers are initialized with an `OFFLINE` status by default.
+- **Pre-condition:** Prevents duplicate registration by checking if a driver document already exists for the UID.
+
+---
+
 ## Development Notes
 - **UI Framework:** Tailwind CSS (utility-first).
 - **Icons:** FontAwesome 6.
