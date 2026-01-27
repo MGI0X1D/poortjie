@@ -551,12 +551,17 @@
                 whenText = `${pickupDate} • ${pickupTime}`;
             }
 
+            const pickupShort = document.getElementById('pickup-input').value.split(',')[0].trim();
+            const destinationShort = document.getElementById('destination-input').value.split(',')[0].trim();
+
             const bookingData = {
                 status: "PENDING",
                 requesterUid: currentUser.uid,
                 driverUid: driverUid,
                 pickup: document.getElementById('pickup-input').value,
                 destination: document.getElementById('destination-input').value,
+                pickupShort: pickupShort,
+                destinationShort: destinationShort,
                 pickupLat: routeInfo?.startCoords.lat() || 0,
                 pickupLng: routeInfo?.startCoords.lng() || 0,
                 destinationLat: routeInfo?.endCoords.lat() || 0,
@@ -575,6 +580,7 @@
                 carModel: carData?.model || "",
                 carBodyType: carData?.bodyType || "",
                 carPhotoUrls: carData?.photoUrls || [],
+                carSeats: carData?.seats || carData?.carSeats || 4,
                 purpose: document.getElementById('purpose-input').value,
                 scheduledDateText: document.getElementById('pickup-date').value,
                 scheduledTimeText: document.getElementById('pickup-time').value,

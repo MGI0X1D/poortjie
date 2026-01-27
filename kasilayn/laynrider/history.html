@@ -104,7 +104,6 @@
     function createBookingCard(id, booking) {
         const div = document.createElement('div');
         div.className = 'card p-5 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 space-y-4 animate-fadeIn cursor-pointer hover:scale-[1.01] transition-transform';
-        div.onclick = () => window.location.href = `waiting.html?id=${id}`;
 
         const status = (booking.status || 'PENDING').toUpperCase();
         let statusColorClass = 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';

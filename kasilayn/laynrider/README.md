@@ -65,6 +65,9 @@ The following fields are mandatory for every booking record:
 - `driverUsername`: Username/Display name of the driver.
 - `requesterUid`: UID of the rider who made the request.
 - `status`: Initialized to `PENDING`.
+- `pickupShort`: First part of the pickup address.
+- `destinationShort`: First part of the destination address.
+- `carSeats`: Number of seats in the vehicle.
 
 ### State Management
 - **Booking Flow:** The rider app creates the booking document. The system (driver app or backend) is responsible for responding to the request. The driver's status is NOT automatically updated by the rider app.
