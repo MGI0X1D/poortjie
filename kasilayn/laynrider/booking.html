@@ -66,7 +66,7 @@
                 <a href="../../index.html" class="block w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3">
                     <i class="fas fa-home w-4 text-center"></i> Home
                 </a>
-                <button id="logout-btn" class="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
+                <button id="logout-btn" class="hidden w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
                     <i class="fas fa-sign-out-alt w-4 text-center"></i> Logout
                 </button>
             </div>
@@ -345,7 +345,15 @@
             });
         }
 
-        firebase.auth().onAuthStateChanged(user => { currentUser = user; });
+        firebase.auth().onAuthStateChanged(user => { 
+            currentUser = user; 
+            const logoutBtn = document.getElementById('logout-btn');
+            if (user) {
+                if (logoutBtn) logoutBtn.classList.remove('hidden');
+            } else {
+                if (logoutBtn) logoutBtn.classList.add('hidden');
+            }
+        });
         showLoading(false);
     }
 
