@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rider Dashboard | Poortjie Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="icon" type="image/png" sizes="48x48" href="../../favicon/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="../../favicon/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="../../favicon/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../scripts/firebase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+
+<div id="loader-overlay" class="fixed inset-0 bg-white/80 dark:bg-slate-900/80 z-[100] flex flex-col items-center justify-center transition-opacity duration-300">
+    <div class="animate-spin h-10 w-10 border-4 border-green-500 border-t-transparent rounded-full mb-4"></div>
+    <p class="text-sm font-bold uppercase tracking-widest animate-pulse">Initializing Dashboard...</p>
+</div>
+
+<header class="max-w-6xl mx-auto pt-10 pb-6 px-6 flex justify-between items-center">
+    <div class="flex flex-col">
+        <a href="../../index.html" class="text-2xl font-black tracking-tight">Poortjie <span class="text-green-600">Dashboard</span></a>
+        <p class="text-xs opacity-50 font-bold uppercase tracking-widest">Real-time Fleet View</p>
+    </div>
+    <div id="user-location-status" class="text-[10px] font-black uppercase tracking-tighter px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-slate-400" id="location-dot"></span>
+        <span id="location-text">Location Unknown</span>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 pb-24">
+    <!-- Controls -->
+    <div class="mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <!-- Body Type Filters -->
+        <div class="flex flex-wrap gap-2 justify-center" id="filter-container">
+            <button onclick="setFilter('ALL')" class="filter-btn active px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition border-2 border-green-500 bg-green-500 text-white">All</button>
+            <button onclick="setFilter('SEDAN')" class="filter-btn px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition border-2 border-gray-200 dark:border-slate-700 hover:border-green-500">Sedan</button>
+            <button onclick="setFilter('SUV')" class="filter-btn px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition border-2 border-gray-200 dark:border-slate-700 hover:border-green-500">SUV</button>
+            <button onclick="setFilter('HATCHBACK')" class="filter-btn px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition border-2 border-gray-200 dark:border-slate-700 hover:border-green-500">Hatchback</button>
+            <button onclick="setFilter('BAKKIE')" class="filter-btn px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition border-2 border-gray-200 dark:border-slate-700 hover:border-green-500">Bakkie</button>
+        </div>
+
+        <!-- Sorting -->
+        <div class="flex items-center gap-2">
+            <label for="sort-select" class="text-[10px] font-black uppercase opacity-50">Sort By:</label>
+            <select id="sort-select" onchange="setSort(this.value)" class="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-green-500 outline-none">
+                <option value="name">Name (A-Z)</option>
+                <option value="proximity">Closest to me</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Status Sections -->
+    <div class="space-y-12">
+        <!-- Available -->
+        <section>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-[1px] flex-grow bg-green-500/20"></div>
+                <h2 class="text-xs font-black uppercase tracking-[0.2em] text-green-600 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Available Drivers (<span id="count-available">0</span>)
+                </h2>
+                <div class="h-[1px] flex-grow bg-green-500/20"></div>
+            </div>
+            <div id="grid-available" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards -->
+            </div>
+            <div id="empty-available" class="hidden text-center py-10 opacity-30 italic text-sm">No drivers online right now.</div>
+        </section>
+
+        <!-- Busy -->
+        <section>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-[1px] flex-grow bg-amber-500/20"></div>
+                <h2 class="text-xs font-black uppercase tracking-[0.2em] text-amber-600 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    Currently Busy (<span id="count-busy">0</span>)
+                </h2>
+                <div class="h-[1px] flex-grow bg-amber-500/20"></div>
+            </div>
+            <div id="grid-busy" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-75">
+                <!-- Cards -->
+            </div>
+            <div id="empty-busy" class="hidden text-center py-10 opacity-30 italic text-sm">All active drivers are currently free.</div>
+        </section>
+
+        <!-- Offline -->
+        <section>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-[1px] flex-grow bg-slate-400/20"></div>
+                <h2 class="text-xs font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    Offline (<span id="count-offline">0</span>)
+                </h2>
+                <div class="h-[1px] flex-grow bg-slate-400/20"></div>
+            </div>
+            <div id="grid-offline" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-50 grayscale">
+                <!-- Cards -->
+            </div>
+            <div id="empty-offline" class="hidden text-center py-10 opacity-30 italic text-sm">Everyone is online!</div>
+        </section>
+    </div>
+</main>
+
+<script>
+    let drivers = [];
+    let cars = [];
+    let currentFilter = 'ALL';
+    let currentSort = 'name';
+    let userLocation = null;
+
+    // Haversine distance formula
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the earth in km
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Distance in km
+    }
+
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180);
+    }
+
+    function setFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active', 'bg-green-500', 'text-white', 'border-green-500');
+            btn.classList.add('border-gray-200', 'dark:border-slate-700');
+            if (btn.textContent.toUpperCase() === filter || (filter === 'ALL' && btn.textContent === 'All')) {
+                btn.classList.add('active', 'bg-green-500', 'text-white', 'border-green-500');
+                btn.classList.remove('border-gray-200', 'dark:border-slate-700');
+            }
+        });
+        renderDashboard();
+    }
+
+    function setSort(sort) {
+        currentSort = sort;
+        if (sort === 'proximity' && !userLocation) {
+            requestLocation();
+        }
+        renderDashboard();
+    }
+
+    function requestLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    document.getElementById('location-dot').classList.replace('bg-slate-400', 'bg-green-500');
+                    document.getElementById('location-text').textContent = 'Location Active';
+                    renderDashboard();
+                },
+                (error) => {
+                    console.error("Location error:", error);
+                    document.getElementById('location-dot').classList.replace('bg-slate-400', 'bg-red-500');
+                    document.getElementById('location-text').textContent = 'Location Denied';
+                    if (currentSort === 'proximity') {
+                        currentSort = 'name';
+                        document.getElementById('sort-select').value = 'name';
+                    }
+                }
+            );
+        }
+    }
+
+    function observeFleet() {
+        const driversRef = db.collection('kasilayn').doc('fleet').collection('drivers');
+        const carsRef = db.collection('kasilayn').doc('fleet').collection('cars');
+
+        // Listen for cars first to have them ready for matching
+        carsRef.onSnapshot(snapshot => {
+            cars = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderDashboard();
+        });
+
+        // Listen for drivers
+        driversRef.onSnapshot(snapshot => {
+            drivers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            document.getElementById('loader-overlay').classList.add('hidden');
+            renderDashboard();
+        });
+    }
+
+    function renderDashboard() {
+        const gridAvailable = document.getElementById('grid-available');
+        const gridBusy = document.getElementById('grid-busy');
+        const gridOffline = document.getElementById('grid-offline');
+
+        gridAvailable.innerHTML = '';
+        gridBusy.innerHTML = '';
+        gridOffline.innerHTML = '';
+
+        let countAvailable = 0;
+        let countBusy = 0;
+        let countOffline = 0;
+
+        // Process drivers: Match with cars and filter
+        let processedList = drivers.map(driver => {
+            const car = cars.find(c => c.registration === (driver.carRef?.id || driver.carRegistration));
+            let distance = null;
+            if (userLocation && driver.lastLocation) {
+                distance = calculateDistance(
+                    userLocation.lat, userLocation.lng,
+                    driver.lastLocation.latitude, driver.lastLocation.longitude
+                );
+            }
+            return { ...driver, car, distance };
+        });
+
+        // Filter by car body type
+        if (currentFilter !== 'ALL') {
+            processedList = processedList.filter(d => d.car && (d.car.bodyType || '').toUpperCase() === currentFilter);
+        }
+
+        // Sort
+        processedList.sort((a, b) => {
+            if (currentSort === 'proximity') {
+                if (a.distance === null) return 1;
+                if (b.distance === null) return -1;
+                return a.distance - b.distance;
+            } else {
+                return (a.displayName || 'Unknown').localeCompare(b.displayName || 'Unknown');
+            }
+        });
+
+        processedList.forEach(driver => {
+            const card = createDriverCard(driver);
+            const status = (driver.status || 'OFFLINE').toUpperCase();
+
+            if (status === 'ONLINE' || status === 'AVAILABLE') {
+                gridAvailable.appendChild(card);
+                countAvailable++;
+            } else if (status === 'BUSY' || status === 'ON_TRIP') {
+                gridBusy.appendChild(card);
+                countBusy++;
+            } else {
+                gridOffline.appendChild(card);
+                countOffline++;
+            }
+        });
+
+        document.getElementById('count-available').textContent = countAvailable;
+        document.getElementById('count-busy').textContent = countBusy;
+        document.getElementById('count-offline').textContent = countOffline;
+
+        document.getElementById('empty-available').classList.toggle('hidden', countAvailable > 0);
+        document.getElementById('empty-busy').classList.toggle('hidden', countBusy > 0);
+        document.getElementById('empty-offline').classList.toggle('hidden', countOffline > 0);
+    }
+
+    function createDriverCard(driver) {
+        const div = document.createElement('div');
+        div.className = 'card p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden animate-fadeIn';
+        
+        const car = driver.car;
+        const status = (driver.status || 'OFFLINE').toUpperCase();
+        const statusColor = status === 'AVAILABLE' ? 'bg-green-500' : (status === 'BUSY' ? 'bg-amber-500' : 'bg-slate-400');
+        
+        const photoUrl = driver.photoUrl || 'https://placehold.co/100x100?text=Driver';
+        const carPhotoUrl = (car?.photoUrls && car.photoUrls.length > 0) ? car.photoUrls[0] : null;
+
+        div.innerHTML = `
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <img src="${photoUrl}" class="w-14 h-14 rounded-full object-cover border-2 border-slate-100 dark:border-slate-800" alt="">
+                    <span class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${statusColor}"></span>
+                </div>
+                <div class="flex-grow">
+                    <h3 class="font-extrabold text-sm uppercase tracking-tight">${driver.displayName || 'Unknown Driver'}</h3>
+                    <p class="text-[10px] opacity-50 font-bold uppercase tracking-wider">${status}</p>
+                    ${driver.distance !== null ? `
+                        <p class="text-[10px] text-green-600 font-black uppercase mt-1">
+                            <i class="fas fa-location-arrow mr-1"></i> ${driver.distance.toFixed(1)} km away
+                        </p>
+                    ` : ''}
+                </div>
+                ${carPhotoUrl ? `
+                    <div class="w-16 h-10 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-800">
+                        <img src="${carPhotoUrl}" class="w-full h-full object-cover" alt="">
+                    </div>
+                ` : ''}
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-end">
+                <div>
+                    <p class="text-[9px] opacity-40 font-black uppercase mb-1">Assigned Vehicle</p>
+                    <p class="text-xs font-bold">${car ? `${car.make} ${car.model}` : 'No Car Assigned'}</p>
+                    <p class="text-[10px] opacity-60 font-medium uppercase">${car ? `${car.color} • ${car.registration}` : '--'}</p>
+                </div>
+                <div class="text-right">
+                    ${car?.bodyType ? `<span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[9px] font-black uppercase tracking-widest">${car.bodyType}</span>` : ''}
+                </div>
+            </div>
+            
+            ${status === 'AVAILABLE' ? `
+                <button onclick="contactDriver('${driver.id}')" class="mt-2 w-full py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition">
+                    Book Trip
+                </button>
+            ` : ''}
+        `;
+        
+        return div;
+    }
+
+    function contactDriver(id) {
+        const driver = drivers.find(d => d.id === id);
+        if (!driver) return;
+        
+        const car = driver.car;
+        const message = `Hello ${driver.displayName}, I found you on Poortjie Rider Dashboard. I would like to book a trip in your ${car ? `${car.make} ${car.model} (${car.registration})` : 'vehicle'}.`;
+        
+        if (driver.phoneNumber) {
+            const whatsappUrl = `https://wa.me/${driver.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        } else {
+            alert(`Contacting ${driver.displayName}... (Phone number not available)`);
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        observeFleet();
+        requestLocation();
+        
+        // Theme Support
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    });
+</script>
+
+</body>
+</html>
