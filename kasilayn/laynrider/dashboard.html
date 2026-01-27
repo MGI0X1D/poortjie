@@ -44,7 +44,7 @@
             <span id="location-text">Location Unknown</span>
         </div>
 
-        <button id="become-driver-btn" onclick="window.location.href='../layndriver/register-driver.html'" class="hidden px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.15em] rounded-full transition-all shadow-lg shadow-green-500/30 flex items-center gap-2 group">
+        <button id="become-driver-btn" onclick="joinFleet()" class="hidden px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.15em] rounded-full transition-all shadow-lg shadow-green-500/30 flex items-center gap-2 group">
             <i class="fas fa-car-side group-hover:animate-bounce"></i>
             Join Fleet
         </button>
@@ -446,6 +446,94 @@
      */
     function bookDriver(id) {
         window.location.href = `booking.html?driverUid=${id}`;
+    }
+
+    /**
+     * PROMOTION LOGIC (Android Parity)
+     * Promotes the current user to a driver immediately.
+     */
+    async function joinFleet() {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            window.location.href = '../../authentication/login.html';
+            return;
+        }
+
+        const loader = document.getElementById('loader-overlay');
+        const loaderText = loader.querySelector('p');
+        loaderText.textContent = "Joining Fleet...";
+        loader.classList.remove('hidden');
+
+        try {
+            const uid = user.uid;
+            const userRef = db.collection('users').doc(uid);
+            const driverRef = db.collection('kasilayn').doc('fleet').collection('drivers').doc(uid);
+
+            await db.runTransaction(async (transaction) => {
+                // 1. Fetch User Data
+                const userDoc = await transaction.get(userRef);
+                if (!userDoc.exists) throw new Error("User profile not found.");
+                const userData = userDoc.data();
+
+                // 2. Pre-condition Check
+                const driverDoc = await transaction.get(driverRef);
+                if (driverDoc.exists) {
+                    throw new Error("ALREADY_DRIVER");
+                }
+
+                // 3. Prepare Driver Data
+                const now = firebase.firestore.FieldValue.serverTimestamp();
+                const driverData = {
+                    // Copied Data (Denormalization)
+                    username: userData.username || "",
+                    email: userData.email || "",
+                    displayName: userData.displayName || user.displayName || "",
+                    phone: userData.phone || userData.phoneNumber || "",
+                    photoUrl: userData.photoUrl || user.photoURL || "",
+                    bio: userData.bio || "",
+                    
+                    // New, Default Data
+                    status: "OFFLINE",
+                    suspended: false,
+                    
+                    // References & Metadata
+                    userRef: userRef,
+                    userUid: uid,
+                    selfCreate: true,
+                    createdAt: now,
+                    updatedAt: now
+                };
+
+                // 4. WRITE 1: Create New Driver Document
+                transaction.set(driverRef, driverData);
+
+                // 5. WRITE 2: Update Original User's Role
+                transaction.set(userRef, {
+                    roles: {
+                        kasilayn: {
+                            isDriver: true,
+                            driverRef: `kasilayn/fleet/drivers/${uid}`
+                        }
+                    }
+                }, { merge: true });
+            });
+
+            // Success: Redirect to Driver Dashboard or Registration for car details
+            // The instructions say "immediately do what android does which makes the user driver immediately"
+            // Android seems to just do the writes. I'll redirect to the register page so they can add car details,
+            // or just to the dashboard. Usually, a driver needs a car.
+            // But if they are now a driver, let's take them to the driver dashboard.
+            window.location.href = '../layndriver/dashboard.html';
+
+        } catch (error) {
+            console.error("Error joining fleet:", error);
+            loader.classList.add('hidden');
+            if (error.message === "ALREADY_DRIVER") {
+                window.location.href = '../layndriver/dashboard.html';
+            } else {
+                alert("Failed to join fleet: " + error.message);
+            }
+        }
     }
 
     // Initialize
