@@ -277,67 +277,75 @@
             document.getElementById('display-name').value = data.displayName || '';
             if (data.photoUrl) document.getElementById('driver-preview').src = data.photoUrl;
             
-            const carSnap = await db.collection('kasilayn').doc('fleet').collection('cars').doc(data.carRegistration).get();
-            if (carSnap.exists) {
-                const carData = carSnap.data();
-                
-                const lockFieldIfPresent = (id, value) => {
-                    const el = document.getElementById(id);
-                    if (value && value.toString().trim() !== "") {
-                        el.value = value;
-                        el.disabled = true;
-                    }
-                };
+            // Support both carRegistration (string) and carRef (reference)
+            let carReg = data.carRegistration;
+            if (!carReg && data.carRef) {
+                carReg = (typeof data.carRef === 'string') ? data.carRef : data.carRef.id;
+            }
 
-                lockFieldIfPresent('car-make', carData.make);
-                lockFieldIfPresent('car-model', carData.model);
-                lockFieldIfPresent('car-registration', carData.registration);
-                lockFieldIfPresent('car-color', carData.color);
-                
-                if (carData.bodyType) {
-                    document.getElementById('car-body-type').value = carData.bodyType;
-                    document.getElementById('car-body-type').disabled = true;
-                }
-                
-                lockFieldIfPresent('car-seats', carData.seats);
-                lockFieldIfPresent('car-year', carData.year);
-
-                if (carData.pricing) {
-                    document.getElementById('base-fee').value = carData.pricing.baseFee || 15;
-                    document.getElementById('rate-km').value = carData.pricing.ratePerKm || 10;
-                }
-                
-                if (carData.photoUrls && carData.photoUrls.length > 0) {
-                    carData.photoUrls.forEach((url, index) => {
-                        if (index < 3) {
-                            const previewId = `car-preview-${index + 1}`;
-                            const placeholderId = `car-upload-placeholder-${index + 1}`;
-                            const containerId = `car-photo-${index + 1}-container`;
-                            
-                            const previewEl = document.getElementById(previewId);
-                            const placeholderEl = document.getElementById(placeholderId);
-                            const containerEl = document.getElementById(containerId);
-                            
-                            previewEl.src = url;
-                            previewEl.classList.remove('hidden');
-                            placeholderEl.classList.add('hidden');
-                            
-                            // Disable changes for present photos
-                            containerEl.onclick = null;
-                            containerEl.classList.remove('cursor-pointer', 'hover:border-green-500');
+            if (carReg) {
+                const carSnap = await db.collection('kasilayn').doc('fleet').collection('cars').doc(carReg).get();
+                if (carSnap.exists) {
+                    const carData = carSnap.data();
+                    
+                    const lockFieldIfPresent = (id, value) => {
+                        const el = document.getElementById(id);
+                        if (value && value.toString().trim() !== "") {
+                            el.value = value;
+                            el.disabled = true;
                         }
-                    });
-                }
-                
-                // Update warning text and styling to indicate restricted editing
-                const warningEl = document.getElementById('car-edit-warning');
-                if (warningEl) {
-                    warningEl.classList.replace('bg-amber-50', 'bg-blue-50');
-                    warningEl.classList.replace('dark:bg-amber-900/20', 'dark:bg-blue-900/20');
-                    warningEl.classList.replace('border-amber-500', 'border-blue-500');
-                    warningEl.querySelector('p').classList.replace('text-amber-700', 'text-blue-700');
-                    warningEl.querySelector('p').classList.replace('dark:text-amber-400', 'dark:text-blue-400');
-                    warningEl.querySelector('p').innerHTML = '<i class="fas fa-info-circle mr-2"></i> Your vehicle is already registered. You may only update your pricing structure or fill in missing details.';
+                    };
+
+                    lockFieldIfPresent('car-make', carData.make);
+                    lockFieldIfPresent('car-model', carData.model);
+                    lockFieldIfPresent('car-registration', carData.registration);
+                    lockFieldIfPresent('car-color', carData.color);
+                    
+                    if (carData.bodyType) {
+                        document.getElementById('car-body-type').value = carData.bodyType;
+                        document.getElementById('car-body-type').disabled = true;
+                    }
+                    
+                    lockFieldIfPresent('car-seats', carData.seats);
+                    lockFieldIfPresent('car-year', carData.year);
+
+                    if (carData.pricing) {
+                        document.getElementById('base-fee').value = carData.pricing.baseFee || 15;
+                        document.getElementById('rate-km').value = carData.pricing.ratePerKm || 10;
+                    }
+                    
+                    if (carData.photoUrls && carData.photoUrls.length > 0) {
+                        carData.photoUrls.forEach((url, index) => {
+                            if (index < 3) {
+                                const previewId = `car-preview-${index + 1}`;
+                                const placeholderId = `car-upload-placeholder-${index + 1}`;
+                                const containerId = `car-photo-${index + 1}-container`;
+                                
+                                const previewEl = document.getElementById(previewId);
+                                const placeholderEl = document.getElementById(placeholderId);
+                                const containerEl = document.getElementById(containerId);
+                                
+                                previewEl.src = url;
+                                previewEl.classList.remove('hidden');
+                                placeholderEl.classList.add('hidden');
+                                
+                                // Disable changes for present photos
+                                containerEl.onclick = null;
+                                containerEl.classList.remove('cursor-pointer', 'hover:border-green-500');
+                            }
+                        });
+                    }
+                    
+                    // Update warning text and styling to indicate restricted editing
+                    const warningEl = document.getElementById('car-edit-warning');
+                    if (warningEl) {
+                        warningEl.classList.replace('bg-amber-50', 'bg-blue-50');
+                        warningEl.classList.replace('dark:bg-amber-900/20', 'dark:bg-blue-900/20');
+                        warningEl.classList.replace('border-amber-500', 'border-blue-500');
+                        warningEl.querySelector('p').classList.replace('text-amber-700', 'text-blue-700');
+                        warningEl.querySelector('p').classList.replace('dark:text-amber-400', 'dark:text-blue-400');
+                        warningEl.querySelector('p').innerHTML = '<i class="fas fa-info-circle mr-2"></i> Your vehicle is already registered. You may only update your pricing structure or fill in missing details.';
+                    }
                 }
             }
         }
