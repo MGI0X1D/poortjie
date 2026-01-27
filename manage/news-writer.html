@@ -28,6 +28,7 @@
         }
     </script>
     <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="../favicon/site.webmanifest">
 </head>
 <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
@@ -69,6 +70,19 @@
                         <option value="event">Upcoming Event</option>
                         <option value="promo">Business Promo</option>
                     </select>
+                </div>
+
+                <div id="business-select-container" class="hidden">
+                    <label class="block text-sm font-bold mb-2">Target Business for Promotion</label>
+                    <div class="flex gap-2">
+                        <div id="selected-business-display" class="flex-grow px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 dark:bg-slate-800 dark:border-slate-700 dark:text-white min-h-[50px] flex items-center italic opacity-60">
+                            No business selected
+                        </div>
+                        <button type="button" onclick="openBusinessPicker()" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">
+                            Select
+                        </button>
+                    </div>
+                    <input type="hidden" id="business-id" value="">
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -122,6 +136,40 @@
     </div>
 </div>
 
+<!-- Business Picker Modal -->
+<div id="business-picker-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold">Select Business</h3>
+            <button onclick="closeBusinessPicker()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <div class="space-y-4 mb-4">
+            <div class="relative">
+                <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <label for="biz-search"></label><input type="text" id="biz-search" placeholder="Search by name or category..." oninput="filterBusinesses()"
+                                                       class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex justify-between items-center text-xs opacity-60">
+                <span id="biz-count">Loading businesses...</span>
+                <button onclick="loadBusinessesForPromo(true)" class="text-blue-500 hover:underline">Refresh List</button>
+            </div>
+        </div>
+
+        <div id="biz-list" class="flex-grow overflow-y-auto space-y-2 pr-2 custom-scrollbar min-h-[300px]">
+            <!-- Businesses will be injected here -->
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-gray-100 dark:border-slate-700 flex justify-end">
+            <button onclick="closeBusinessPicker()" class="px-6 py-2 bg-gray-200 dark:bg-slate-700 rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-slate-600 transition">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="../scripts/theme.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
@@ -134,6 +182,111 @@
     let isSuperUser = false;
     let isPoortjieAdmin = false;
     let recentPostsData = {}; // Store posts data for modal
+    let allBusinessesForPromo = [];
+
+    function openBusinessPicker() {
+        document.getElementById('business-picker-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        loadBusinessesForPromo();
+    }
+
+    function closeBusinessPicker() {
+        document.getElementById('business-picker-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function selectBusiness(id, collection, name) {
+        document.getElementById('business-id').value = JSON.stringify({id, collection});
+        document.getElementById('selected-business-display').textContent = `${name} (${collection})`;
+        document.getElementById('selected-business-display').classList.remove('italic', 'opacity-60');
+        
+        // Auto-fill title and content
+        const biz = allBusinessesForPromo.find(b => b.id === id && b.collection === collection);
+        if (biz) {
+            document.getElementById('news-title').value = biz.name;
+            document.getElementById('news-content').value = biz.description;
+        }
+        
+        closeBusinessPicker();
+    }
+
+    function filterBusinesses() {
+        const term = document.getElementById('biz-search').value.toLowerCase();
+        const filtered = allBusinessesForPromo.filter(b => 
+            b.name.toLowerCase().includes(term) || 
+            b.collection.toLowerCase().includes(term)
+        );
+        renderBusinessList(filtered);
+    }
+
+    function renderBusinessList(list) {
+        const container = document.getElementById('biz-list');
+        const countDisplay = document.getElementById('biz-count');
+        
+        countDisplay.textContent = `${list.length} businesses found`;
+        
+        if (list.length === 0) {
+            container.innerHTML = '<p class="text-center opacity-50 py-12">No businesses found matching your search.</p>';
+            return;
+        }
+
+        container.innerHTML = list.map(biz => `
+            <div onclick="selectBusiness('${biz.id}', '${biz.collection}', '${biz.name.replace(/'/g, "\\'")}')" 
+                 class="p-4 rounded-xl border border-gray-100 dark:border-slate-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-all group">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">${biz.name}</h4>
+                        <p class="text-xs opacity-60 uppercase tracking-widest">${biz.collection}</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-300 group-hover:text-blue-500 transition-colors"></i>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function loadBusinessesForPromo(force = false) {
+        if (!force && allBusinessesForPromo.length > 0) return;
+
+        const container = document.getElementById('biz-list');
+        const countDisplay = document.getElementById('biz-count');
+        
+        container.innerHTML = `
+            <div class="flex flex-col items-center py-12">
+                <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                <p class="opacity-50">Fetching businesses...</p>
+            </div>
+        `;
+        countDisplay.textContent = 'Loading...';
+
+        try {
+            const collections = [
+                'Beauty & Freshness', 'Creative', 'Drip & Clothing', 
+                'Food & Catering', 'Groove & Events', 'Home & Interior', 
+                'Information Technology', 'Repairs & Technical', 
+                'Transport', 'Vehicle Services', 'Cash & Mashonisa'
+            ];
+
+            const fetchedBusinesses = [];
+            for (const coll of collections) {
+                const snapshot = await db.collection('poortjie').doc('services').collection(coll).get();
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    fetchedBusinesses.push({
+                        id: doc.id,
+                        collection: coll,
+                        name: data.businessName || data.name || 'Unnamed Business',
+                        description: data.description || ''
+                    });
+                });
+            }
+
+            allBusinessesForPromo = fetchedBusinesses.sort((a, b) => a.name.localeCompare(b.name));
+            filterBusinesses(); // Initial render with empty search
+        } catch (error) {
+            console.error("Error loading businesses:", error);
+            container.innerHTML = `<p class="text-center text-red-500 py-12">Error loading: ${error.message}</p>`;
+        }
+    }
 
     function showContent(id) {
         const post = recentPostsData[id];
@@ -195,6 +348,18 @@
     });
 
     const newsForm = document.getElementById('news-form');
+    const newsType = document.getElementById('news-type');
+    const businessSelectContainer = document.getElementById('business-select-container');
+    const businessSelect = document.getElementById('business-id');
+
+    newsType.addEventListener('change', () => {
+        if (newsType.value === 'promo') {
+            businessSelectContainer.classList.remove('hidden');
+        } else {
+            businessSelectContainer.classList.add('hidden');
+        }
+    });
+
     newsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById('submit-btn');
@@ -204,10 +369,16 @@
         const title = document.getElementById('news-title').value;
         const content = document.getElementById('news-content').value;
         const type = document.getElementById('news-type').value;
+        const businessInfo = document.getElementById('business-id').value;
         const showFrom = document.getElementById('news-show-from').value;
         const expiry = document.getElementById('news-expiry').value;
 
         try {
+            let promoBusiness = null;
+            if (type === 'promo' && businessInfo) {
+                promoBusiness = JSON.parse(businessInfo);
+            }
+
             let showFromDate = null;
             if (showFrom) {
                 showFromDate = new Date(showFrom);
@@ -232,6 +403,7 @@
                 title,
                 content,
                 type,
+                promoBusiness,
                 showFrom: showFromDate,
                 expiry: expiryDate,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -241,6 +413,9 @@
             });
 
             newsForm.reset();
+            businessSelectContainer.classList.add('hidden');
+            document.getElementById('selected-business-display').textContent = 'No business selected';
+            document.getElementById('selected-business-display').classList.add('italic', 'opacity-60');
             setExpiryDefault();
             alert('News posted successfully!');
         } catch (error) {

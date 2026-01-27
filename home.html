@@ -208,6 +208,21 @@
         </div>
     </section>
 
+    <!-- Business Modal -->
+    <div id="business-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            <button onclick="closeBusinessModal()" class="sticky top-4 float-right mr-4 z-10 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur rounded-full shadow-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div id="business-modal-content" class="p-1">
+                <!-- Business card will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Modal Container -->
+    <div id="rating-modal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"></div>
+
 </main>
 
 <footer class="text-center py-12 border-t border-gray-100 dark:border-slate-800 opacity-50 text-xs">
@@ -227,6 +242,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" defer></script>
 <script src="scripts/firebase.js" defer></script>
+<script src="scripts/card-renderer.js" defer></script>
+<script src="scripts/rating.js" defer></script>
 
 <script>
     let allServices = [];
@@ -567,6 +584,8 @@
             setTimeout(() => {
                 let typeLabel = '';
                 let typeColor = 'bg-green-500';
+                let promoClickAttr = '';
+                let promoClass = '';
 
                 if (news.type === 'event') {
                     typeLabel = '📅 EVENT';
@@ -574,10 +593,15 @@
                 } else if (news.type === 'promo') {
                     typeLabel = '🎁 PROMO';
                     typeColor = 'bg-purple-500';
+                    if (news.promoBusiness) {
+                        promoClickAttr = `onclick="showPromoBusiness('${news.promoBusiness.id}', '${news.promoBusiness.collection}')"`;
+                        promoClass = 'cursor-pointer hover:scale-[1.02] transition-transform';
+                        typeLabel = '🎁 CLICK TO VIEW PROMO';
+                    }
                 }
 
                 contentArea.innerHTML = `
-                    <div class="flex flex-col items-center">
+                    <div class="flex flex-col items-center ${promoClass}" ${promoClickAttr}>
                         ${typeLabel ? `<span class="${typeColor} text-[10px] text-white font-black px-2 py-0.5 rounded mb-2">${typeLabel}</span>` : ''}
                         <h2 class="text-2xl md:text-3xl font-black mb-2 text-center text-slate-900 dark:text-white leading-tight">${news.title}</h2>
                         <p class="text-lg opacity-80 text-center max-w-lg leading-relaxed">${news.content}</p>
@@ -601,6 +625,47 @@
             renderNewsSlide();
             resetSliderTimer();
         };
+
+        window.showPromoBusiness = async (id, collection) => {
+            const modal = document.getElementById('business-modal');
+            const content = document.getElementById('business-modal-content');
+            
+            content.innerHTML = `
+                <div class="p-12 text-center">
+                    <div class="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="opacity-50">Opening business profile...</p>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            try {
+                const doc = await db.collection('poortjie').doc('services').collection(collection).doc(id).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const card = await renderServiceCard({id: doc.id, ...data}, collection);
+                    content.innerHTML = '';
+                    content.appendChild(card);
+                } else {
+                    content.innerHTML = '<p class="p-8 text-center opacity-50">Business not found.</p>';
+                }
+            } catch (error) {
+                console.error("Error fetching business:", error);
+                content.innerHTML = '<p class="p-8 text-center text-red-500">Error loading business profile.</p>';
+            }
+        };
+
+        window.closeBusinessModal = () => {
+            document.getElementById('business-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        };
+
+        // Close modal on click outside
+        document.getElementById('business-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'business-modal') {
+                closeBusinessModal();
+            }
+        });
 
         function fetchNews() {
             const now = new Date();
