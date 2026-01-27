@@ -110,7 +110,7 @@
                     <div class="flex-grow space-y-4 w-full">
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Full Name</label>
-                            <input type="text" id="display-name" required placeholder="Enter your full name" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                            <input type="text" id="display-name" required placeholder="Enter your full name" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase">
                         </div>
                     </div>
                 </div>
@@ -140,7 +140,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Registration Number</label>
-                        <input type="text" id="car-registration" required placeholder="e.g. FGP123GP" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase" pattern="^[A-Z0-9]+$" title="Only uppercase letters and numbers, no spaces allowed.">
+                        <input type="text" id="car-registration" required placeholder="e.g. FGP123GP" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition uppercase" pattern="^[A-Z0-9]{1,10}$" title="Only uppercase letters and numbers, max 10 characters, no spaces allowed.">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Color</label>
@@ -174,11 +174,11 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Available Seats</label>
-                        <input type="number" id="car-seats" required min="1" max="22" value="4" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        <input type="number" id="car-seats" required min="1" max="60" value="4" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Year of Manufacture</label>
-                        <input type="number" id="car-year" required min="1900" max="2026" value="2024" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                        <input type="number" id="car-year" required min="1990" max="2026" value="2024" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
                     </div>
                 </div>
 
@@ -321,6 +321,20 @@
             });
         }
 
+        // Real-time uppercase for car registration and others
+        const uppercaseInputs = ['car-registration', 'car-make', 'car-model', 'car-color', 'display-name'];
+        uppercaseInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', (e) => {
+                    const start = e.target.selectionStart;
+                    const end = e.target.selectionEnd;
+                    e.target.value = e.target.value.toUpperCase();
+                    e.target.setSelectionRange(start, end);
+                });
+            }
+        });
+
         if (cancelCropBtn) {
             cancelCropBtn.addEventListener('click', () => {
                 cropModal.classList.add('hidden');
@@ -379,7 +393,6 @@
     async function checkDriverStatus(uid) {
         const snap = await db.collection('kasilayn').doc('fleet').collection('drivers').doc(uid).get();
         if (snap.exists) {
-            showStatus("You are already registered as a driver!", "success");
             document.getElementById('submit-btn').textContent = "Update Driver Info";
             // Pre-fill existing data if needed
             const data = snap.data();
@@ -505,7 +518,7 @@
         row.innerHTML = `
             <div class="flex-grow">
                 <label class="block text-[8px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Destination</label>
-                <input type="text" name="fixed-dest" required value="${destination}" placeholder="e.g. Lenasia" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-2 text-xs font-bold outline-none transition">
+                <input type="text" name="fixed-dest" required value="${destination}" placeholder="e.g. Lenasia" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-2 text-xs font-bold outline-none transition uppercase">
             </div>
             <div class="w-24">
                 <label class="block text-[8px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Price (R)</label>
@@ -516,6 +529,15 @@
             </button>
         `;
         container.appendChild(row);
+
+        // Add uppercase listener to the new input
+        const input = row.querySelector('input[name="fixed-dest"]');
+        input.addEventListener('input', (e) => {
+            const start = e.target.selectionStart;
+            const end = e.target.selectionEnd;
+            e.target.value = e.target.value.toUpperCase();
+            e.target.setSelectionRange(start, end);
+        });
     }
 
     function showStatus(msg, type) {
@@ -546,14 +568,27 @@
 
         toggleLoader(true, "Promoting to Driver...");
 
-        const carMake = document.getElementById('car-make').value;
-        const carModel = document.getElementById('car-model').value;
-        const carReg = document.getElementById('car-registration').value.toUpperCase();
-        const carColor = document.getElementById('car-color').value;
+        const carMake = document.getElementById('car-make').value.trim();
+        const carModel = document.getElementById('car-model').value.trim();
+        const carReg = document.getElementById('car-registration').value.toUpperCase().trim();
+        const carColor = document.getElementById('car-color').value.trim();
         const carBodyType = document.getElementById('car-body-type').value.toUpperCase();
         const carSeats = parseInt(document.getElementById('car-seats').value);
         const carYear = parseInt(document.getElementById('car-year').value);
         
+        // Basic validation
+        if (!carReg || carReg.length < 3) {
+            showStatus("Please enter a valid registration number.", "error");
+            toggleLoader(false);
+            return;
+        }
+
+        if (!carMake || !carModel || !carColor) {
+            showStatus("Please fill in all vehicle details.", "error");
+            toggleLoader(false);
+            return;
+        }
+
         // Check if car details were disabled (meaning we are only updating pricing)
         const isCarLocked = document.getElementById('car-make').disabled;
 
