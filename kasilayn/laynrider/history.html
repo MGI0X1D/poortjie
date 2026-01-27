@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings | Poortjie Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../scripts/firebase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="font-sans antialiased bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
+
+<!-- Top Bar -->
+<header class="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+    <div class="max-w-4xl mx-auto h-16 flex items-center px-4 relative">
+        <button onclick="window.location.href='dashboard.html'" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition absolute left-4">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1 class="w-full text-center text-lg font-black tracking-tight uppercase">My Bookings</h1>
+    </div>
+</header>
+
+<main class="max-w-4xl mx-auto p-4 pb-24">
+    <div id="bookings-list" class="space-y-4">
+        <!-- Loader -->
+        <div id="loader" class="flex flex-col items-center justify-center py-20 opacity-50">
+            <div class="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full mb-4"></div>
+            <p class="text-xs font-bold uppercase tracking-widest">Loading History...</p>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden flex flex-col items-center justify-center py-24 text-center space-y-4 opacity-40">
+        <div class="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl">
+            <i class="fas fa-calendar-times"></i>
+        </div>
+        <div>
+            <h3 class="font-black uppercase tracking-tight">No Bookings Yet</h3>
+            <p class="text-xs font-bold">You haven't made any bookings yet.</p>
+        </div>
+        <button onclick="window.location.href='dashboard.html'" class="mt-4 px-6 py-2 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full">
+            Book a Ride
+        </button>
+    </div>
+</main>
+
+<script>
+    // Theme Support
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    }
+
+    let unsubscribe = null;
+
+    firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+            observeBookings(user.uid);
+        } else {
+            window.location.href = '../../authentication/login.html';
+        }
+    });
+
+    function observeBookings(uid) {
+        const bookingsRef = db.collection('kasilayn').doc('fleet').collection('bookings');
+        
+        // Query: Filter by requesterUid and sort by createdAt descending
+        const query = bookingsRef
+            .where('requesterUid', '==', uid)
+            .orderBy('createdAt', 'desc');
+
+        unsubscribe = query.onSnapshot(snapshot => {
+            document.getElementById('loader').classList.add('hidden');
+            const listContainer = document.getElementById('bookings-list');
+            const emptyState = document.getElementById('empty-state');
+            
+            listContainer.innerHTML = '';
+            
+            if (snapshot.empty) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                snapshot.forEach(doc => {
+                    const booking = doc.data();
+                    listContainer.appendChild(createBookingCard(doc.id, booking));
+                });
+            }
+        }, error => {
+            console.error("History Listener Error:", error);
+            // Handle index error usually
+            if (error.code === 'failed-precondition') {
+                alert("This view requires a Firestore index. Please wait for the developer to enable it.");
+            }
+        });
+    }
+
+    function createBookingCard(id, booking) {
+        const div = document.createElement('div');
+        div.className = 'card p-5 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 space-y-4 animate-fadeIn cursor-pointer hover:scale-[1.01] transition-transform';
+        div.onclick = () => window.location.href = `waiting.html?id=${id}`;
+
+        const status = (booking.status || 'PENDING').toUpperCase();
+        let statusColorClass = 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
+        
+        if (status === 'PENDING') statusColorClass = 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400';
+        if (status === 'ACCEPTED' || status === 'COMPLETED') statusColorClass = 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+        if (status === 'CANCELLED') statusColorClass = 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
+
+        div.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black uppercase opacity-40 tracking-widest">${booking.whenText || 'Date Unknown'}</p>
+                    <h3 class="font-black text-sm uppercase">${booking.driverDisplayName || 'Unknown Driver'}</h3>
+                </div>
+                <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${statusColorClass}">
+                    ${status}
+                </span>
+            </div>
+
+            <div class="flex gap-4 items-center">
+                <div class="flex flex-col items-center py-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                    <div class="w-[1px] h-4 bg-slate-100 dark:bg-slate-700 my-1"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                </div>
+                <div class="flex-grow space-y-1 overflow-hidden">
+                    <p class="text-[10px] font-bold truncate opacity-60">${booking.pickup}</p>
+                    <p class="text-[10px] font-bold truncate opacity-60">${booking.destination}</p>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-50 dark:border-slate-700/50 flex justify-between items-center">
+                <div>
+                    <p class="text-[8px] font-black uppercase opacity-40">Fare</p>
+                    <p class="text-xs font-black text-green-600">R ${booking.estimatedFare?.toFixed(2) || '0.00'}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] font-black uppercase opacity-40">Distance</p>
+                    <p class="text-[10px] font-bold">${booking.distanceKm?.toFixed(1) || '0.0'} km</p>
+                </div>
+            </div>
+        `;
+        return div;
+    }
+</script>
+
+</body>
+</html>

@@ -31,19 +31,26 @@
 
 <header class="max-w-6xl mx-auto pt-10 pb-6 px-6 flex justify-between items-center">
     <div class="flex flex-col">
+        <!-- Main Logo/Title -->
         <a href="../../index.html" class="text-2xl font-black tracking-tight">Poortjie <span class="text-green-600">Dashboard</span></a>
         <p class="text-xs opacity-50 font-bold uppercase tracking-widest">Real-time Fleet View</p>
     </div>
-    <div id="user-location-status" class="text-[10px] font-black uppercase tracking-tighter px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-slate-400" id="location-dot"></span>
-        <span id="location-text">Location Unknown</span>
+    <!-- User Location Display (Updated by Geolocation API) -->
+    <div class="flex items-center gap-3">
+        <button onclick="window.location.href='history.html'" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-green-100 dark:hover:bg-green-900/30 text-slate-400 hover:text-green-600 transition" title="My Bookings">
+            <i class="fas fa-history"></i>
+        </button>
+        <div id="user-location-status" class="text-[10px] font-black uppercase tracking-tighter px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-slate-400" id="location-dot"></span>
+            <span id="location-text">Location Unknown</span>
+        </div>
     </div>
 </header>
 
 <main class="max-w-6xl mx-auto px-6 pb-24">
-    <!-- Controls -->
+    <!-- Filters & Sorting: Allows riders to narrow down the fleet by car type or proximity -->
     <div class="mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
-        <!-- Body Type Filters -->
+        <!-- Body Type Filters (Sedan, SUV, etc.) -->
         <div class="flex flex-wrap gap-2 justify-center" id="filter-container">
             <button onclick="setFilter('ALL')" class="filter-btn active px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition border-2 border-green-500 bg-green-500 text-white">All</button>
             <button onclick="setFilter('SEDAN')" class="filter-btn px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition border-2 border-gray-200 dark:border-slate-700 hover:border-green-500">Sedan</button>
@@ -52,7 +59,7 @@
             <button onclick="setFilter('BAKKIE')" class="filter-btn px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition border-2 border-gray-200 dark:border-slate-700 hover:border-green-500">Bakkie</button>
         </div>
 
-        <!-- Sorting -->
+        <!-- Sorting: Toggle between Alphabetical and Distance-based sorting -->
         <div class="flex items-center gap-2">
             <label for="sort-select" class="text-[10px] font-black uppercase opacity-50">Sort By:</label>
             <select id="sort-select" onchange="setSort(this.value)" class="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-green-500 outline-none">
@@ -62,9 +69,9 @@
         </div>
     </div>
 
-    <!-- Status Sections -->
+    <!-- Status Sections: Drivers are automatically grouped into these based on their Firestore 'status' field -->
     <div class="space-y-12">
-        <!-- Available -->
+        <!-- Available Drivers: Ready for a trip (Redirects to booking.html on click) -->
         <section>
             <div class="flex items-center gap-4 mb-6">
                 <div class="h-[1px] flex-grow bg-green-500/20"></div>
@@ -75,12 +82,12 @@
                 <div class="h-[1px] flex-grow bg-green-500/20"></div>
             </div>
             <div id="grid-available" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Cards -->
+                <!-- Cards injected by renderDrivers() -->
             </div>
             <div id="empty-available" class="hidden text-center py-10 opacity-30 italic text-sm">No drivers online right now.</div>
         </section>
 
-        <!-- Busy -->
+        <!-- Busy Drivers: Currently on a trip or booked -->
         <section>
             <div class="flex items-center gap-4 mb-6">
                 <div class="h-[1px] flex-grow bg-amber-500/20"></div>
@@ -91,12 +98,12 @@
                 <div class="h-[1px] flex-grow bg-amber-500/20"></div>
             </div>
             <div id="grid-busy" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-75">
-                <!-- Cards -->
+                <!-- Cards injected by renderDrivers() -->
             </div>
             <div id="empty-busy" class="hidden text-center py-10 opacity-30 italic text-sm">All active drivers are currently free.</div>
         </section>
 
-        <!-- Offline -->
+        <!-- Offline Drivers: Not active in the system -->
         <section>
             <div class="flex items-center gap-4 mb-6">
                 <div class="h-[1px] flex-grow bg-slate-400/20"></div>
@@ -107,7 +114,7 @@
                 <div class="h-[1px] flex-grow bg-slate-400/20"></div>
             </div>
             <div id="grid-offline" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-50 grayscale">
-                <!-- Cards -->
+                <!-- Cards injected by renderDrivers() -->
             </div>
             <div id="empty-offline" class="hidden text-center py-10 opacity-30 italic text-sm">Everyone is online!</div>
         </section>
@@ -115,13 +122,22 @@
 </main>
 
 <script>
+    /**
+     * GLOBAL STATE
+     * drivers: List of all driver objects from Firestore
+     * cars: List of all car objects from Firestore
+     * userLocation: Current GPS coordinates of the rider
+     */
     let drivers = [];
     let cars = [];
     let currentFilter = 'ALL';
     let currentSort = 'name';
     let userLocation = null;
 
-    // Haversine distance formula
+    /**
+     * UTILITY: Haversine distance formula
+     * Calculates distance between two coordinates in Kilometers.
+     */
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // Radius of the earth in km
         const dLat = deg2rad(lat2 - lat1);
@@ -138,6 +154,10 @@
         return deg * (Math.PI / 180);
     }
 
+    /**
+     * FILTERING LOGIC
+     * Updates the UI buttons and triggers a re-render.
+     */
     function setFilter(filter) {
         currentFilter = filter;
         document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -151,6 +171,9 @@
         renderDashboard();
     }
 
+    /**
+     * SORTING LOGIC
+     */
     function setSort(sort) {
         currentSort = sort;
         if (sort === 'proximity' && !userLocation) {
@@ -159,6 +182,10 @@
         renderDashboard();
     }
 
+    /**
+     * GEOLOCATION
+     * Requests permission to access the user's location.
+     */
     function requestLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -184,17 +211,22 @@
         }
     }
 
+    /**
+     * DATA INITIALIZATION
+     * Sets up real-time listeners for the fleet data.
+     */
     function observeFleet() {
+        // Paths for fleet data
         const driversRef = db.collection('kasilayn').doc('fleet').collection('drivers');
         const carsRef = db.collection('kasilayn').doc('fleet').collection('cars');
 
-        // Listen for cars first to have them ready for matching
+        // Listen for cars first to have them ready for matching with drivers
         carsRef.onSnapshot(snapshot => {
             cars = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderDashboard();
         });
 
-        // Listen for drivers
+        // Listen for drivers and update the UI in real-time
         driversRef.onSnapshot(snapshot => {
             drivers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             document.getElementById('loader-overlay').classList.add('hidden');
@@ -202,6 +234,10 @@
         });
     }
 
+    /**
+     * MAIN RENDER ENGINE
+     * Processes the raw data from Firestore, applies filters/sorts, and builds the HTML.
+     */
     function renderDashboard() {
         const gridAvailable = document.getElementById('grid-available');
         const gridBusy = document.getElementById('grid-busy');
@@ -215,7 +251,7 @@
         let countBusy = 0;
         let countOffline = 0;
 
-        // Process drivers: Match with cars and filter
+        // 1. Data Mapping: Match drivers with their assigned cars
         let processedList = drivers.map(driver => {
             const car = cars.find(c => c.registration === (driver.carRef?.id || driver.carRegistration));
             let distance = null;
@@ -228,12 +264,12 @@
             return { ...driver, car, distance };
         });
 
-        // Filter by car body type
+        // 2. Apply Body Type Filter (e.g., Sedan, SUV)
         if (currentFilter !== 'ALL') {
             processedList = processedList.filter(d => d.car && (d.car.bodyType || '').toUpperCase() === currentFilter);
         }
 
-        // Sort
+        // 3. Apply Sorting (Proximity or Name)
         processedList.sort((a, b) => {
             if (currentSort === 'proximity') {
                 if (a.distance === null) return 1;
@@ -244,6 +280,7 @@
             }
         });
 
+        // 4. Categorize by status and Render
         processedList.forEach(driver => {
             const card = createDriverCard(driver);
             const status = (driver.status || 'OFFLINE').toUpperCase();
@@ -260,15 +297,21 @@
             }
         });
 
+        // Update UI counts
         document.getElementById('count-available').textContent = countAvailable;
         document.getElementById('count-busy').textContent = countBusy;
         document.getElementById('count-offline').textContent = countOffline;
 
+        // Toggle empty states
         document.getElementById('empty-available').classList.toggle('hidden', countAvailable > 0);
         document.getElementById('empty-busy').classList.toggle('hidden', countBusy > 0);
         document.getElementById('empty-offline').classList.toggle('hidden', countOffline > 0);
     }
 
+    /**
+     * COMPONENT: Driver Card
+     * Generates the HTML for a single driver card.
+     */
     function createDriverCard(driver) {
         const div = document.createElement('div');
         div.className = 'card p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden animate-fadeIn';
@@ -313,8 +356,8 @@
                 </div>
             </div>
             
-            ${status === 'AVAILABLE' ? `
-                <button onclick="contactDriver('${driver.id}')" class="mt-2 w-full py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition">
+            ${status === 'ONLINE' || status === 'AVAILABLE' ? `
+                <button onclick="bookDriver('${driver.id}')" class="mt-2 w-full py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition">
                     Book Trip
                 </button>
             ` : ''}
@@ -323,19 +366,12 @@
         return div;
     }
 
-    function contactDriver(id) {
-        const driver = drivers.find(d => d.id === id);
-        if (!driver) return;
-        
-        const car = driver.car;
-        const message = `Hello ${driver.displayName}, I found you on Poortjie Rider Dashboard. I would like to book a trip in your ${car ? `${car.make} ${car.model} (${car.registration})` : 'vehicle'}.`;
-        
-        if (driver.phoneNumber) {
-            const whatsappUrl = `https://wa.me/${driver.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-        } else {
-            alert(`Contacting ${driver.displayName}... (Phone number not available)`);
-        }
+    /**
+     * NAVIGATION
+     * Redirects to the booking confirmation screen.
+     */
+    function bookDriver(id) {
+        window.location.href = `booking.html?driverUid=${id}`;
     }
 
     // Initialize

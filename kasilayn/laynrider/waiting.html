@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting for Driver | Poortjie Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../scripts/firebase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col min-h-screen">
+
+<header class="max-w-4xl mx-auto w-full pt-10 pb-6 px-6 flex justify-between items-center">
+    <a href="dashboard.html" class="text-2xl font-black tracking-tight">Poortjie <span class="text-green-600">Rider</span></a>
+</header>
+
+<main class="flex-grow flex flex-col items-center justify-center px-6 text-center space-y-8">
+    <div class="relative">
+        <div class="w-32 h-32 border-4 border-green-500/20 border-t-green-500 rounded-full animate-spin"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <i class="fas fa-car text-3xl text-green-500 animate-bounce"></i>
+        </div>
+    </div>
+
+    <div class="space-y-2">
+        <h1 class="text-2xl font-black uppercase tracking-tight">Finding your ride</h1>
+        <p class="text-sm opacity-60 max-w-xs mx-auto">We've sent your request to the driver. Please stay on this screen while they confirm.</p>
+    </div>
+
+    <div class="card p-6 rounded-3xl w-full max-w-sm bg-slate-50 dark:bg-slate-800/50 space-y-4">
+        <div class="flex justify-between items-center text-left">
+            <div>
+                <p class="text-[10px] font-black uppercase opacity-40">Status</p>
+                <p id="booking-status" class="text-sm font-bold text-green-600">PENDING</p>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] font-black uppercase opacity-40">Booking ID</p>
+                <p id="booking-id" class="text-[10px] font-mono opacity-60">--------</p>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="window.location.href='dashboard.html'" class="text-xs font-black uppercase tracking-widest opacity-40 hover:opacity-100 transition">
+        Cancel Request
+    </button>
+</main>
+
+<footer class="py-10 text-center opacity-20 text-[10px] font-bold uppercase tracking-[0.2em]">
+    Poortjie Services &copy; 2026
+</footer>
+
+<script>
+    // Theme Support
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    }
+
+    // Listen to the booking document in real-time
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookingId = urlParams.get('id');
+    if (bookingId) {
+        document.getElementById('booking-id').textContent = bookingId;
+        
+        // Setup real-time listener
+        db.collection('kasilayn').doc('fleet').collection('bookings').doc(bookingId).onSnapshot(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                const status = (data.status || 'PENDING').toUpperCase();
+                const statusEl = document.getElementById('booking-status');
+                
+                statusEl.textContent = status;
+                
+                // Visual feedback based on status
+                if (status === 'ACCEPTED') {
+                    statusEl.className = "text-sm font-bold text-blue-500";
+                    // In a real app, maybe navigate to "Trip Started" screen
+                } else if (status === 'ARRIVED') {
+                    statusEl.className = "text-sm font-bold text-amber-500";
+                } else if (status === 'IN_PROGRESS') {
+                    statusEl.className = "text-sm font-bold text-indigo-500";
+                } else if (status === 'COMPLETED') {
+                    statusEl.className = "text-sm font-bold text-green-500";
+                    alert("Trip Completed! Thank you for using Poortjie Services.");
+                    window.location.href = 'dashboard.html';
+                } else if (status === 'CANCELLED') {
+                    statusEl.className = "text-sm font-bold text-red-500";
+                    alert("Your request was cancelled.");
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
