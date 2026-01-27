@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Dashboard | Poortjie Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="icon" type="image/png" sizes="48x48" href="../../favicon/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="../../favicon/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="../../favicon/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../scripts/firebase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="font-sans antialiased bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
+
+<header class="max-w-4xl mx-auto pt-10 pb-6 px-6 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <button onclick="window.location.href='../laynrider/dashboard.html'" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1 class="text-xl font-black uppercase tracking-tight">Driver <span class="text-green-600">Dashboard</span></h1>
+    </div>
+    <div id="driver-status-badge" class="px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-2">
+        Offline
+    </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-6 pb-24 space-y-6">
+    <div id="loader-overlay" class="fixed inset-0 bg-white/80 dark:bg-slate-900/80 z-[100] flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="animate-spin h-10 w-10 border-4 border-green-500 border-t-transparent rounded-full mb-4"></div>
+        <p class="text-sm font-bold uppercase tracking-widest animate-pulse">Loading Your Fleet Profile...</p>
+    </div>
+
+    <!-- Status Toggle Card -->
+    <div class="card p-6 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-black uppercase tracking-tight">Go Online</h2>
+            <p class="text-xs opacity-50 font-bold uppercase tracking-wider">Turn this on to appear on the rider map</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="status-toggle" class="sr-only peer" onchange="toggleStatus(this.checked)">
+            <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+        </label>
+    </div>
+
+    <!-- Driver Info Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Profile Card -->
+        <div class="card p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl flex flex-col items-center text-center space-y-4">
+            <img id="driver-photo" src="https://placehold.co/150?text=Driver" class="w-24 h-24 rounded-full object-cover border-4 border-green-500 shadow-md">
+            <div>
+                <h3 id="driver-name" class="font-black text-lg uppercase tracking-tight">--</h3>
+                <p id="driver-email" class="text-xs opacity-50 font-bold">--</p>
+            </div>
+            <div class="flex gap-2">
+                <span id="driver-rating" class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    <i class="fas fa-star mr-1"></i> 5.0
+                </span>
+                <span id="driver-trips" class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    0 Trips
+                </span>
+            </div>
+        </div>
+
+        <!-- Car Details Card -->
+        <div class="md:col-span-2 card p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl space-y-6 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-1 h-4 bg-green-500 rounded-full"></span>
+                    <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Registered Vehicle</h2>
+                </div>
+                <span class="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-full opacity-50">Locked for safety</span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                <div>
+                    <p class="text-[9px] font-black uppercase opacity-40 mb-1">Make & Model</p>
+                    <p id="car-title" class="text-sm font-black uppercase">--</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase opacity-40 mb-1">Registration</p>
+                    <p id="car-reg" class="text-sm font-black text-green-600 uppercase">--</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase opacity-40 mb-1">Year</p>
+                    <p id="car-year" class="text-sm font-black">--</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase opacity-40 mb-1">Color</p>
+                    <p id="car-color" class="text-sm font-black">--</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase opacity-40 mb-1">Body Type</p>
+                    <p id="car-body" class="text-sm font-black">--</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase opacity-40 mb-1">Seats</p>
+                    <p id="car-seats" class="text-sm font-black">-- Seats</p>
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-slate-100 dark:border-slate-700/50">
+                <p class="text-[9px] font-black uppercase opacity-40 mb-3">Pricing Structure</p>
+                <div class="flex flex-wrap gap-4">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl flex-grow text-center">
+                        <p class="text-[8px] font-black uppercase opacity-40">Base Fee</p>
+                        <p id="price-base" class="text-xs font-black">--</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl flex-grow text-center">
+                        <p class="text-[8px] font-black uppercase opacity-40">Rate / KM</p>
+                        <p id="price-km" class="text-xs font-black">--</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl flex-grow text-center">
+                        <p class="text-[8px] font-black uppercase opacity-40">Rate / Hour</p>
+                        <p id="price-hr" class="text-xs font-black">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lock overlay effect -->
+            <div class="absolute top-0 right-0 p-8 opacity-5">
+                <i class="fas fa-lock text-6xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Bookings Placeholder -->
+    <div class="card p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl space-y-6">
+        <div class="flex items-center gap-2">
+            <span class="w-1 h-4 bg-green-500 rounded-full"></span>
+            <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Active Trip Requests</h2>
+        </div>
+        <div class="text-center py-12 opacity-30 italic text-sm">
+            No active requests at the moment. Go online to start receiving trips.
+        </div>
+    </div>
+</main>
+
+<script>
+    let currentUser = null;
+    let driverData = null;
+    let carData = null;
+
+    firebase.auth().onAuthStateChanged(user => {
+        if (!user) {
+            window.location.href = '../../authentication/login.html';
+            return;
+        }
+        currentUser = user;
+        loadDriverProfile();
+    });
+
+    async function loadDriverProfile() {
+        try {
+            const driverSnap = await db.collection('kasilayn').doc('fleet').collection('drivers').doc(currentUser.uid).get();
+            if (!driverSnap.exists) {
+                // Not a driver, send to registration
+                window.location.href = 'register-driver.html';
+                return;
+            }
+            driverData = driverSnap.data();
+            
+            // Render Driver Info
+            document.getElementById('driver-name').textContent = driverData.displayName || 'Unknown';
+            document.getElementById('driver-email').textContent = driverData.email || '--';
+            if (driverData.photoUrl) document.getElementById('driver-photo').src = driverData.photoUrl;
+            
+            // Update Status Toggle
+            const status = (driverData.status || 'OFFLINE').toUpperCase();
+            document.getElementById('status-toggle').checked = (status === 'ONLINE' || status === 'AVAILABLE');
+            updateStatusBadge(status);
+
+            // Load Car Data
+            const carReg = driverData.carRegistration;
+            if (carReg) {
+                const carSnap = await db.collection('kasilayn').doc('fleet').collection('cars').doc(carReg).get();
+                if (carSnap.exists) {
+                    carData = carSnap.data();
+                    renderCarUI();
+                }
+            }
+
+        } catch (e) {
+            console.error("Error loading profile:", e);
+        } finally {
+            document.getElementById('loader-overlay').classList.add('hidden');
+        }
+    }
+
+    function renderCarUI() {
+        if (!carData) return;
+        document.getElementById('car-title').textContent = `${carData.make} ${carData.model}`;
+        document.getElementById('car-reg').textContent = carData.registration;
+        document.getElementById('car-year').textContent = carData.year || '--';
+        document.getElementById('car-color').textContent = carData.color || '--';
+        document.getElementById('car-body').textContent = carData.bodyType || '--';
+        document.getElementById('car-seats').textContent = `${carData.seats || '--'} Seats`;
+        
+        if (carData.pricing) {
+            document.getElementById('price-base').textContent = `R ${carData.pricing.baseFee}`;
+            document.getElementById('price-km').textContent = `R ${carData.pricing.ratePerKm}`;
+            document.getElementById('price-hr').textContent = `R ${carData.pricing.driverRatePerHour}`;
+        }
+    }
+
+    function updateStatusBadge(status) {
+        const badge = document.getElementById('driver-status-badge');
+        badge.textContent = status;
+        
+        if (status === 'ONLINE' || status === 'AVAILABLE') {
+            badge.className = 'px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-2 border-green-500 bg-green-500 text-white animate-pulse';
+        } else if (status === 'BUSY' || status === 'ON_TRIP') {
+            badge.className = 'px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-2 border-amber-500 bg-amber-500 text-white';
+        } else {
+            badge.className = 'px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-2 border-slate-200 dark:border-slate-700 opacity-50';
+        }
+    }
+
+    async function toggleStatus(isOnline) {
+        if (!currentUser) return;
+        
+        const newStatus = isOnline ? 'ONLINE' : 'OFFLINE';
+        updateStatusBadge(newStatus);
+        
+        try {
+            await db.collection('kasilayn').doc('fleet').collection('drivers').doc(currentUser.uid).update({
+                status: newStatus,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("Status updated to:", newStatus);
+        } catch (e) {
+            console.error("Failed to update status:", e);
+            alert("Error updating status. Please try again.");
+            // Revert toggle
+            document.getElementById('status-toggle').checked = !isOnline;
+            updateStatusBadge(isOnline ? 'OFFLINE' : 'ONLINE');
+        }
+    }
+
+    // Theme Support
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+</script>
+</body>
+</html>
