@@ -554,10 +554,10 @@
     function updateCalculations() {
         if (!routeInfo || !carData) return;
 
-        const base = parseFloat(carData.baseFee) || 15;
-        const distRate = parseFloat(carData.ratePerKm) || 10;
-        const timeRate = parseFloat(carData.ratePerHour) || 50;
-        const total = base + (distRate * routeInfo.distKm) + (timeRate * routeInfo.durHr);
+        const pricing = carData.pricing || {};
+        const base = parseFloat(pricing.baseFee) || parseFloat(carData.baseFee) || 15;
+        const distRate = parseFloat(pricing.ratePerKm) || parseFloat(carData.ratePerKm) || 10;
+        const total = base + (distRate * routeInfo.distKm);
 
         // Store fare for modal
         const fareValue = `R ${total.toFixed(2)}`;

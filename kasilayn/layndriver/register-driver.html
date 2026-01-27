@@ -32,23 +32,36 @@
         </button>
         <h1 class="text-xl font-black uppercase tracking-tight">Join the Fleet</h1>
     </div>
-    <div id="hamburger-menu" class="relative z-50">
-        <button id="hamburger-btn" class="p-3 rounded-full bg-green-600 text-white shadow-lg hover:bg-green-700 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </button>
-        <div id="menu-items" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl py-2 ring-1 ring-black ring-opacity-5 border border-slate-100 dark:border-slate-700">
-            <button id="menu-theme-toggle" class="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3">
-                <span id="menu-theme-icon">🌓</span> Mode
+    <div class="flex items-center gap-3">
+        <!-- Commission Info Icon -->
+        <div class="relative group">
+            <button class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center transition-all hover:scale-110 shadow-sm">
+                <i class="fas fa-info-circle"></i>
             </button>
-            <div class="border-t border-gray-100 dark:border-slate-700 my-1"></div>
-            <a href="../../index.html" class="block w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3">
-                <i class="fas fa-home w-4 text-center"></i> Home
-            </a>
-            <button id="logout-btn" class="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
-                <i class="fas fa-sign-out-alt w-4 text-center"></i> Logout
+            <div class="absolute right-0 top-10 w-64 p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-[60] -translate-y-2 group-hover:translate-y-0">
+                <p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-2">Zero Commission Policy</p>
+                <p class="text-xs font-bold leading-relaxed opacity-70">There is no charge for using the Poortjie platform. Drivers get to keep <span class="text-green-600">100% of their earnings</span>.</p>
+            </div>
+        </div>
+        
+        <div id="hamburger-menu" class="relative z-50">
+            <button id="hamburger-btn" class="p-3 rounded-full bg-green-600 text-white shadow-lg hover:bg-green-700 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
             </button>
+            <div id="menu-items" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl py-2 ring-1 ring-black ring-opacity-5 border border-slate-100 dark:border-slate-700">
+                <button id="menu-theme-toggle" class="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3">
+                    <span id="menu-theme-icon">🌓</span> Mode
+                </button>
+                <div class="border-t border-gray-100 dark:border-slate-700 my-1"></div>
+                <a href="../../index.html" class="block w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3">
+                    <i class="fas fa-home w-4 text-center"></i> Home
+                </a>
+                <button id="logout-btn" class="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
+                    <i class="fas fa-sign-out-alt w-4 text-center"></i> Logout
+                </button>
+            </div>
         </div>
     </div>
 </header>
@@ -61,6 +74,16 @@
 
     <div class="card p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl space-y-8">
         <div id="status-message" class="hidden p-4 rounded-2xl text-sm font-bold border-2 animate-fadeIn"></div>
+
+        <!-- Development Warning -->
+        <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-2xl mb-6">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-tools text-red-600 dark:text-red-400"></i>
+                <p class="text-[10px] font-black uppercase tracking-widest text-red-700 dark:text-red-400">
+                    System Notice: This feature is still under development.
+                </p>
+            </div>
+        </div>
 
         <form id="driver-form" class="space-y-8">
             <!-- Driver Info Section -->
@@ -94,7 +117,7 @@
                     <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Vehicle Details</h2>
                 </div>
                 
-                <div class="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-2xl">
+                <div class="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-2xl" id="car-edit-warning">
                     <p class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
                         <i class="fas fa-exclamation-triangle mr-2"></i> Important: Car details cannot be changed later for safety reasons. Please ensure all information is accurate.
                     </p>
@@ -138,22 +161,57 @@
                 </div>
 
                 <div class="space-y-4 pt-4">
-                    <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Vehicle Photo</label>
-                    <div class="w-full h-48 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-green-500 transition group" onclick="document.getElementById('car-photo-input').click()">
-                        <img id="car-preview" class="hidden w-full h-full object-cover rounded-2xl">
-                        <div id="car-upload-placeholder" class="flex flex-col items-center">
-                            <i class="fas fa-car text-3xl opacity-20 group-hover:text-green-500 transition"></i>
-                            <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mt-2">Click to upload car photo</p>
+                    <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Vehicle Photos (Up to 3)</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- Photo 1 -->
+                        <div id="car-photo-1-container" class="w-full h-32 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-green-500 transition group relative overflow-hidden" onclick="document.getElementById('car-photo-1-input').click()">
+                            <img id="car-preview-1" class="hidden w-full h-full object-cover rounded-2xl">
+                            <div id="car-upload-placeholder-1" class="flex flex-col items-center">
+                                <i class="fas fa-car text-xl opacity-20 group-hover:text-green-500 transition"></i>
+                                <p class="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Photo 1</p>
+                            </div>
+                            <input type="file" id="car-photo-1-input" accept="image/*" class="hidden" onchange="previewImage(this, 'car-preview-1', 'car-upload-placeholder-1')">
                         </div>
-                        <input type="file" id="car-photo-input" accept="image/*" class="hidden" onchange="previewImage(this, 'car-preview', 'car-upload-placeholder')">
+                        <!-- Photo 2 -->
+                        <div id="car-photo-2-container" class="w-full h-32 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-green-500 transition group relative overflow-hidden" onclick="document.getElementById('car-photo-2-input').click()">
+                            <img id="car-preview-2" class="hidden w-full h-full object-cover rounded-2xl">
+                            <div id="car-upload-placeholder-2" class="flex flex-col items-center">
+                                <i class="fas fa-car text-xl opacity-20 group-hover:text-green-500 transition"></i>
+                                <p class="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Photo 2</p>
+                            </div>
+                            <input type="file" id="car-photo-2-input" accept="image/*" class="hidden" onchange="previewImage(this, 'car-preview-2', 'car-upload-placeholder-2')">
+                        </div>
+                        <!-- Photo 3 -->
+                        <div id="car-photo-3-container" class="w-full h-32 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-green-500 transition group relative overflow-hidden" onclick="document.getElementById('car-photo-3-input').click()">
+                            <img id="car-preview-3" class="hidden w-full h-full object-cover rounded-2xl">
+                            <div id="car-upload-placeholder-3" class="flex flex-col items-center">
+                                <i class="fas fa-car text-xl opacity-20 group-hover:text-green-500 transition"></i>
+                                <p class="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Photo 3</p>
+                            </div>
+                            <input type="file" id="car-photo-3-input" accept="image/*" class="hidden" onchange="previewImage(this, 'car-preview-3', 'car-upload-placeholder-3')">
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Pricing Section (Hidden for now, use defaults) -->
-            <input type="hidden" id="base-fee" value="15">
-            <input type="hidden" id="rate-km" value="10">
-            <input type="hidden" id="rate-hr" value="50">
+            <!-- Pricing Section -->
+            <section class="space-y-6 pt-6 border-t border-slate-100 dark:border-slate-700/50">
+                <div class="flex items-center gap-2">
+                    <span class="w-1 h-4 bg-green-500 rounded-full"></span>
+                    <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Pricing Structure</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Base Fee (R)</label>
+                        <input type="number" id="base-fee" required min="0" value="15" step="0.01" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 ml-2">Rate per KM (R)</label>
+                        <input type="number" id="rate-km" required min="0" value="10" step="0.01" class="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-green-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition">
+                    </div>
+                </div>
+            </section>
 
             <button type="submit" id="submit-btn" class="w-full py-5 bg-green-600 text-white text-xs font-black uppercase tracking-[0.3em] rounded-[1.5rem] shadow-xl shadow-green-500/20 transition-all active:scale-95">
                 Register as Driver
@@ -222,17 +280,64 @@
             const carSnap = await db.collection('kasilayn').doc('fleet').collection('cars').doc(data.carRegistration).get();
             if (carSnap.exists) {
                 const carData = carSnap.data();
-                document.getElementById('car-make').value = carData.make || '';
-                document.getElementById('car-model').value = carData.model || '';
-                document.getElementById('car-registration').value = carData.registration || '';
-                document.getElementById('car-color').value = carData.color || '';
-                document.getElementById('car-body-type').value = carData.bodyType || 'SEDAN';
-                document.getElementById('car-seats').value = carData.seats || 4;
-                document.getElementById('car-year').value = carData.year || 2024;
+                
+                const lockFieldIfPresent = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (value && value.toString().trim() !== "") {
+                        el.value = value;
+                        el.disabled = true;
+                    }
+                };
+
+                lockFieldIfPresent('car-make', carData.make);
+                lockFieldIfPresent('car-model', carData.model);
+                lockFieldIfPresent('car-registration', carData.registration);
+                lockFieldIfPresent('car-color', carData.color);
+                
+                if (carData.bodyType) {
+                    document.getElementById('car-body-type').value = carData.bodyType;
+                    document.getElementById('car-body-type').disabled = true;
+                }
+                
+                lockFieldIfPresent('car-seats', carData.seats);
+                lockFieldIfPresent('car-year', carData.year);
+
+                if (carData.pricing) {
+                    document.getElementById('base-fee').value = carData.pricing.baseFee || 15;
+                    document.getElementById('rate-km').value = carData.pricing.ratePerKm || 10;
+                }
+                
                 if (carData.photoUrls && carData.photoUrls.length > 0) {
-                    document.getElementById('car-preview').src = carData.photoUrls[0];
-                    document.getElementById('car-preview').classList.remove('hidden');
-                    document.getElementById('car-upload-placeholder').classList.add('hidden');
+                    carData.photoUrls.forEach((url, index) => {
+                        if (index < 3) {
+                            const previewId = `car-preview-${index + 1}`;
+                            const placeholderId = `car-upload-placeholder-${index + 1}`;
+                            const containerId = `car-photo-${index + 1}-container`;
+                            
+                            const previewEl = document.getElementById(previewId);
+                            const placeholderEl = document.getElementById(placeholderId);
+                            const containerEl = document.getElementById(containerId);
+                            
+                            previewEl.src = url;
+                            previewEl.classList.remove('hidden');
+                            placeholderEl.classList.add('hidden');
+                            
+                            // Disable changes for present photos
+                            containerEl.onclick = null;
+                            containerEl.classList.remove('cursor-pointer', 'hover:border-green-500');
+                        }
+                    });
+                }
+                
+                // Update warning text and styling to indicate restricted editing
+                const warningEl = document.getElementById('car-edit-warning');
+                if (warningEl) {
+                    warningEl.classList.replace('bg-amber-50', 'bg-blue-50');
+                    warningEl.classList.replace('dark:bg-amber-900/20', 'dark:bg-blue-900/20');
+                    warningEl.classList.replace('border-amber-500', 'border-blue-500');
+                    warningEl.querySelector('p').classList.replace('text-amber-700', 'text-blue-700');
+                    warningEl.querySelector('p').classList.replace('dark:text-amber-400', 'dark:text-blue-400');
+                    warningEl.querySelector('p').innerHTML = '<i class="fas fa-info-circle mr-2"></i> Your vehicle is already registered. You may only update your pricing structure or fill in missing details.';
                 }
             }
         }
@@ -285,14 +390,22 @@
         const carBodyType = document.getElementById('car-body-type').value.toUpperCase();
         const carSeats = parseInt(document.getElementById('car-seats').value);
         const carYear = parseInt(document.getElementById('car-year').value);
+        
+        // Check if car details were disabled (meaning we are only updating pricing)
+        const isCarLocked = document.getElementById('car-make').disabled;
 
         try {
             // Photos
             let driverPhotoUrl = document.getElementById('driver-preview').src;
             if (driverPhotoUrl.startsWith('https://placehold.co')) driverPhotoUrl = "";
             
-            let carPhotoUrl = document.getElementById('car-preview').src;
-            if (carPhotoUrl.startsWith('https://placehold.co') || document.getElementById('car-preview').classList.contains('hidden')) carPhotoUrl = "";
+            const carPhotoUrls = [];
+            for (let i = 1; i <= 3; i++) {
+                const img = document.getElementById(`car-preview-${i}`);
+                if (img && !img.classList.contains('hidden') && !img.src.startsWith('https://placehold.co')) {
+                    carPhotoUrls.push(img.src);
+                }
+            }
 
             // ATOMIC TRANSACTION: User to Driver Promotion
             await db.runTransaction(async (transaction) => {
@@ -308,9 +421,6 @@
 
                 // 2. Pre-condition Check
                 const driverDoc = await transaction.get(driverRef);
-                // Note: If updating existing driver, we might want to skip this check or handle it.
-                // The issue description says "If the document already exists, the function fails immediately with an 'ALREADY_DRIVER' error."
-                // But our UI allows "Update Driver Info". I will stick to the issue description for the "Join Fleet" action.
                 const isUpdate = document.getElementById('submit-btn').textContent.includes("Update");
                 if (!isUpdate && driverDoc.exists) {
                     throw new Error("ALREADY_DRIVER");
@@ -329,10 +439,12 @@
                     bio: userData.bio || "",
                     status: driverDoc.exists ? (driverDoc.data().status || "OFFLINE") : "OFFLINE",
                     suspended: driverDoc.exists ? (driverDoc.data().suspended || false) : false,
-                    addedByUid: uid, // In this web context, the user is adding themselves
+                    addedByUid: uid, 
                     createdAt: driverDoc.exists ? (driverDoc.data().createdAt || now) : now,
                     updatedAt: now,
-                    carRegistration: carReg
+                    carRegistration: carReg,
+                    carRef: carRef,
+                    carPhotoUrls: carPhotoUrls.length > 0 ? carPhotoUrls : (driverDoc.exists ? (driverDoc.data().carPhotoUrls || []) : [])
                 };
                 transaction.set(driverRef, driverPayload, { merge: true });
 
@@ -349,23 +461,30 @@
                 // 5. Save Car Data (Atomic part of the same transaction)
                 const carPayload = {
                     registration: carReg,
-                    make: carMake,
-                    model: carModel,
-                    color: carColor,
-                    seats: carSeats,
-                    year: carYear,
-                    bodyType: carBodyType,
-                    photoUrls: carPhotoUrl ? [carPhotoUrl] : (driverDoc.exists ? (driverDoc.data().carPhotoUrls || []) : []),
                     userRef: userRef, // Linked to the person adding the car
                     addedByUid: uid,
-                    createdAt: driverDoc.exists ? (driverDoc.data().carCreatedAt || now) : now,
                     pricing: {
                         baseFee: parseFloat(document.getElementById('base-fee').value),
-                        ratePerKm: parseFloat(document.getElementById('rate-km').value),
-                        driverRatePerHour: parseFloat(document.getElementById('rate-hr').value)
+                        ratePerKm: parseFloat(document.getElementById('rate-km').value)
                     },
                     status: 'active'
                 };
+
+                // Only update physical car details if NOT locked
+                if (!isCarLocked) {
+                    carPayload.make = carMake;
+                    carPayload.model = carModel;
+                    carPayload.color = carColor;
+                    carPayload.seats = carSeats;
+                    carPayload.year = carYear;
+                    carPayload.bodyType = carBodyType;
+                    carPayload.photoUrls = carPhotoUrls;
+                    carPayload.createdAt = driverDoc.exists ? (driverDoc.data().carCreatedAt || now) : now;
+                } else {
+                    // If car is locked, we still might have added NEW photos if some were empty
+                    carPayload.photoUrls = carPhotoUrls;
+                }
+                
                 transaction.set(carRef, carPayload, { merge: true });
             });
 
