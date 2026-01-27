@@ -801,8 +801,7 @@
                     createdAt: driverDoc.exists ? (driverDoc.data().createdAt || now) : now,
                     updatedAt: now,
                     carRegistration: carReg,
-                    carRef: carRef,
-                    carPhotoUrls: carPhotoUrls.length > 0 ? carPhotoUrls : (driverDoc.exists ? (driverDoc.data().carPhotoUrls || []) : [])
+                    carRef: carRef
                 };
                 transaction.set(driverRef, driverPayload, { merge: true });
 

@@ -257,12 +257,6 @@
             document.getElementById('driver-email').textContent = driverData.email || '--';
             if (driverData.photoUrl) document.getElementById('driver-photo').src = driverData.photoUrl;
             
-            // Render Car Photo if available in driver data as backup
-            if (driverData.carPhotoUrls && driverData.carPhotoUrls.length > 0) {
-                const carPhotoImg = document.getElementById('car-photo-display');
-                if (carPhotoImg) carPhotoImg.src = driverData.carPhotoUrls[0];
-            }
-            
             // Update Status Toggle
             const status = (driverData.status || 'OFFLINE').toUpperCase();
             document.getElementById('status-toggle').checked = (status === 'ONLINE' || status === 'AVAILABLE');
@@ -280,6 +274,12 @@
                     carData = carSnap.data();
                     renderCarUI();
                     document.getElementById('edit-car-btn').classList.remove('hidden');
+
+                    // Render Car Photo
+                    const carPhotoImg = document.getElementById('car-photo-display');
+                    if (carPhotoImg && carData.photoUrls && carData.photoUrls.length > 0) {
+                        carPhotoImg.src = carData.photoUrls[0];
+                    }
                 } else {
                     document.getElementById('add-car-btn').classList.remove('hidden');
                 }
