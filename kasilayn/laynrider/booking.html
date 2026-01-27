@@ -108,6 +108,17 @@
                     <button onclick="toggleMap()" class="w-full py-3 text-[10px] font-black uppercase tracking-widest text-green-600 flex items-center justify-center gap-2 hover:bg-green-50 dark:hover:bg-green-900/10 rounded-xl transition">
                         <i class="fas fa-map-marked-alt"></i> View on Map
                     </button>
+                    <!-- Fare and Distance Display -->
+                    <div id="route-stats" class="hidden flex justify-between px-4 py-2 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-800/50">
+                        <div class="text-center">
+                            <p class="text-[8px] font-black uppercase opacity-40">Distance</p>
+                            <p id="stat-distance" class="text-xs font-black">-- km</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[8px] font-black uppercase opacity-40">Est. Price</p>
+                            <p id="stat-price" class="text-xs font-black text-green-600">--</p>
+                        </div>
+                    </div>
                     <div id="map-container" class="hidden h-64 w-full rounded-2xl overflow-hidden mt-2">
                         <div id="map" class="h-full w-full"></div>
                     </div>
@@ -379,7 +390,9 @@
 
     function toggleMap() {
         const container = document.getElementById('map-container');
+        const stats = document.getElementById('route-stats');
         container.classList.toggle('hidden');
+        if (stats) stats.classList.toggle('hidden', container.classList.contains('hidden'));
         if (!container.classList.contains('hidden')) {
             google.maps.event.trigger(map, 'resize');
         }
@@ -563,13 +576,29 @@
         // Check for Fixed Pricing
         const pickupValue = document.getElementById('pickup-input').value.toLowerCase();
         const destValue = document.getElementById('destination-input').value.toLowerCase();
+        const isPoortjie = pickupValue.includes('poortjie') || pickupValue.includes('poortje');
 
-        if (pickupValue.includes('poortjie') && pricing.fixed && pricing.fixed.length > 0) {
+        if (isPoortjie && pricing.fixed && pricing.fixed.length > 0) {
             const fixedMatch = pricing.fixed.find(f => destValue.includes(f.destination.toLowerCase()));
             if (fixedMatch) {
                 total = fixedMatch.amount;
                 console.log("Fixed price applied:", total);
             }
+        }
+
+        // Update route stats display
+        const routeStats = document.getElementById('route-stats');
+        const statDistance = document.getElementById('stat-distance');
+        const statPrice = document.getElementById('stat-price');
+        const mapContainer = document.getElementById('map-container');
+        
+        if (routeStats && routeInfo) {
+            // Only show if map is also visible
+            if (mapContainer && !mapContainer.classList.contains('hidden')) {
+                routeStats.classList.remove('hidden');
+            }
+            if (statDistance) statDistance.textContent = `${routeInfo.distKm.toFixed(1)} km`;
+            if (statPrice) statPrice.textContent = `R ${total.toFixed(2)}`;
         }
 
         // Store fare for modal
