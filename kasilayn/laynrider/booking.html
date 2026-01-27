@@ -638,6 +638,15 @@
         showLoading(true);
 
         try {
+            // Fetch real name from users collection
+            let realDisplayName = "Rider";
+            const userDoc = await db.collection('users').doc(currentUser.uid).get();
+            if (userDoc.exists && userDoc.data().displayName) {
+                realDisplayName = userDoc.data().displayName;
+            } else if (currentUser.displayName) {
+                realDisplayName = currentUser.displayName;
+            }
+
             const bookingId = db.collection('kasilayn').doc('fleet').collection('bookings').doc().id;
             const now = firebase.firestore.FieldValue.serverTimestamp();
             
@@ -670,7 +679,7 @@
                 pickupLng: routeInfo?.startCoords.lng() || 0,
                 destinationLat: routeInfo?.endCoords.lat() || 0,
                 destinationLng: routeInfo?.endCoords.lng() || 0,
-                requesterDisplayName: currentUser.displayName || "Rider",
+                requesterDisplayName: realDisplayName,
                 driverDisplayName: driverData?.displayName || "Driver",
                 estimatedFare: parseFloat(document.getElementById('confirm-fare-value').value.replace('R ', '')) || 0,
                 distanceKm: routeInfo?.distKm || 0,
