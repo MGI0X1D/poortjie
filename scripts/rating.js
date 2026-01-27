@@ -14,6 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.classList.contains('star')) handleStarClick(e);
             if (e.target.id === 'submit-rating') handleSubmit();
             
+            // Handle Rate button click
+            const rateBtn = e.target.closest('.rate-service');
+            if (rateBtn) {
+                const sId = rateBtn.dataset.serviceId;
+                const sKey = rateBtn.dataset.serviceKey;
+                window.openRatingModal(sId, sKey);
+            }
+
             // Handle Like button click (using closest to catch icon clicks too)
             const likeBtn = e.target.closest('.like-comment-btn');
             if (likeBtn) {
