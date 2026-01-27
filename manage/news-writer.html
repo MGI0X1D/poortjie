@@ -85,6 +85,19 @@
                     <input type="hidden" id="business-id" value="">
                 </div>
 
+                <div id="external-link-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="link-name" class="block text-sm font-bold mb-2">Link Button Name (Optional)</label>
+                        <input type="text" id="link-name" placeholder="e.g., View More, Register Now"
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="external-url" class="block text-sm font-bold mb-2">External URL (Optional)</label>
+                        <input type="url" id="external-url" placeholder="https://example.com"
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="news-show-from" class="block text-sm font-bold mb-2">Show From (Optional)</label>
@@ -353,10 +366,13 @@
     const businessSelect = document.getElementById('business-id');
 
     newsType.addEventListener('change', () => {
+        const linkContainer = document.getElementById('external-link-container');
         if (newsType.value === 'promo') {
             businessSelectContainer.classList.remove('hidden');
+            linkContainer.classList.add('hidden');
         } else {
             businessSelectContainer.classList.add('hidden');
+            linkContainer.classList.remove('hidden');
         }
     });
 
@@ -370,6 +386,8 @@
         const content = document.getElementById('news-content').value;
         const type = document.getElementById('news-type').value;
         const businessInfo = document.getElementById('business-id').value;
+        const externalLinkName = document.getElementById('link-name').value;
+        const externalUrl = document.getElementById('external-url').value;
         const showFrom = document.getElementById('news-show-from').value;
         const expiry = document.getElementById('news-expiry').value;
 
@@ -377,6 +395,14 @@
             let promoBusiness = null;
             if (type === 'promo' && businessInfo) {
                 promoBusiness = JSON.parse(businessInfo);
+            }
+
+            let externalLink = null;
+            if (type !== 'promo' && externalUrl) {
+                externalLink = {
+                    name: externalLinkName || 'View More',
+                    url: externalUrl
+                };
             }
 
             let showFromDate = null;
@@ -404,6 +430,7 @@
                 content,
                 type,
                 promoBusiness,
+                externalLink,
                 showFrom: showFromDate,
                 expiry: expiryDate,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -414,6 +441,7 @@
 
             newsForm.reset();
             businessSelectContainer.classList.add('hidden');
+            document.getElementById('external-link-container').classList.remove('hidden');
             document.getElementById('selected-business-display').textContent = 'No business selected';
             document.getElementById('selected-business-display').classList.add('italic', 'opacity-60');
             setExpiryDefault();
