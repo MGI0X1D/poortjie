@@ -185,11 +185,17 @@
         </div>
     </div>
 
-    <!-- Active Bookings -->
+    <!-- Active & Recent Trips -->
     <div class="card p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-xl space-y-6">
-        <div class="flex items-center gap-2">
-            <span class="w-1 h-4 bg-green-500 rounded-full"></span>
-            <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40">Active Trip Requests</h2>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="w-1 h-4 bg-green-500 rounded-full"></span>
+                <h2 class="text-[10px] font-black uppercase tracking-widest opacity-40" id="trips-list-title">Trip Requests</h2>
+            </div>
+            <div class="flex gap-2" id="trip-filters">
+                <button onclick="setTripFilter('ACTIVE')" class="trip-filter-btn active text-[8px] font-black uppercase tracking-widest px-3 py-1.5 bg-green-600 text-white rounded-full transition shadow-lg shadow-green-500/20">Active</button>
+                <button onclick="setTripFilter('HISTORY')" class="trip-filter-btn text-[8px] font-black uppercase tracking-widest px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full transition">History</button>
+            </div>
         </div>
         <div id="active-trips-list" class="space-y-4">
             <div class="text-center py-12 opacity-30 italic text-sm">
@@ -203,6 +209,8 @@
     let currentUser = null;
     let driverData = null;
     let carData = null;
+    let currentTripFilter = 'ACTIVE';
+    let tripsUnsubscribe = null;
 
     firebase.auth().onAuthStateChanged(user => {
         if (!user) {
@@ -258,6 +266,15 @@
             document.getElementById('driver-name').textContent = driverData.displayName || 'Unknown';
             document.getElementById('driver-email').textContent = driverData.email || '--';
             if (driverData.photoUrl) document.getElementById('driver-photo').src = driverData.photoUrl;
+
+            // Render Stats
+            const stats = driverData.stats || {};
+            const rating = stats.rating || 0;
+            const totalRatings = stats.totalRatings || 0;
+            const totalTrips = stats.totalTrips || 0;
+
+            document.getElementById('driver-rating').innerHTML = `<i class="fas fa-star mr-1"></i> ${rating.toFixed(1)} (${totalRatings})`;
+            document.getElementById('driver-trips').textContent = `${totalTrips} Trips`;
             
             // Update Status Toggle
             const status = (driverData.status || 'OFFLINE').toUpperCase();
@@ -370,16 +387,43 @@
         }
     }
 
+    function setTripFilter(filter) {
+        currentTripFilter = filter;
+        
+        // Update UI
+        document.querySelectorAll('.trip-filter-btn').forEach(btn => {
+            if (btn.textContent.toUpperCase() === filter) {
+                btn.classList.add('active', 'bg-green-600', 'text-white', 'shadow-lg', 'shadow-green-500/20');
+                btn.classList.remove('bg-slate-100', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-400');
+            } else {
+                btn.classList.remove('active', 'bg-green-600', 'text-white', 'shadow-lg', 'shadow-green-500/20');
+                btn.classList.add('bg-slate-100', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-400');
+            }
+        });
+
+        document.getElementById('trips-list-title').textContent = filter === 'ACTIVE' ? 'Trip Requests' : 'Trip History';
+
+        // Re-observe with new filter
+        observeBookings();
+    }
+
     /**
      * TRIP MANAGEMENT
      */
     function observeBookings() {
         if (!currentUser) return;
+        if (tripsUnsubscribe) tripsUnsubscribe();
 
-        // Path should match booking.html: db.collection('kasilayn').doc('fleet').collection('bookings')
-        db.collection('kasilayn').doc('fleet').collection('bookings')
-            .where('driverUid', '==', currentUser.uid)
-            .orderBy('createdAt', 'desc')
+        let query = db.collection('kasilayn').doc('fleet').collection('bookings')
+            .where('driverUid', '==', currentUser.uid);
+
+        if (currentTripFilter === 'ACTIVE') {
+            query = query.where('status', 'in', ['PENDING', 'ACCEPTED', 'ON_TRIP']);
+        } else {
+            query = query.where('status', 'in', ['COMPLETED', 'CANCELLED']);
+        }
+
+        tripsUnsubscribe = query.orderBy('createdAt', 'desc').limit(20)
             .onSnapshot(snapshot => {
                 const tripsList = document.getElementById('active-trips-list');
                 if (!tripsList) return;
@@ -387,7 +431,7 @@
                 if (snapshot.empty) {
                     tripsList.innerHTML = `
                         <div class="text-center py-12 opacity-30 italic text-sm">
-                            No active requests at the moment. Go online to start receiving trips.
+                            ${currentTripFilter === 'ACTIVE' ? 'No active requests at the moment. Go online to start receiving trips.' : 'No trip history found.'}
                         </div>
                     `;
                     return;
@@ -404,6 +448,8 @@
                     if (status === 'COMPLETED') statusColor = 'bg-gray-500';
                     if (status === 'CANCELLED') statusColor = 'bg-red-500';
 
+                    const rating = trip.rating || 0;
+
                     return `
                         <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-4">
                             <div class="flex justify-between items-start">
@@ -416,9 +462,16 @@
                                         <p class="text-[10px] font-bold opacity-50">${trip.whenText || 'ASAP'}</p>
                                     </div>
                                 </div>
-                                <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white ${statusColor}">
-                                    ${status}
-                                </span>
+                                <div class="flex flex-col items-end gap-2">
+                                    <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white ${statusColor}">
+                                        ${status}
+                                    </span>
+                                    ${rating > 0 ? `
+                                        <div class="flex gap-0.5 text-amber-400 text-[8px]">
+                                            ${Array(5).fill(0).map((_, i) => `<i class="${i < rating ? 'fas' : 'far'} fa-star"></i>`).join('')}
+                                        </div>
+                                    ` : ''}
+                                </div>
                             </div>
 
                             <div class="grid grid-cols-1 gap-3 pl-2 border-l-2 border-dashed border-slate-200 dark:border-slate-700 ml-5">
@@ -450,6 +503,11 @@
                                     ` : ''}
                                 </div>
                             </div>
+                            ${trip.ratingComment ? `
+                                <div class="mt-2 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 italic text-[10px] opacity-70">
+                                    "${trip.ratingComment}"
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 }).join('');
@@ -464,14 +522,44 @@
 
     async function updateTripStatus(tripId, newStatus) {
         try {
-            await db.collection('kasilayn').doc('fleet').collection('bookings').doc(tripId).update({
+            const now = firebase.firestore.FieldValue.serverTimestamp();
+            const updatePayload = {
                 status: newStatus,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+                updatedAt: now
+            };
+
+            // If completing a trip, update driver stats atomically
+            if (newStatus === 'COMPLETED') {
+                await db.runTransaction(async (transaction) => {
+                    const tripRef = db.collection('kasilayn').doc('fleet').collection('bookings').doc(tripId);
+                    const driverRef = db.collection('kasilayn').doc('fleet').collection('drivers').doc(currentUser.uid);
+
+                    const tripDoc = await transaction.get(tripRef);
+                    if (!tripDoc.exists) throw new Error("Trip not found");
+
+                    transaction.update(tripRef, updatePayload);
+                    transaction.update(driverRef, {
+                        'stats.totalTrips': firebase.firestore.FieldValue.increment(1),
+                        status: 'ONLINE', // Automatically back to online after completion
+                        updatedAt: now
+                    });
+                });
+            } else {
+                await db.collection('kasilayn').doc('fleet').collection('bookings').doc(tripId).update(updatePayload);
+                
+                // Also update driver status if accepting or starting
+                if (newStatus === 'ACCEPTED' || newStatus === 'ON_TRIP') {
+                    await db.collection('kasilayn').doc('fleet').collection('drivers').doc(currentUser.uid).update({
+                        status: newStatus === 'ON_TRIP' ? 'ON_TRIP' : 'BUSY',
+                        updatedAt: now
+                    });
+                }
+            }
+            
             console.log(`Trip ${tripId} updated to ${newStatus}`);
         } catch (e) {
             console.error("Failed to update trip:", e);
-            alert("Error updating trip status.");
+            alert("Error: " + e.message);
         }
     }
 
