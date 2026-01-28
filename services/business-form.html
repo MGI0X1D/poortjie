@@ -991,7 +991,7 @@
         }
     };
 
-    const renderUserApplications = (applications) => {
+    const renderUserApplications = async (applications) => {
         // userCategories is used to prevent duplicate listings in same category
         userCategories = applications
             .map(app => app.businessType);
@@ -1020,14 +1020,27 @@
         }
 
         newListingBtn.classList.remove('hidden');
-        userApplicationsList.innerHTML = applications.map(app => {
+        const applicationItems = await Promise.all(applications.map(async (app) => {
             const isRejected = app.status === 'rejected';
             const canEdit = (app.status === 'approved' || app.status === 'update') && !isRejected;
+            
+            let displayData = { ...app };
+            if (app.businessRef && app.status === 'approved') {
+                try {
+                    const docSnap = await db.doc(app.businessRef).get();
+                    if (docSnap.exists) {
+                        displayData = { ...app, ...docSnap.data() };
+                    }
+                } catch (e) {
+                    console.error("Error fetching display name:", e);
+                }
+            }
+
             return `
                 <div class="p-4 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 flex justify-between items-center">
                     <div>
-                        <h4 class="font-bold text-sm">${app.businessName || 'Business Name'}</h4>
-                        <p class="text-xs opacity-60">${app.businessType}</p>
+                        <h4 class="font-bold text-sm">${displayData.businessName}</h4>
+                        <p class="text-xs opacity-60">${displayData.businessType}</p>
                     </div>
                     <div class="flex items-center gap-3">
                         ${getStatusBadge(app.status)}
@@ -1044,7 +1057,8 @@
                     </div>
                 </div>
             `;
-        }).join('');
+        }));
+        userApplicationsList.innerHTML = applicationItems.join('');
 
         window.removeApplication = async (appId) => {
             if (!confirm('Are you sure you want to remove this rejected application? This cannot be undone.')) {
@@ -1073,7 +1087,7 @@
                     const docRef = db.doc(app.businessRef);
                     const docSnap = await docRef.get();
                     if (docSnap.exists) {
-                        displayData = { ...docSnap.data(), ...app, id: appId };
+                        displayData = { ...app, ...docSnap.data(), id: appId };
                     }
                 } catch (e) {
                     console.error("Error pulling data from businessRef:", e);
@@ -1087,14 +1101,14 @@
             applicationsSection.classList.add('hidden');
             newListingBtn.classList.add('hidden');
             cancelFormBtn.classList.remove('hidden');
-            formTitle.textContent = `Editing: ${displayData.businessName || 'Business'}`;
+            formTitle.textContent = `Editing: ${displayData.businessName}`;
             businessForm.scrollIntoView({ behavior: 'smooth' });
 
             // Populate form
             ownerNameInput.value = displayData.ownerName || '';
             emailInput.value = displayData.email || '';
             phoneInput.value = displayData.phone || '';
-            businessNameInput.value = displayData.businessName || '';
+            businessNameInput.value = displayData.businessName;
             subHeadingInput.value = displayData.subHeading || '';
             businessTypeInput.value = displayData.businessType || '';
             addressInput.value = displayData.address || '';
@@ -1370,7 +1384,7 @@
 
             const mockProvider = {
                 id: 'preview',
-                businessName: businessName || 'Business Name',
+                businessName: businessName,
                 subHeading: subHeadingInput.value.trim() || 'Your Tagline',
                 description: description || 'Your business description will appear here...',
                 phone: phone || '000 000 0000',
@@ -1535,7 +1549,7 @@
                         if (savedData) {
                             try {
                                 const data = JSON.parse(savedData);
-                                businessNameInput.value = data.businessName || '';
+                                businessNameInput.value = data.businessName;
                                 subHeadingInput.value = data.subHeading || '';
                                 businessTypeInput.value = data.businessType || '';
                                 phoneInput.value = data.phone || phoneInput.value;
